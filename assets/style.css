@@ -251,3 +251,8 @@ button:hover, button:focus-visible { background: var(--cyan); color: #000; box-s
 .cx span { font: 500 11px 'Orbitron', sans-serif; letter-spacing: 2px; color: var(--dim); text-transform: uppercase; }
 .cx b { font: 18px var(--mono); letter-spacing: 0; color: var(--yellow); text-shadow: 0 0 8px #f9f00288; margin-left: 6px; text-transform: none; }
 .cx p { flex-basis: 100%; margin: 0; font-size: 13px; color: var(--dim); }
+
+/* ---------- github ---------- */
+.gh { display: inline-flex; align-items: center; gap: 8px; padding: 4px 10px; border: 1px solid var(--line); color: var(--dim); text-decoration: none; font-size: 13px; }
+.gh:hover { color: var(--yellow); border-color: var(--yellow); box-shadow: 0 0 8px #f9f00244; }
+.gh b { color: var(--yellow); font-weight: 400; }
