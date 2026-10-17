@@ -1,0 +1,86 @@
+name: deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency: deploy-gridrunner
+
+permissions:
+  contents: read
+  packages: write
+
+env:
+  APP: gridrunner
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Test
+        run: npm test
+
+      - name: Prepare image name
+        id: image
+        run: echo "repo_lc=${GITHUB_REPOSITORY,,}" >> "$GITHUB_OUTPUT"
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: |
+            ghcr.io/${{ steps.image.outputs.repo_lc }}:${{ github.sha }}
+            ghcr.io/${{ steps.image.outputs.repo_lc }}:latest
+
+      - name: Set up SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_KEY }}" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          for i in 1 2 3 4 5; do
+            ssh-keyscan -T 10 -H "${{ secrets.SSH_HOST }}" >> ~/.ssh/known_hosts && break
+            echo "ssh-keyscan attempt $i failed; retrying in 10s"
+            sleep 10
+          done
+          grep -q . ~/.ssh/known_hosts || { echo "VPS unreachable on :22"; exit 1; }
+
+      - name: Sync compose and nginx config
+        run: |
+          ssh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "mkdir -p /opt/apps/$APP"
+          rsync -az docker-compose.yml             ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/opt/apps/$APP/
+
+      - name: Inject .env
+        run: |
+          test -n "${{ vars.DOMAIN }}" || { echo "Repository variable DOMAIN is not set"; exit 1; }
+          {
+            echo "DOMAIN=${{ vars.DOMAIN }}"
+            echo "TAG=${{ github.sha }}"
+          } | ssh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}             "umask 077 && cat > /opt/apps/$APP/.env"
+
+      - name: Deploy
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "$GH_TOKEN" | ssh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "
+            set -e
+            docker login ghcr.io -u ${{ github.actor }} --password-stdin
+            cd /opt/apps/$APP
+            docker compose pull
+            docker compose up -d --remove-orphans
+            docker logout ghcr.io
+          "

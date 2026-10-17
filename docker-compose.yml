@@ -1,0 +1,21 @@
+services:
+  gridrunner:
+    image: ghcr.io/xhamps/gridrunneralgorithms:${TAG:-latest}
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:8080/health | grep -q '^ok$'"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+    networks: [proxy]
+    labels:
+      traefik.enable: "true"
+      traefik.http.routers.gridrunner.rule: Host(`${DOMAIN}`)
+      traefik.http.routers.gridrunner.tls.certresolver: le
+      traefik.http.routers.gridrunner.service: gridrunner
+      traefik.http.services.gridrunner.loadbalancer.server.port: "8080"
+
+networks:
+  proxy:
+    external: true
