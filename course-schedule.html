@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Course Schedule · GRID//RUNNER</title>
+<link rel="stylesheet" href="assets/style.css">
+<style>.graph line.bad { stroke: var(--pink); stroke-width: 2.2; color: var(--pink); filter: drop-shadow(0 0 3px var(--pink)); }</style>
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="index.html">GRID<em>//</em>RUNNER</a>
+  <nav><a href="index.html#dp">Dynamic Programming</a><a class="on" href="index.html#grafos">Grafos</a></nav>
+</header>
+<main>
+<h1>COURSE SCHEDULE <span class="diff medium">MEDIUM</span></h1>
+<section class="panel problem"><h2>problema</h2>
+  <p>Há <code>n</code> matérias, numeradas de <code>0</code> a <code>n − 1</code>. Cada item <code>[a, b]</code> da lista
+    <code>pre</code> diz que é preciso cursar <code>b</code> <b>antes</b> de <code>a</code>. Retorne <code>true</code> se for
+    possível cursar todas as matérias.</p>
+  <p>Visto como grafo dirigido, cada <code>[a, b]</code> é uma seta <code>b → a</code>. Só é impossível quando há um
+    <b>ciclo</b>: as matérias do ciclo esperam umas pelas outras e nenhuma pode ser a primeira.</p>
+  <div class="ex"><b>Exemplo 1</b> · <code>n = 3, pre = [[1,0],[2,1],[2,0]]</code> → <code>true</code>
+    <p>Ordem possível: 0, 1, 2.</p></div>
+  <div class="ex"><b>Exemplo 2</b> · <code>n = 6</code>, o exemplo 1 mais <code>[[4,3],[5,4],[3,5]]</code> → <code>false</code>
+    <p>3 → 4 → 5 → 3 é um ciclo. É o exemplo animado abaixo.</p></div>
+  <p class="legend">Restrições: 1 ≤ n ≤ 2000 · 0 ≤ pre.length ≤ 5000 · pares [a, b] distintos, com a ≠ b</p>
+</section>
+<nav class="tabs" id="tabs" role="tablist" aria-label="variações"></nav>
+<div id="variant"></div>
+</main>
+<template id="tpl-dfs" data-label="DFS">
+<p class="lead"><b>Busca em profundidade com 3 estados</b>. <code>estado[u] = 1</code> quer dizer que <code>u</code> está no
+  <span class="hl">caminho atual</span> da recursão, ou seja, na call stack. Se a busca chega de novo a um nó com estado 1, ela andou em
+  círculo: <b>ciclo</b>. Quando todas as saídas de <code>u</code> terminam sem ciclo, ele vira 2 (concluído) e nunca mais é explorado.
+  Só "visitado / não visitado" não bastaria: chegar a um nó já <i>concluído</i> por outro caminho (como 0 → 2) não é ciclo.</p>
+<div class="cx"><span>tempo <b>O(V + E)</b></span><span>espaço <b>O(V + E)</b></span><p>Cada matéria muda de estado no máximo 2 vezes e cada aresta é seguida uma vez. Lista de adjacência + estado[] + call stack.</p></div>
+<div class="layout">
+  <section class="panel"><h2>grafo · b → a</h2><div id="viz"></div>
+    <div class="legend"><span><i style="border-color:var(--yellow);background:var(--yellow)"></i>nó atual</span>
+      <span><i style="border-color:var(--cyan)"></i>aresta / vizinho olhado</span>
+      <span><i style="border-color:var(--pink);background:#ff2a6d33"></i>1 · visitando (na pilha)</span>
+      <span><i style="border-color:var(--green);background:#05ffa133"></i>2 · concluído</span>
+      <span><i style="border-color:var(--pink);background:var(--pink)"></i>aresta que fecha o ciclo</span></div></section>
+  <section class="panel"><h2>registradores</h2><dl id="vars"></dl></section>
+  <section class="panel"><h2>código</h2><pre id="code"></pre></section>
+  <section class="panel"><h2>call stack</h2><p id="stackstat"></p><div id="stack"></div></section>
+  <section class="panel full"><h2>memória · estado[] no heap</h2>
+    <p id="memstat"></p><div id="mem"></div>
+    <p class="legend">estado[] ocupa n células. Os nós com estado 1 são exatamente os frames da call stack, que pode chegar a n frames.</p></section>
+</div>
+</template>
+<template id="tpl-bfs" data-label="BFS (Kahn)">
+<p class="lead"><b>Busca em largura de Kahn</b>, um algoritmo diferente da DFS. <code>grau[u]</code> conta quantos pré-requisitos de
+  <code>u</code> ainda faltam. A fila começa com as matérias sem pré-requisito. Cursar <code>u</code> diminui o grau de quem depende dele,
+  e quem chega a <span class="hl">0</span> entra na fila. Matérias de um ciclo nunca chegam a 0, então se a fila esvazia antes de
+  cursar as <code>n</code>, há ciclo. A ordem em que os nós saem da fila é uma <b>ordenação topológica</b>.</p>
+<div class="cx"><span>tempo <b>O(V + E)</b></span><span>espaço <b>O(V + E)</b></span><p>Kahn: cada matéria entra na fila uma vez e cada aresta diminui um grau uma vez. Lista de adjacência + grau[] + fila.</p></div>
+<div class="layout">
+  <section class="panel"><h2>grafo · b → a</h2><div id="viz"></div>
+    <div class="legend"><span><i style="border-color:var(--yellow);background:var(--yellow)"></i>nó atual</span>
+      <span><i style="border-color:var(--cyan)"></i>aresta / vizinho olhado</span>
+      <span><i style="border-color:var(--pink);background:#ff2a6d33"></i>na fila (liberada)</span>
+      <span><i style="border-color:var(--green);background:#05ffa133"></i>cursada</span></div></section>
+  <section class="panel"><h2>registradores</h2><dl id="vars"></dl></section>
+  <section class="panel"><h2>código</h2><pre id="code"></pre></section>
+  <section class="panel"><h2>fila · heap</h2><p id="queuestat"></p><div class="arr" id="queue"></div>
+    <p class="legend">head = próximo a sair · tail = último a entrar · apagados já saíram da fila.</p></section>
+  <section class="panel full"><h2>memória · grau[] no heap</h2>
+    <p id="memstat"></p><div id="mem"></div>
+    <p class="legend">grau[] ocupa n células. Sem recursão: a call stack não cresce. head conta as matérias já cursadas.</p></section>
+</div>
+</template>
+<footer class="ctrl">
+  <p id="msg"></p>
+  <div class="row">
+    <button id="first" title="Home">⏮</button><button id="prev" title="←">◀</button>
+    <button id="play">▶ RUN</button>
+    <button id="next" title="→">▶</button><button id="lastbtn" title="End">⏭</button>
+    <input id="scrub" type="range" min="0" value="0" aria-label="step">
+    <span id="stepno"></span>
+    <label>speed <input id="speed" type="range" min="100" max="1000" value="600"></label>
+    <span class="keys">← → espaço</span>
+  </div>
+</footer>
+
+<script src="assets/trace.js"></script>
+<script src="assets/course-schedule.js"></script>
+<script src="assets/player.js"></script>
+<script>
+const G = { pos: COURSE_GRAPH.pos, edges: COURSE_GRAPH.pre.map(([a, b]) => [b, a]), directed: true };
+const edge = (s) => (a, b) => s.bad && s.bad[0] === a && s.bad[1] === b ? 'bad' : (a === s.cur && b === s.nb) || (a === s.nb && b === s.cur) ? 'on' : '';
+const mark = (s, k) => k === s.cur ? 'cur' : k === s.nb ? 'nb' : '';
+
+mountTabs({
+dfs: () => mountPlayer(courseDFS(), (s) => {
+  renderCode(COURSE_CODE.dfs.text, s.line);
+  renderVars(s.vars);
+  renderStack(s);
+  renderMemory(s, (k) => `estado[${k}]`, (k) => `base + ${k}·4`);
+  renderGraph('viz', G, (k) => [mark(s, k), s.dp[k] === 1 ? 'seen' : s.dp[k] === 2 ? 'done' : ''].join(' '), edge(s));
+}),
+bfs: () => mountPlayer(courseBFS(), (s) => {
+  renderCode(COURSE_CODE.bfs.text, s.line);
+  renderVars(s.vars);
+  renderQueue(s);
+  renderMemory(s, (k) => `grau[${k}]`, (k) => `base + ${k}·4`);
+  renderGraph('viz', G, (k) => {
+    const q = s.queue.indexOf(k);
+    return [mark(s, k), q < 0 ? '' : q < s.head ? 'done' : 'seen'].join(' ');
+  }, edge(s));
+}),
+});
+</script>
+</body>
+</html>

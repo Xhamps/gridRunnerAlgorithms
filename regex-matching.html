@@ -1,0 +1,226 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Regex Matching · GRID//RUNNER</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="index.html">GRID<em>//</em>RUNNER</a>
+  <nav><a class="on" href="index.html#dp">Dynamic Programming</a><a href="index.html#grafos">Grafos</a></nav>
+</header>
+<main>
+<h1>REGEX MATCHING <span class="diff hard">HARD</span></h1>
+<section class="panel problem"><h2>problema</h2>
+  <p>Dada uma string <code>s</code> e um padrão <code>p</code>, diga se o padrão casa com a string. O padrão
+    suporta dois caracteres especiais:</p>
+  <p>· <code>.</code> casa com <b>qualquer caractere</b> (exatamente um).<br>
+    · <code>*</code> casa com <b>zero ou mais repetições</b> do elemento imediatamente antes dele.</p>
+  <p>O casamento precisa cobrir a <b>string inteira</b>, não só um pedaço dela.</p>
+  <div class="ex"><b>Exemplo 1</b> · <code>s = "aa", p = "a"</code> → <code>false</code>
+    <p>"a" casa com um caractere só, e sobra um "a".</p></div>
+  <div class="ex"><b>Exemplo 2</b> · <code>s = "aa", p = "a*"</code> → <code>true</code>
+    <p>"a*" repete o "a" duas vezes.</p></div>
+  <div class="ex"><b>Exemplo 3</b> · <code>s = "ab", p = ".*"</code> → <code>true</code>
+    <p>".*" é "zero ou mais de qualquer caractere", então cobre "ab".</p></div>
+  <p class="legend">Restrições: 1 ≤ s.length ≤ 20 · 1 ≤ p.length ≤ 20 · s só tem letras minúsculas · p tem letras
+    minúsculas, '.' e '*' · todo '*' vem depois de um caractere válido</p>
+</section>
+<nav class="tabs" id="tabs" role="tablist" aria-label="variações"></nav>
+<div id="variant"></div>
+</main>
+
+<template id="tpl-matriz" data-label="Matriz">
+<p class="lead"><b>Tabulation</b>: <code>dp[i][j]</code> = os primeiros <code>i</code> caracteres de
+  <code>s</code> casam com os primeiros <code>j</code> elementos de <code>p</code>? A linha 0 é a string vazia e a
+  coluna 0 é o padrão vazio.</p>
+<p class="lead">Para o <code>dp[i][j]</code>, olhe o último elemento do padrão, <code>p[j-1]</code>:<br>
+  · <b>caractere ou "."</b>: casa com <code>s[i-1]</code>? Então herda a <span class="hl">diagonal</span> <code>dp[i-1][j-1]</code>.<br>
+  · <b>"x*"</b>: duas saídas. <span class="hl">Zero vezes</span>: ignora o "x*" → <code>dp[i][j-2]</code> (2 colunas à esquerda).
+  <span class="hl">Mais uma vez</span>: se <code>s[i-1]</code> casa com x, consome o caractere e mantém o "x*" → <code>dp[i-1][j]</code> (acima).</p>
+
+<div class="cx"><span>tempo <b>O(m·n)</b></span><span>espaço <b>O(m·n)</b></span><p>Uma célula por par (texto i, padrão j), cada uma em O(1).</p></div>
+<div class="layout">
+  <section class="panel"><h2 style="text-transform:none">s = "aabb" · p = ".*a*b"</h2>
+    <div class="arr" id="sstr"></div><div class="arr" id="pstr" style="margin-top:8px"></div>
+    <div class="legend"><span><i style="border-color:var(--cyan)"></i>caractere de s</span>
+      <span><i style="border-color:var(--pink)"></i>elemento de p</span>
+      <span><i style="border-color:var(--green)"></i>prefixo já coberto</span></div></section>
+  <section class="panel"><h2>registradores</h2><dl id="vars"></dl></section>
+  <section class="panel full"><h2>tabela dp[i][j]</h2>
+    <div class="scroll"><table class="grid" id="viz"></table></div>
+    <div class="legend"><span><i style="border-color:var(--cyan);background:#00f0ff44"></i>diagonal · ou zero vezes (j-2)</span>
+      <span><i style="border-color:var(--pink);background:#ff2a6d44"></i>mais uma vez (acima)</span>
+      <span><i style="border-color:var(--yellow);background:var(--yellow)"></i>escrita</span>
+      <span><span style="color:var(--green)">T</span> casa · F não casa</span></div>
+  </section>
+  <section class="panel full"><h2>código</h2><pre id="code"></pre></section>
+  <section class="panel full"><h2>memória · bloco contíguo row-major</h2>
+    <p id="memstat"></p><div id="mem"></div>
+    <p class="legend">(m+1)·(n+1) células: O(m·n) de espaço. Como cada valor é um booleano, daria para usar 1 byte
+      (ou 1 bit) por célula. Aqui mantemos 4 B para comparar com os outros módulos.</p>
+  </section>
+</div>
+</template>
+<template id="tpl-array" data-label="Array">
+<p class="lead">A <a href="#matriz">matriz</a> lê três vizinhos: <code>dp[i][j-2]</code>
+  (mesma linha), <code>dp[i-1][j]</code> (acima) e <code>dp[i-1][j-1]</code> (diagonal). Com <b>uma só linha</b>
+  percorrida para frente, os dois primeiros saem de graça: <code>dp[j-2]</code> já é da linha nova e
+  <code>dp[j]</code> ainda é da antiga (<code>up</code>). A <span class="hl">diagonal</span> é o problema:
+  <code>dp[j-1]</code> acabou de ser sobrescrito. A solução é uma variável <code>prev</code> que carrega a diagonal de
+  uma coluna para a próxima.</p>
+
+<div class="cx"><span>tempo <b>O(m·n)</b></span><span>espaço <b>O(n)</b></span><p>Uma linha de n + 1 células mais a variável prev.</p></div>
+<div class="layout">
+  <section class="panel"><h2 style="text-transform:none">s = "aabb" · p = ".*a*b"</h2>
+    <div class="arr" id="sstr"></div><div class="arr" id="pstr" style="margin-top:8px"></div>
+    <div class="legend"><span><i style="border-color:var(--cyan)"></i>caractere de s</span>
+      <span><i style="border-color:var(--pink)"></i>elemento de p</span>
+      <span><i style="border-color:var(--green)"></i>prefixo já coberto</span></div></section>
+  <section class="panel"><h2>registradores</h2><dl id="vars"></dl></section>
+  <section class="panel full"><h2>array dp[j] + prev</h2>
+    <div class="arr" id="viz"></div>
+    <div class="legend"><span><i style="border-color:var(--cyan);background:#00f0ff44"></i>prev (diagonal) · ou dp[j-2] (zero vezes)</span>
+      <span><i style="border-color:var(--pink);background:#ff2a6d44"></i>up = dp[j] antigo (acima)</span>
+      <span><i style="border-color:var(--yellow);background:var(--yellow)"></i>escrita</span>
+      <span><span class="hl">i=k</span> linha da matriz que a célula representa</span></div>
+  </section>
+  <section class="panel full"><h2>código</h2><pre id="code"></pre></section>
+  <section class="panel full"><h2>memória · O(n)</h2>
+    <p id="memstat"></p><div id="mem"></div>
+    <p class="legend">n+1 células + prev, independente do tamanho de s. A matriz usaria (m+1)·(n+1).</p>
+  </section>
+</div>
+</template>
+<template id="tpl-memo" data-label="Memo">
+<p class="lead"><b>Memoization</b> (top-down): <code>f(i, j)</code> = o <span class="hl">sufixo</span>
+  <code>s[i..]</code> casa com <code>p[j..]</code>? É o jeito mais natural de escrever um matcher: olha o primeiro
+  elemento do padrão. Se é <b>"x*"</b>, tenta <span class="hl">zero vezes</span> (<code>f(i, j+2)</code>) e, se não
+  der, <span class="hl">consome um caractere</span> e mantém o "x*" (<code>f(i+1, j)</code>). Senão, casa um
+  caractere e avança os dois (<code>f(i+1, j+1)</code>). Sem memo, os vários "*" fazem a recursão explodir
+  exponencialmente. Com memo, cada <code>(i, j)</code> é resolvido uma vez só.</p>
+
+<div class="cx"><span>tempo <b>O(m·n)</b></span><span>espaço <b>O(m·n)</b></span><p>Cada f(i, j) é calculado uma vez. Memo e call stack de até m + n frames.</p></div>
+<div class="layout">
+  <section class="panel"><h2 style="text-transform:none">s = "aabb" · p = ".*a*b"</h2>
+    <div class="arr" id="sstr"></div><div class="arr" id="pstr" style="margin-top:8px"></div>
+    <div class="legend"><span><i style="border-color:var(--cyan)"></i>caractere de s</span>
+      <span><i style="border-color:var(--pink)"></i>elemento de p</span>
+      <span><i style="border-color:var(--green)"></i>sufixo ainda por casar</span></div></section>
+  <section class="panel"><h2>registradores</h2><dl id="vars"></dl></section>
+  <section class="panel full"><h2>memo[i][j]</h2>
+    <div class="scroll"><table class="grid" id="viz"></table></div>
+    <div class="legend"><span><i style="border-color:var(--cyan);background:#00f0ff44"></i>leitura · cache hit</span>
+      <span><i style="border-color:var(--yellow);background:var(--yellow)"></i>escrita</span>
+      <span><i style="border-color:var(--line)"></i>░░ nunca calculado</span>
+      <span><span style="color:var(--green)">T</span> casa · F não casa</span></div>
+  </section>
+  <section class="panel"><h2>código</h2><pre id="code"></pre></section>
+  <section class="panel"><h2>call stack</h2><p id="stackstat"></p><div id="stack"></div></section>
+  <section class="panel full"><h2>memória · heap (memo)</h2>
+    <p id="memstat"></p><div id="mem"></div>
+    <p class="legend">O <code>||</code> faz curto-circuito: quando "zero vezes" já dá T, o outro ramo nem é chamado.
+      Por isso várias células nunca são calculadas. A coluna n (padrão vazio) é o caso base e nunca é gravada.</p>
+  </section>
+</div>
+</template>
+
+<footer class="ctrl">
+  <p id="msg"></p>
+  <div class="row">
+    <button id="first" title="Home">⏮</button><button id="prev" title="←">◀</button>
+    <button id="play">▶ RUN</button>
+    <button id="next" title="→">▶</button><button id="lastbtn" title="End">⏭</button>
+    <input id="scrub" type="range" min="0" value="0" aria-label="step">
+    <span id="stepno"></span>
+    <label>speed <input id="speed" type="range" min="100" max="1000" value="600"></label>
+    <span class="keys">← → espaço</span>
+  </div>
+</footer>
+
+<script src="assets/trace.js"></script>
+<script src="assets/regex-matching.js"></script>
+<script src="assets/player.js"></script>
+<script>
+mountTabs({
+matriz: () => {
+  const chars = (id, str, name, cls) => $(id).innerHTML = [...str].map((c, k) =>
+    `<div class="slot">${name}[${k}]<div class="cell ${cls(k)}">${c}</div></div>`).join('');
+  const renderStr = (s) => {
+    chars('sstr', S, 's', (k) => k === s.i - 1 && s.j > 0 ? 'r0' : k < s.i ? 'rng' : '');
+    chars('pstr', P, 'p', (k) => s.i > 0 && (k === s.j - 1 || (s.star && k === s.j - 2)) ? 'r1' : k < s.j ? 'rng' : '');
+  };
+  const CODE = REGEX_CODE.matriz.text;
+  const COLS = P.length + 1;
+  const label = (k) => `dp[${Math.floor(k / COLS)}][${k % COLS}]`;
+  const formula = (k) => `base + (${Math.floor(k / COLS)}·${COLS} + ${k % COLS})·4`;
+
+  mountPlayer(regex2D(S, P), (s) => {
+    renderCode(CODE, s.line);
+    renderVars(s.vars);
+    renderStr(s);
+    renderMemory(s, label, formula, COLS);
+    let h = '<tr><th></th>' + ['ε', ...P].map((c, j) => `<th>j=${j}<br>${c}</th>`).join('') + '</tr>';
+    for (let i = 0; i <= S.length; i++) {
+      h += `<tr class="${i === s.i ? 'on' : ''}"><th class="rh">i=${i} ${i ? S[i - 1] : 'ε'}</th>`;
+      for (let j = 0; j <= P.length; j++) { const k = i * (P.length + 1) + j; h += `<td><div class="cell ${cellClass(s, k)}">${cellVal(s.dp[k])}</div></td>`; }
+      h += '</tr>';
+    }
+    $('viz').innerHTML = h;
+  });
+},
+array: () => {
+  const chars = (id, str, name, cls) => $(id).innerHTML = [...str].map((c, k) =>
+    `<div class="slot">${name}[${k}]<div class="cell ${cls(k)}">${c}</div></div>`).join('');
+  const renderStr = (s) => {
+    chars('sstr', S, 's', (k) => k === s.i - 1 && s.j > 0 ? 'r0' : k < s.i ? 'rng' : '');
+    chars('pstr', P, 'p', (k) => s.i > 0 && (k === s.j - 1 || (s.star && k === s.j - 2)) ? 'r1' : k < s.j ? 'rng' : '');
+  };
+  const N = P.length, PV = N + 1;
+  const CODE = REGEX_CODE.array.text;
+  const name = (k) => k === PV ? 'prev' : `dp[${k}]`;
+
+  mountPlayer(regex1D(S, P), (s) => {
+    renderCode(CODE, s.line);
+    renderVars(s.vars);
+    renderStr(s);
+    renderMemory(s, name, (k) => `base + ${k}·4`);
+    $('viz').innerHTML = s.dp.map((v, k) =>
+      `<div class="slot${k === PV ? ' tmp' : ''}">${name(k)}<div class="cell ${cellClass(s, k)}">${cellVal(v)}</div>` +
+      `<span class="gen${s.gen[k] === s.i ? ' fresh' : ''}">${s.gen[k] === null ? '' : 'i=' + s.gen[k]}</span></div>`).join('');
+  });
+},
+memo: () => {
+  const chars = (id, str, name, cls) => $(id).innerHTML = [...str].map((c, k) =>
+    `<div class="slot">${name}[${k}]<div class="cell ${cls(k)}">${c}</div></div>`).join('');
+  const renderStr = (s) => {
+    const star = P[s.j + 1] === '*';
+    chars('sstr', S, 's', (k) => k === s.i ? 'r0' : k > s.i ? 'rng' : '');
+    chars('pstr', P, 'p', (k) => k === s.j || (star && k === s.j + 1) ? 'r1' : k > s.j ? 'rng' : '');
+  };
+  const CODE = REGEX_CODE.memo.text;
+  const COLS = P.length + 1;
+  const label = (k) => `memo[${Math.floor(k / COLS)}][${k % COLS}]`;
+  const formula = (k) => `base + (${Math.floor(k / COLS)}·${COLS} + ${k % COLS})·4`;
+
+  mountPlayer(regexMemo(S, P), (s) => {
+    renderCode(CODE, s.line);
+    renderVars(s.vars);
+    renderStr(s);
+    renderStack(s);
+    renderMemory(s, label, formula, COLS);
+    let h = '<tr><th></th>' + [...P, ''].map((c, j) => `<th>j=${j}<br>"${P.slice(j)}"</th>`).join('') + '</tr>';
+    for (let i = 0; i <= S.length; i++) {
+      h += `<tr class="${i === s.i ? 'on' : ''}"><th class="rh">i=${i} "${S.slice(i)}"</th>`;
+      for (let j = 0; j <= P.length; j++) { const k = i * (P.length + 1) + j; h += `<td><div class="cell ${cellClass(s, k)}">${cellVal(s.dp[k])}</div></td>`; }
+      h += '</tr>';
+    }
+    $('viz').innerHTML = h;
+  });
+},
+});
+</script>
+</body>
+</html>

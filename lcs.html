@@ -1,0 +1,220 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LCS · GRID//RUNNER</title>
+<link rel="stylesheet" href="assets/style.css">
+<style>
+.cell.path { --c: var(--green); background: #05ffa122; color: var(--green); box-shadow: 0 0 8px var(--green); }
+.cell.pick { --c: var(--green); background: var(--green); color: #000; font-weight: bold; }
+</style>
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="index.html">GRID<em>//</em>RUNNER</a>
+  <nav><a class="on" href="index.html#dp">Dynamic Programming</a><a href="index.html#grafos">Grafos</a></nav>
+</header>
+<main>
+<h1>LONGEST COMMON SUBSEQUENCE <span class="diff medium">MEDIUM</span></h1>
+<section class="panel problem"><h2>problema</h2>
+  <p>Dadas duas strings <code>a</code> e <code>b</code>, retorne o tamanho da <b>maior subsequência comum</b> às duas.
+    Se não existir nenhuma, retorne <code>0</code>.</p>
+  <p>Uma <b>subsequência</b> é o que sobra de uma string depois de apagar zero ou mais caracteres, <b>sem mudar a ordem</b>
+    dos que ficaram. "ACE" é subsequência de "ABCDE", mas "AEC" não é. Diferente de uma substring, os caracteres não
+    precisam estar colados.</p>
+  <div class="ex"><b>Exemplo 1</b> · <code>a = "ABDCB", b = "ACBC"</code> → <code>3</code>
+    <p>"ABC" aparece nas duas, nessa ordem: <b>AB</b>D<b>C</b>B e <b>A</b>C<b>B</b><b>C</b>. Não existe nenhuma comum de tamanho 4.</p></div>
+  <div class="ex"><b>Exemplo 2</b> · <code>a = "GATO", b = "PATO"</code> → <code>3</code>
+    <p>"ATO": só a primeira letra muda.</p></div>
+  <div class="ex"><b>Exemplo 3</b> · <code>a = "ABC", b = "XYZ"</code> → <code>0</code>
+    <p>Nenhum caractere em comum.</p></div>
+  <p class="legend">Restrições: 1 ≤ a.length, b.length ≤ 1000 · as strings só têm letras</p>
+</section>
+<nav class="tabs" id="tabs" role="tablist" aria-label="variações"></nav>
+<div id="variant"></div>
+</main>
+
+<template id="tpl-matriz" data-label="Matriz">
+<p class="lead"><b>Tabulation</b>: <code>dp[i][j]</code> = tamanho da LCS dos prefixos <code>a[0..i)</code> e
+  <code>b[0..j)</code>. A linha 0 e a coluna 0 são a string vazia, então valem 0. Olhe o último caractere de cada prefixo:<br>
+  · <b>iguais</b>: ele entra na LCS → <span class="hl">diagonal + 1</span> (<code>dp[i-1][j-1] + 1</code>).<br>
+  · <b>diferentes</b>: um dos dois sobra. Descarta o de <code>a</code> (<span class="hl">cima</span>, <code>dp[i-1][j]</code>)
+  ou o de <code>b</code> (<span class="hl">esquerda</span>, <code>dp[i][j-1]</code>) e fica com o maior.</p>
+<p class="lead">A tabela só dá o <i>tamanho</i>. Para saber <i>qual</i> é a subsequência, o final do código faz o
+  <span class="hl">caminho de volta</span>: sai de <code>dp[m][n]</code> e pergunta de onde cada valor veio.</p>
+
+<div class="cx"><span>tempo <b>O(m·n)</b></span><span>espaço <b>O(m·n)</b></span><p>Uma célula por par de prefixos. O caminho de volta soma só O(m + n).</p></div>
+<div class="layout">
+  <section class="panel"><h2 style="text-transform:none">a = "ABDCB" · b = "ACBC"</h2>
+    <div class="arr" id="astr"></div><div class="arr" id="bstr" style="margin-top:8px"></div>
+    <div class="legend"><span><i style="border-color:var(--cyan)"></i>caractere de a</span>
+      <span><i style="border-color:var(--pink)"></i>caractere de b</span>
+      <span><i style="border-color:var(--green)"></i>prefixo já coberto</span><span><i style="border-color:var(--green);background:var(--green)"></i>entrou na LCS</span></div></section>
+  <section class="panel"><h2>registradores</h2><dl id="vars"></dl></section>
+  <section class="panel full"><h2>tabela dp[i][j]</h2>
+    <div class="scroll"><table class="grid" id="viz"></table></div>
+    <div class="legend"><span><i style="border-color:var(--cyan);background:#00f0ff44"></i>diagonal · ou cima</span>
+      <span><i style="border-color:var(--pink);background:#ff2a6d44"></i>esquerda</span>
+      <span><i style="border-color:var(--yellow);background:var(--yellow)"></i>escrita</span>
+      <span><i style="border-color:var(--green);background:#05ffa122"></i>caminho de volta</span></div>
+  </section>
+  <section class="panel full"><h2>código</h2><pre id="code"></pre></section>
+  <section class="panel full"><h2>memória · bloco contíguo row-major</h2>
+    <p id="memstat"></p><div id="mem"></div>
+    <p class="legend">(m+1)·(n+1) células: O(m·n) de espaço. É o preço de poder refazer o caminho no final: a versão com
+      array economiza memória, mas perde a tabela e só sabe o tamanho.</p>
+  </section>
+</div>
+</template>
+<template id="tpl-array" data-label="Array">
+<p class="lead">A <a href="#matriz">matriz</a> lê três vizinhos: <code>dp[i-1][j]</code> (cima),
+  <code>dp[i][j-1]</code> (esquerda) e <code>dp[i-1][j-1]</code> (diagonal). Com <b>uma só linha</b> percorrida para
+  frente, cima e esquerda saem de graça: <code>dp[j]</code> ainda é da linha antiga e <code>dp[j-1]</code> já é da nova.</p>
+<p class="lead">O problema é a <span class="hl">diagonal</span>: ela era o <code>dp[j-1]</code> antigo, que acabou de ser
+  sobrescrito. O truque: antes de escrever em <code>dp[j]</code>, guardar o valor antigo em <code>tmp</code>. No fim da
+  coluna, <code>prev = tmp</code>, e esse valor é exatamente a diagonal que a coluna <code>j+1</code> vai precisar. Sem o
+  <code>prev</code>, o "diagonal + 1" leria o valor errado.</p>
+
+<div class="cx"><span>tempo <b>O(m·n)</b></span><span>espaço <b>O(n)</b></span><p>Mesmas contas; uma linha de n + 1 células mais a variável prev.</p></div>
+<div class="layout">
+  <section class="panel"><h2 style="text-transform:none">a = "ABDCB" · b = "ACBC"</h2>
+    <div class="arr" id="astr"></div><div class="arr" id="bstr" style="margin-top:8px"></div>
+    <div class="legend"><span><i style="border-color:var(--cyan)"></i>caractere de a</span>
+      <span><i style="border-color:var(--pink)"></i>caractere de b</span>
+      <span><i style="border-color:var(--green)"></i>prefixo já coberto</span></div></section>
+  <section class="panel"><h2>registradores</h2><dl id="vars"></dl></section>
+  <section class="panel full"><h2>array dp[j] + prev + tmp</h2>
+    <div class="arr" id="viz"></div>
+    <div class="legend"><span><i style="border-color:var(--cyan);background:#00f0ff44"></i>prev (diagonal) · ou dp[j] antigo (cima)</span>
+      <span><i style="border-color:var(--pink);background:#ff2a6d44"></i>dp[j-1] novo (esquerda)</span>
+      <span><i style="border-color:var(--yellow);background:var(--yellow)"></i>escrita</span>
+      <span><span class="hl">i=k</span> linha da matriz que a célula representa</span></div>
+  </section>
+  <section class="panel full"><h2>código</h2><pre id="code"></pre></section>
+  <section class="panel full"><h2>memória · O(n)</h2>
+    <p id="memstat"></p><div id="mem"></div>
+    <p class="legend">n+1 células + 2 variáveis, independente do tamanho de a. A matriz usaria (m+1)·(n+1). Dica: use
+      como <code>b</code> a string menor.</p>
+  </section>
+</div>
+</template>
+<template id="tpl-memo" data-label="Memo">
+<p class="lead"><b>Memoization</b> (top-down): <code>f(i, j)</code> = tamanho da LCS dos <span class="hl">sufixos</span>
+  <code>a[i..]</code> e <code>b[j..]</code>. Se os primeiros caracteres são iguais, ele entra na LCS e os dois avançam
+  (<code>1 + f(i+1, j+1)</code>). Senão, tenta descartar um de cada lado e fica com o melhor:
+  <code>max(f(i+1, j), f(i, j+1))</code>. Os dois descartes acabam pedindo os mesmos sufixos (ex.: os dois chegam em
+  <code>f(i+1, j+1)</code>), por isso o memo. Sem ele seriam O(2^(m+n)) chamadas, com ele O(m·n).</p>
+
+<div class="cx"><span>tempo <b>O(m·n)</b></span><span>espaço <b>O(m·n)</b></span><p>Cada f(i, j) é calculado uma vez. Memo m×n e call stack de até m + n frames.</p></div>
+<div class="layout">
+  <section class="panel"><h2 style="text-transform:none">a = "ABDCB" · b = "ACBC"</h2>
+    <div class="arr" id="astr"></div><div class="arr" id="bstr" style="margin-top:8px"></div>
+    <div class="legend"><span><i style="border-color:var(--cyan)"></i>caractere de a</span>
+      <span><i style="border-color:var(--pink)"></i>caractere de b</span>
+      <span><i style="border-color:var(--green)"></i>sufixo ainda por resolver</span></div></section>
+  <section class="panel"><h2>registradores</h2><dl id="vars"></dl></section>
+  <section class="panel full"><h2>memo[i][j]</h2>
+    <div class="scroll"><table class="grid" id="viz"></table></div>
+    <div class="legend"><span><i style="border-color:var(--cyan);background:#00f0ff44"></i>leitura · cache hit</span>
+      <span><i style="border-color:var(--yellow);background:var(--yellow)"></i>escrita</span>
+      <span><i style="border-color:var(--line)"></i>░░ nunca calculado</span></div>
+  </section>
+  <section class="panel"><h2>código</h2><pre id="code"></pre></section>
+  <section class="panel"><h2>call stack</h2><p id="stackstat"></p><div id="stack"></div></section>
+  <section class="panel full"><h2>memória · heap (memo)</h2>
+    <p id="memstat"></p><div id="mem"></div>
+    <p class="legend">Quando os caracteres casam, só um ramo é chamado. Por isso várias células nunca são calculadas.
+      Os casos base (um sufixo vazio) não ocupam o memo: ele tem m·n células, não (m+1)·(n+1).</p>
+  </section>
+</div>
+</template>
+
+<footer class="ctrl">
+  <p id="msg"></p>
+  <div class="row">
+    <button id="first" title="Home">⏮</button><button id="prev" title="←">◀</button>
+    <button id="play">▶ RUN</button>
+    <button id="next" title="→">▶</button><button id="lastbtn" title="End">⏭</button>
+    <input id="scrub" type="range" min="0" value="0" aria-label="step">
+    <span id="stepno"></span>
+    <label>speed <input id="speed" type="range" min="100" max="1000" value="600"></label>
+    <span class="keys">← → espaço</span>
+  </div>
+</footer>
+
+<script src="assets/trace.js"></script>
+<script src="assets/lcs.js"></script>
+<script src="assets/player.js"></script>
+<script>
+const chars = (id, str, name, cls) => $(id).innerHTML = [...str].map((c, k) =>
+  `<div class="slot">${name}[${k}]<div class="cell ${cls(k)}">${c}</div></div>`).join('');
+
+mountTabs({
+matriz: () => {
+  const CODE = LCS_CODE.matriz.text;
+  const COLS = B.length + 1;
+  const label = (k) => `dp[${Math.floor(k / COLS)}][${k % COLS}]`;
+  const formula = (k) => `base + (${Math.floor(k / COLS)}·${COLS} + ${k % COLS})·4`;
+
+  mountPlayer(lcs2D(A, B), (s) => {
+    renderCode(CODE, s.line);
+    renderVars(s.vars);
+    renderMemory(s, label, formula, COLS);
+    const live = s.j > 0 && s.i > 0;
+    chars('astr', A, 'a', (k) => s.pickA.includes(k) ? 'pick' : live && k === s.i - 1 ? 'r0' : !s.back && k < s.i ? 'rng' : '');
+    chars('bstr', B, 'b', (k) => s.pickB.includes(k) ? 'pick' : live && k === s.j - 1 ? 'r1' : !s.back && k < s.j ? 'rng' : '');
+    let h = '<tr><th></th>' + ['ε', ...B].map((c, j) => `<th>j=${j}<br>${c}</th>`).join('') + '</tr>';
+    for (let i = 0; i <= A.length; i++) {
+      h += `<tr class="${i === s.i ? 'on' : ''}"><th class="rh">i=${i} ${i ? A[i - 1] : 'ε'}</th>`;
+      for (let j = 0; j <= B.length; j++) {
+        const k = i * COLS + j, c = cellClass(s, k);
+        h += `<td><div class="cell ${c || (s.path.includes(k) ? 'path' : '')}">${cellVal(s.dp[k])}</div></td>`;
+      }
+      h += '</tr>';
+    }
+    $('viz').innerHTML = h;
+  });
+},
+array: () => {
+  const N = B.length, PV = N + 1, TM = N + 2;
+  const CODE = LCS_CODE.array.text;
+  const name = (k) => k === PV ? 'prev' : k === TM ? 'tmp' : `dp[${k}]`;
+
+  mountPlayer(lcs1D(A, B), (s) => {
+    renderCode(CODE, s.line);
+    renderVars(s.vars);
+    renderMemory(s, name, (k) => `base + ${k}·4`);
+    chars('astr', A, 'a', (k) => k === s.i - 1 && s.j > 0 ? 'r0' : k < s.i ? 'rng' : '');
+    chars('bstr', B, 'b', (k) => s.i > 0 && k === s.j - 1 ? 'r1' : k < s.j ? 'rng' : '');
+    $('viz').innerHTML = s.dp.map((v, k) =>
+      `<div class="slot${k > N ? ' tmp' : ''}">${name(k)}<div class="cell ${cellClass(s, k)}">${cellVal(v)}</div>` +
+      `<span class="gen${s.gen[k] === s.i ? ' fresh' : ''}">${s.gen[k] === null ? '' : 'i=' + s.gen[k]}</span></div>`).join('');
+  });
+},
+memo: () => {
+  const CODE = LCS_CODE.memo.text;
+  const N = B.length;
+  const label = (k) => `memo[${Math.floor(k / N)}][${k % N}]`;
+  const formula = (k) => `base + (${Math.floor(k / N)}·${N} + ${k % N})·4`;
+
+  mountPlayer(lcsMemo(A, B), (s) => {
+    renderCode(CODE, s.line);
+    renderVars(s.vars);
+    renderStack(s);
+    renderMemory(s, label, formula, N);
+    chars('astr', A, 'a', (k) => k === s.i ? 'r0' : k > s.i ? 'rng' : '');
+    chars('bstr', B, 'b', (k) => k === s.j ? 'r1' : k > s.j ? 'rng' : '');
+    let h = '<tr><th></th>' + [...B].map((c, j) => `<th>j=${j}<br>"${B.slice(j)}"</th>`).join('') + '</tr>';
+    for (let i = 0; i < A.length; i++) {
+      h += `<tr class="${i === s.i ? 'on' : ''}"><th class="rh">i=${i} "${A.slice(i)}"</th>`;
+      for (let j = 0; j < N; j++) { const k = i * N + j; h += `<td><div class="cell ${cellClass(s, k)}">${cellVal(s.dp[k])}</div></td>`; }
+      h += '</tr>';
+    }
+    $('viz').innerHTML = h;
+  });
+},
+});
+</script>
+</body>
+</html>

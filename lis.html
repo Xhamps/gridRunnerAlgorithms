@@ -1,0 +1,238 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LIS · GRID//RUNNER</title>
+<link rel="stylesheet" href="assets/style.css">
+<style>
+  .arr .gen.ptr { color: var(--green); }
+  .arr .slot.off .cell { opacity: .35; }
+</style>
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="index.html">GRID<em>//</em>RUNNER</a>
+  <nav><a class="on" href="index.html#dp">Dynamic Programming</a><a href="index.html#grafos">Grafos</a></nav>
+</header>
+<main>
+<h1>LONGEST INCREASING SUBSEQUENCE <span class="diff medium">MEDIUM</span></h1>
+<section class="panel problem"><h2>problema</h2>
+  <p>Dado um array de inteiros <code>nums</code>, retorne o tamanho da maior <b>subsequência estritamente crescente</b>.</p>
+  <p>Uma subsequência é obtida apagando zero ou mais elementos <b>sem mudar a ordem</b> dos que sobram. Ela não
+    precisa ser contígua: em <code>[3, 5, 6, 1, 7]</code>, <code>[3, 6, 7]</code> é uma subsequência, mas
+    <code>[6, 5]</code> não é. "Estritamente" quer dizer que números iguais não contam como crescentes.</p>
+  <div class="ex"><b>Exemplo 1</b> · <code>nums = [3, 5, 6, 1, 7]</code> → <code>4</code>
+    <p>A sequência <code>3, 5, 6, 7</code>. O 1 não ajuda: depois dele só vem o 7.</p></div>
+  <div class="ex"><b>Exemplo 2</b> · <code>nums = [7, 7, 7]</code> → <code>1</code>
+    <p>Todos iguais: nenhum par é estritamente crescente, então o melhor é um número sozinho.</p></div>
+  <p class="legend">Restrições: 1 ≤ nums.length ≤ 2500 · −10⁴ ≤ nums[i] ≤ 10⁴</p>
+</section>
+<nav class="tabs" id="tabs" role="tablist" aria-label="variações"></nav>
+<div id="variant"></div>
+</main>
+
+<template id="tpl-matriz" data-label="Matriz">
+<p class="lead"><b>Tabulation</b> da mesma recursão da aba <a href="#memo">Memo</a>: o estado é
+  (<code>i</code>, último escolhido). <code>dp[i][p]</code> = a maior sequência crescente que dá para montar com
+  <code>nums[i..]</code> quando o último número escolhido foi <code>nums[p-1]</code> (<code>p = 0</code>: nada escolhido).
+  Em cada célula: <span class="hl">pular</span> <code>nums[i]</code> ou, se for maior que o anterior,
+  <span class="hl">pegar</span> e passar a ter <code>nums[i]</code> como anterior. A tabela é preenchida de baixo para cima,
+  na ordem inversa das chamadas.</p>
+
+<div class="cx"><span>tempo <b>O(n²)</b></span><span>espaço <b>O(n²)</b></span><p>Um estado (i, anterior) para cada par, cada um em O(1).</p></div>
+<div class="layout">
+  <section class="panel"><h2>nums</h2><div class="arr" id="nums"></div>
+    <div class="legend"><span><i style="border-color:var(--cyan)"></i>nums[i]</span>
+      <span><i style="border-color:var(--pink)"></i>último escolhido</span></div></section>
+  <section class="panel"><h2>registradores</h2><dl id="vars"></dl></section>
+  <section class="panel full"><h2>tabela dp[i][p]</h2>
+    <div class="scroll"><table class="grid" id="viz"></table></div>
+    <div class="legend"><span><i style="border-color:var(--cyan);background:#00f0ff44"></i>leitura · pular dp[i+1][p]</span>
+      <span><i style="border-color:var(--pink);background:#ff2a6d44"></i>leitura · pegar dp[i+1][i+1]</span>
+      <span><i style="border-color:var(--yellow);background:var(--yellow)"></i>escrita</span>
+      <span><i style="border-color:var(--line)"></i>░░ nunca usado (p &gt; i)</span></div>
+  </section>
+  <section class="panel full"><h2>código</h2><pre id="code"></pre></section>
+  <section class="panel full"><h2>memória · bloco contíguo row-major</h2>
+    <p id="memstat"></p><div id="mem"></div>
+    <p class="legend">(n+1)² células, mas só o triângulo p ≤ i é usado: o anterior sempre vem antes de i. Espaço O(n²),
+      tempo O(n²). A aba <a href="#array">Array</a> resolve no mesmo tempo com só O(n) de memória.</p>
+  </section>
+</div>
+</template>
+<template id="tpl-array" data-label="Array">
+<p class="lead">A formulação clássica: <code>dp[i]</code> = a maior sequência crescente que <span class="hl">termina</span>
+  em <code>nums[i]</code>. Para cada <code>i</code>, olhamos todos os <code>j</code> anteriores: se
+  <code>nums[j] &lt; nums[i]</code>, dá para pendurar <code>nums[i]</code> no fim da sequência de <code>j</code>,
+  ganhando <code>dp[j] + 1</code>. A resposta é o maior <code>dp[i]</code>, porque a sequência pode terminar em qualquer lugar.</p>
+
+<div class="cx"><span>tempo <b>O(n²)</b></span><span>espaço <b>O(n)</b></span><p>Para cada i, olha todos os j < i. Um array de n células.</p></div>
+<div class="layout">
+  <section class="panel"><h2>nums</h2><div class="arr" id="nums"></div>
+    <div class="legend"><span><i style="border-color:var(--cyan)"></i>nums[i]</span>
+      <span><i style="border-color:var(--pink)"></i>nums[j]</span></div></section>
+  <section class="panel"><h2>registradores</h2><dl id="vars"></dl></section>
+  <section class="panel full"><h2>array dp[i]</h2>
+    <div class="arr" id="viz"></div>
+    <div class="legend"><span><i style="border-color:var(--cyan);background:#00f0ff44"></i>leitura · dp[i]</span>
+      <span><i style="border-color:var(--pink);background:#ff2a6d44"></i>leitura · dp[j]</span>
+      <span><i style="border-color:var(--yellow);background:var(--yellow)"></i>escrita</span></div>
+  </section>
+  <section class="panel full"><h2>código</h2><pre id="code"></pre></section>
+  <section class="panel full"><h2>memória · O(n)</h2>
+    <p id="memstat"></p><div id="mem"></div>
+    <p class="legend">n células, tempo O(n²): cada i compara com todos os j &lt; i. A aba
+      <a href="#binaria">Binária</a> derruba o tempo para O(n log n).</p>
+  </section>
+</div>
+</template>
+<template id="tpl-memo" data-label="Memo">
+<p class="lead"><b>Memoization</b> (top-down): <code>f(i, prev)</code> devolve a maior sequência crescente que dá para
+  montar com <code>nums[i..]</code> sabendo que o último escolhido foi <code>nums[prev]</code> (<code>prev = -1</code>:
+  nada ainda). Cada chamada decide <span class="hl">pular</span> ou <span class="hl">pegar</span> <code>nums[i]</code>.
+  Caminhos diferentes chegam ao mesmo (i, prev), e aí entra o cache. Como <code>prev</code> vai de -1 a n-1, a coluna
+  é <code>prev + 1</code>.</p>
+
+<div class="cx"><span>tempo <b>O(n²)</b></span><span>espaço <b>O(n²)</b></span><p>Cada f(i, anterior) é calculado uma vez. Memo n×(n+1) e call stack de até n frames.</p></div>
+<div class="layout">
+  <section class="panel"><h2>nums</h2><div class="arr" id="nums"></div>
+    <div class="legend"><span><i style="border-color:var(--cyan)"></i>nums[i]</span>
+      <span><i style="border-color:var(--pink)"></i>nums[prev]</span></div></section>
+  <section class="panel"><h2>registradores</h2><dl id="vars"></dl></section>
+  <section class="panel full"><h2>memo[i][prev+1]</h2>
+    <div class="scroll"><table class="grid" id="viz"></table></div>
+    <div class="legend"><span><i style="border-color:var(--cyan);background:#00f0ff44"></i>leitura · cache hit</span>
+      <span><i style="border-color:var(--yellow);background:var(--yellow)"></i>escrita</span>
+      <span><i style="border-color:var(--line)"></i>░░ nunca calculado</span></div>
+  </section>
+  <section class="panel"><h2>código</h2><pre id="code"></pre></section>
+  <section class="panel"><h2>call stack</h2><p id="stackstat"></p><div id="stack"></div></section>
+  <section class="panel full"><h2>memória · heap (memo)</h2>
+    <p id="memstat"></p><div id="mem"></div>
+    <p class="legend">n·(n+1) células, das quais só os estados alcançados são gravados. A stack chega a n+1 frames
+      (uma chamada por índice até o caso base i = n).</p>
+  </section>
+</div>
+</template>
+<template id="tpl-binaria" data-label="Binária">
+<p class="lead"><b>O(n log n)</b> com busca binária. <code>tails[k]</code> guarda o <span class="hl">menor final possível</span>
+  de uma sequência crescente de tamanho <code>k+1</code>. <code>tails</code> é sempre crescente, então para cada
+  <code>x</code> buscamos o primeiro <code>tails[k] ≥ x</code> (lower bound): se não existe, <code>x</code> estende a maior
+  sequência; se existe, <code>x</code> o substitui, deixando aquele tamanho com um final menor. Atenção:
+  <code>tails</code> <b>não</b> é a subsequência, só o seu tamanho está garantido.</p>
+
+<div class="cx"><span>tempo <b>O(n log n)</b></span><span>espaço <b>O(n)</b></span><p>Uma busca binária em tails para cada um dos n números.</p></div>
+<div class="layout">
+  <section class="panel"><h2>nums</h2><div class="arr" id="nums"></div>
+    <div class="legend"><span><i style="border-color:var(--cyan)"></i>x atual</span></div></section>
+  <section class="panel"><h2>registradores</h2><dl id="vars"></dl></section>
+  <section class="panel full"><h2>array tails[k]</h2>
+    <div class="arr" id="viz"></div>
+    <div class="legend"><span><i style="border-color:var(--cyan);background:#00f0ff44"></i>leitura · tails[mid]</span>
+      <span><i style="border-color:var(--yellow);background:var(--yellow)"></i>escrita</span>
+      <span><span class="hl">lo / mid / hi</span> ponteiros da busca</span>
+      <span>apagado = fora de tails.length</span></div>
+  </section>
+  <section class="panel full"><h2>código</h2><pre id="code"></pre></section>
+  <section class="panel full"><h2>memória · O(n)</h2>
+    <p id="memstat"></p><div id="mem"></div>
+    <p class="legend">No pior caso (array já crescente) tails cresce até n. Cada número faz uma busca de O(log n) passos,
+      em vez de comparar com todos os anteriores como na aba <a href="#array">Array</a>.</p>
+  </section>
+</div>
+</template>
+
+<footer class="ctrl">
+  <p id="msg"></p>
+  <div class="row">
+    <button id="first" title="Home">⏮</button><button id="prev" title="←">◀</button>
+    <button id="play">▶ RUN</button>
+    <button id="next" title="→">▶</button><button id="lastbtn" title="End">⏭</button>
+    <input id="scrub" type="range" min="0" value="0" aria-label="step">
+    <span id="stepno"></span>
+    <label>speed <input id="speed" type="range" min="100" max="1000" value="600"></label>
+    <span class="keys">← → espaço</span>
+  </div>
+</footer>
+
+<script src="assets/trace.js"></script>
+<script src="assets/lis.js"></script>
+<script src="assets/player.js"></script>
+<script>
+const N = SEQ.length;
+// nums strip: i in cyan, j (previous / compared index) in pink
+const renderNums = (s) => {
+  $('nums').innerHTML = SEQ.map((v, k) =>
+    `<div class="slot">[${k}]<div class="cell ${k === s.i ? 'r0' : k === s.j ? 'r1' : ''}">${v}</div></div>`).join('');
+};
+// (rows) x (N+1) table; column p is labelled by the "previous" it stands for
+const renderTable = (s, rows, name) => {
+  const prevLabel = (p) => p ? `${SEQ[p - 1]}` : '∅';
+  let h = '<tr><th></th>' + [...Array(N + 1).keys()].map((p) => `<th>${name}=${p}<br>(${prevLabel(p)})</th>`).join('') + '</tr>';
+  for (let i = 0; i < rows; i++) {
+    h += `<tr class="${i === s.i ? 'on' : ''}"><th class="rh">i=${i} (${i < N ? SEQ[i] : 'fim'})</th>`;
+    for (let p = 0; p <= N; p++) h += `<td><div class="cell ${cellClass(s, i * (N + 1) + p)}">${cellVal(s.dp[i * (N + 1) + p])}</div></td>`;
+    h += '</tr>';
+  }
+  $('viz').innerHTML = h;
+};
+
+mountTabs({
+matriz: () => {
+  const CODE = LIS_CODE.matriz.text, C = N + 1;
+  const label = (k) => `dp[${Math.floor(k / C)}][${k % C}]`;
+  const formula = (k) => `base + (${Math.floor(k / C)}·${C} + ${k % C})·4`;
+
+  mountPlayer(lis2D(SEQ), (s) => {
+    renderCode(CODE, s.line);
+    renderVars(s.vars);
+    renderNums(s);
+    renderMemory(s, label, formula, C);
+    renderTable(s, N + 1, 'p');
+  });
+},
+array: () => {
+  const CODE = LIS_CODE.array.text;
+
+  mountPlayer(lis1D(SEQ), (s) => {
+    renderCode(CODE, s.line);
+    renderVars(s.vars);
+    renderNums(s);
+    renderMemory(s, (k) => `dp[${k}]`, (k) => `base + ${k}·4`);
+    $('viz').innerHTML = s.dp.map((v, k) =>
+      `<div class="slot">dp[${k}]<div class="cell ${cellClass(s, k)}">${cellVal(v)}</div><span class="gen">${SEQ[k]}</span></div>`).join('');
+  });
+},
+memo: () => {
+  const CODE = LIS_CODE.memo.text, C = N + 1;
+  const label = (k) => `memo[${Math.floor(k / C)}][${k % C}]`;
+  const formula = (k) => `base + (${Math.floor(k / C)}·${C} + ${k % C})·4`;
+
+  mountPlayer(lisMemo(SEQ), (s) => {
+    renderCode(CODE, s.line);
+    renderVars(s.vars);
+    renderStack(s);
+    renderNums(s);
+    renderMemory(s, label, formula, C);
+    renderTable(s, N, 'prev+1');
+  });
+},
+binaria: () => {
+  const CODE = LIS_CODE.binaria.text;
+
+  mountPlayer(lisBinary(SEQ), (s) => {
+    renderCode(CODE, s.line);
+    renderVars(s.vars);
+    renderNums(s);
+    renderMemory(s, (k) => `tails[${k}]`, (k) => `base + ${k}·4`);
+    const ptr = (k) => [k === s.lo && 'lo', k === s.mid && 'mid', k === s.hi && 'hi'].filter(Boolean).join(' ');
+    $('viz').innerHTML = s.dp.map((v, k) =>
+      `<div class="slot${k >= s.len ? ' off' : ''}">tails[${k}]<div class="cell ${cellClass(s, k)}">${cellVal(v)}</div>` +
+      `<span class="gen ptr">${ptr(k)}</span></div>`).join('');
+  });
+},
+});
+</script>
+</body>
+</html>
