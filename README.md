@@ -187,3 +187,11 @@ A página só desenha: `mountTabs({ aba: () => mountPlayer(gerador(), render) })
 3. Crie `test/<desafio>.test.js` comparando com uma solução independente.
 4. Adicione o desafio em `test/lines.test.js`.
 5. Adicione o card em `index.html` com `data-diff="easy|medium|hard"`, na posição do seu nível.
+
+## Contribuindo
+
+Veja o [CONTRIBUTING.md](CONTRIBUTING.md).
+
+## Licença
+
+[MIT](LICENSE.md): livre para usar, copiar, modificar e distribuir, inclusive comercialmente.
