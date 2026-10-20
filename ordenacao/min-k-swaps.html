@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Menor Número com k Trocas · GRID//RUNNER</title>
+<link rel="stylesheet" href="../assets/style.css">
+<style>
+.arr .slot.off .cell { opacity: .35; }
+.arr .gen.ptr { color: var(--green); }
+.qrow { display: flex; align-items: center; gap: 8px; margin: 4px 0; font-size: 13px; color: var(--dim); }
+.qrow b { width: 64px; color: var(--txt); }
+.qrow.on b { color: var(--yellow); }
+.out { font-size: 22px; letter-spacing: 6px; color: var(--green); text-shadow: 0 0 8px var(--green); min-height: 28px; }
+</style>
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="../index.html">GRID<em>//</em>RUNNER</a>
+  <nav><a href="../index.html#dp">Dynamic Programming</a><a href="../index.html#grafos">Grafos</a><a class="on" href="../index.html#ordenacao">Ordenação</a><a href="../index.html#busca">Busca Binária</a></nav>
+</header>
+<script src="../assets/github.js"></script>
+<main>
+<h1>MENOR NÚMERO COM K TROCAS <span class="diff hard">HARD</span></h1>
+<section class="panel problem"><h2>problema</h2>
+  <p>Você recebe uma string <code>num</code> só de dígitos e um inteiro <code>k</code>. Cada operação troca dois dígitos
+    <b>vizinhos</b> de lugar, e você pode fazer no máximo <code>k</code> operações. Devolva o menor número (como string)
+    que dá para obter. Zeros à esquerda são permitidos e continuam na resposta.</p>
+  <div class="ex"><b>Exemplo 1</b> · <code>num = "4321"</code>, <code>k = 4</code> → <code>"1342"</code>
+    <p>Três trocas levam o 1 até a frente (1432). A quarta troca o 4 com o 3. Faltariam mais trocas para chegar a 1234.</p></div>
+  <div class="ex"><b>Exemplo 2</b> · <code>num = "400132"</code>, <code>k = 4</code> → <code>"001342"</code>
+    <p>É o exemplo animado abaixo. Os dois zeros custam 1 troca cada, o 1 mais uma, e a última vai para o 3. O 2 fica
+      longe demais e não cabe no orçamento.</p></div>
+  <div class="ex"><b>Exemplo 3</b> · <code>num = "36789"</code>, <code>k = 1000</code> → <code>"36789"</code>
+    <p>Já é o menor possível: sobrar orçamento não obriga a gastá-lo.</p></div>
+  <p class="legend">Restrições: 1 ≤ num.length ≤ 3·10⁴ · num só tem dígitos · 1 ≤ k ≤ 10⁹</p>
+</section>
+<nav class="tabs" id="tabs" role="tablist" aria-label="variações"></nav>
+<div id="variant"></div>
+</main>
+
+<template id="tpl-bolha" data-label="Bolha">
+<p class="lead"><b>Guloso com bubble sort</b>: o primeiro dígito pesa mais que todos os outros juntos, então vale a pena gastar
+  o que for preciso para deixá-lo o menor possível. Com <code>k</code> trocas, um dígito na posição <code>j</code> só chega à casa
+  <code>i</code> se <code>j − i ≤ k</code>: a busca acontece na <span class="hl">janela [i, i+k]</span>. Achado o menor (no
+  empate, o mais perto, que custa menos), ele <span class="hl">borbulha</span> para a esquerda com trocas vizinhas, os
+  outros deslizam uma casa para a direita sem mudar de ordem, e <code>k</code> diminui pela distância percorrida.</p>
+
+<div class="cx"><span>tempo <b>O(n²)</b></span><span>espaço <b>O(n)</b></span><p>Para cada casa i, a busca na janela e o borbulhar andam até n casas. Só o array de dígitos ocupa memória.</p></div>
+<div class="layout">
+  <section class="panel full"><h2>dígitos a[]</h2>
+    <div class="arr" id="viz"></div>
+    <div class="legend"><span><i style="border-color:var(--cyan);background:#00f0ff44"></i>leitura · a[j]</span>
+      <span><i style="border-color:var(--pink);background:#ff2a6d44"></i>leitura · menor até agora a[p]</span>
+      <span><i style="border-color:var(--yellow);background:var(--yellow)"></i>troca</span>
+      <span><i style="border-color:var(--green)"></i>casa fixada</span>
+      <span>apagado = fora da janela [i, i+k]</span></div>
+  </section>
+  <section class="panel"><h2>registradores</h2><dl id="vars"></dl></section>
+  <section class="panel"><h2>código</h2><pre id="code"></pre></section>
+  <section class="panel full"><h2>memória · O(n)</h2>
+    <p id="memstat"></p><div id="mem"></div>
+    <p class="legend">n células. O custo está no tempo: no pior caso (k grande, dígitos em ordem decrescente) cada casa
+      puxa um dígito do fim, e são n²/2 trocas. A aba <a href="#fenwick">Fenwick</a> não move nada.</p>
+  </section>
+</div>
+</template>
+<template id="tpl-fenwick" data-label="Fenwick">
+<p class="lead">Em vez de mover dígitos, monte a resposta casa por casa. Para cada dígito <code>d</code> há uma
+  <span class="hl">fila</span> com suas posições originais, da esquerda para a direita. Puxar a cabeça da fila do
+  <code>d</code> para a frente custa a sua posição original <b>menos</b> quantos dígitos à esquerda dela já foram
+  retirados. Essa contagem vem de uma <span class="hl">árvore de Fenwick</span> (BIT): cada <code>bit[x]</code> soma um bloco
+  de posições, então tanto a consulta quanto a marcação visitam só O(log n) células. Para cada casa, testa <code>d</code> de 0
+  a 9 e fica com o primeiro que cabe em <code>k</code>.</p>
+
+<div class="cx"><span>tempo <b>O(n·10·log n)</b></span><span>espaço <b>O(n)</b></span><p>n casas × até 10 dígitos testados × uma consulta O(log n) na BIT. As 10 filas guardam n posições no total e a BIT tem n + 1 células.</p></div>
+<div class="layout">
+  <section class="panel"><h2>num original</h2><div class="arr" id="num"></div>
+    <div class="legend"><span><i style="border-color:var(--cyan);background:#00f0ff44"></i>pos olhada</span>
+      <span>apagado = já foi para a resposta</span></div>
+    <h2>resposta</h2><div class="out" id="out"></div></section>
+  <section class="panel"><h2>filas por dígito</h2><div id="queues"></div>
+    <p class="legend">A cabeça (primeira posição) é a ocorrência mais à esquerda que sobrou: é sempre a mais barata daquele dígito.</p></section>
+  <section class="panel full"><h2>árvore de Fenwick bit[x]</h2>
+    <div class="arr" id="viz"></div>
+    <div class="legend"><span><i style="border-color:var(--cyan);background:#00f0ff44"></i>lida por soma()</span>
+      <span><i style="border-color:var(--yellow);background:var(--yellow)"></i>atualizada por add()</span>
+      <span>embaixo: as posições de num que cada célula soma</span></div>
+  </section>
+  <section class="panel"><h2>registradores</h2><dl id="vars"></dl></section>
+  <section class="panel"><h2>código</h2><pre id="code"></pre></section>
+  <section class="panel full"><h2>memória · bit[] no heap</h2>
+    <p id="memstat"></p><div id="mem"></div>
+    <p class="legend">n + 1 células (bit[0] fica sem uso: a BIT é indexada a partir de 1). soma(bit, p) desce tirando o bit
+      mais baixo de p; add(bit, x) sobe somando o bit mais baixo de x.</p>
+  </section>
+</div>
+</template>
+
+<footer class="ctrl">
+  <p id="msg"></p>
+  <div class="row">
+    <button id="first" title="Home">⏮</button><button id="prev" title="←">◀</button>
+    <button id="play">▶ RUN</button>
+    <button id="next" title="→">▶</button><button id="lastbtn" title="End">⏭</button>
+    <input id="scrub" type="range" min="0" value="0" aria-label="step">
+    <span id="stepno"></span>
+    <label>speed <input id="speed" type="range" min="100" max="1000" value="600"></label>
+    <span class="keys">← → espaço</span>
+  </div>
+</footer>
+
+<script src="../assets/trace.js"></script>
+<script src="../assets/min-k-swaps.js"></script>
+<script src="../assets/player.js"></script>
+<script>
+const N = MKS_NUM.length;
+
+mountTabs({
+bolha: () => mountPlayer(mksBubble(), (s) => {
+  renderCode(MKS_CODE.bolha.text, s.line);
+  renderVars(s.vars);
+  renderMemory(s, (k) => `a[${k}]`, (k) => `base + ${k}·4`);
+  const fixed = s.done ?? s.i ?? 0, k = s.vars?.k ?? MKS_K, p = s.vars?.p;
+  $('viz').innerHTML = s.dp.map((v, x) => {
+    const off = s.i !== undefined && (x < s.i || x > s.i + k) ? ' off' : '';
+    const cls = cellClass(s, x) || (x < fixed ? 'yes' : '');
+    const ptr = [x === s.i && 'i', x === s.j && 'j', x === p && s.i !== undefined && 'p'].filter(Boolean).join(' ');
+    return `<div class="slot${x < fixed ? '' : off}">[${x}]<div class="cell ${cls}">${v}</div><span class="gen ptr">${ptr}</span></div>`;
+  }).join('');
+}),
+fenwick: () => mountPlayer(mksFenwick(), (s) => {
+  renderCode(MKS_CODE.fenwick.text, s.line);
+  renderVars(s.vars);
+  renderMemory(s, (x) => `bit[${x}]`, (x) => `base + ${x}·4`);
+  $('num').innerHTML = MKS_NUM.split('').map((v, x) =>
+    `<div class="slot${s.removed[x] ? ' off' : ''}">[${x}]<div class="cell ${x === s.pos ? 'r0' : ''}">${v}</div></div>`).join('');
+  $('out').textContent = s.res || '·';
+  $('queues').innerHTML = [...new Set(MKS_NUM)].sort().map((d) =>
+    `<div class="qrow${+d === s.d ? ' on' : ''}"><b>q[${d}]</b><div class="arr">${s.q[d].map((p, h) =>
+      `<div class="cell ${h === 0 && +d === s.d ? 'r0' : ''}">${p}</div>`).join('') || '(vazia)'}</div></div>`).join('');
+  $('viz').innerHTML = s.dp.map((v, x) => {
+    const lo = x - (x & -x);
+    const cover = x ? (lo === x - 1 ? `pos ${lo}` : `pos ${lo}..${x - 1}`) : 'sem uso';
+    return `<div class="slot${x ? '' : ' off'}">bit[${x}]<div class="cell ${cellClass(s, x)}">${v}</div><span class="gen">${cover}</span></div>`;
+  }).join('');
+}),
+});
+</script>
+</body>
+</html>

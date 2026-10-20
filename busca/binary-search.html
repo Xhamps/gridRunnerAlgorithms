@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Busca Binária · GRID//RUNNER</title>
+<link rel="stylesheet" href="../assets/style.css">
+<style>
+.arr .cell.out { opacity: .3; }
+.arr .cell.mid { --c: var(--yellow); box-shadow: 0 0 10px var(--yellow); }
+.arr .slot.tmp .cell { opacity: .5; }
+.arr .gen.ptr { color: var(--yellow); min-height: 1.2em; }
+</style>
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="../index.html">GRID<em>//</em>RUNNER</a>
+  <nav><a href="../index.html#dp">Dynamic Programming</a><a href="../index.html#grafos">Grafos</a><a href="../index.html#ordenacao">Ordenação</a><a class="on" href="../index.html#busca">Busca Binária</a></nav>
+</header>
+<script src="../assets/github.js"></script>
+<main>
+<h1>BUSCA BINÁRIA <span class="diff easy">EASY</span></h1>
+<section class="panel problem"><h2>problema</h2>
+  <p>Dado um array <code>a</code> de inteiros <b>distintos</b> em ordem crescente e um valor <code>target</code>,
+    devolva o índice em que <code>target</code> aparece, ou <code>-1</code> se ele não estiver lá. A busca precisa
+    rodar em <b>O(log n)</b>: olhar casa por casa não vale.</p>
+  <div class="ex"><b>Exemplo 1</b> · <code>a = [-5, 0, 3, 8, 11, 17, 24], target = 11</code> → <code>4</code>
+    <p>É o exemplo animado abaixo: três sondagens (8, 17 e 11) bastam para 7 casas.</p></div>
+  <div class="ex"><b>Exemplo 2</b> · <code>a = [-5, 0, 3, 8, 11, 17, 24], target = 6</code> → <code>-1</code>
+    <p>6 cairia entre o 3 e o 8; a faixa de candidatos fica vazia e a busca desiste.</p></div>
+  <div class="ex"><b>Exemplo 3</b> · <code>a = [2], target = 2</code> → <code>0</code>
+    <p>Um único elemento: a faixa começa com um candidato e ele precisa ser olhado.</p></div>
+  <p class="legend">Restrições: 1 ≤ n ≤ 10⁴ · -10⁴ &lt; a[i], target &lt; 10⁴ · valores distintos, em ordem crescente</p>
+</section>
+<nav class="tabs" id="tabs" role="tablist" aria-label="variações"></nav>
+<div id="variant"></div>
+</main>
+
+<template id="tpl-fechado" data-label="Intervalo fechado">
+<p class="lead"><b>Invariante:</b> se o alvo existe, ele está em <code>a[lo..hi]</code>, <span class="hl">com as duas
+  pontas inclusas</span>. Por isso o laço é <code>while (lo &lt;= hi)</code>: quando <code>lo = hi</code> ainda resta um
+  candidato para olhar. Depois de comparar <code>a[mid]</code>, mid já foi olhado e sai da faixa pelos dois lados:
+  <code>lo = mid + 1</code> ou <code>hi = mid - 1</code>. Misturar com o outro estilo quebra a conta: com
+  <code>hi = mid</code>, quando <code>lo = hi = mid</code> e <code>a[mid] &gt; target</code> nada muda e o laço
+  <b>nunca termina</b>; com <code>while (lo &lt; hi)</code>, o laço para com um candidato que <b>ninguém olhou</b>
+  (em <code>[2]</code> procurando 2, devolveria -1).</p>
+
+<div class="cx"><span>tempo <b>O(log n)</b></span><span>espaço <b>O(1)</b></span><p>Cada volta descarta mid e metade do resto, então são no máximo ⌈log₂(n + 1)⌉ voltas. Só lo, hi, mid e ans de memória extra.</p></div>
+<div class="layout">
+  <section class="panel"><h2>array a[k]</h2>
+    <div id="viz"></div>
+    <div class="legend"><span><i style="border-color:var(--cyan);background:#00f0ff44"></i>a[mid] lido</span>
+      <span><i style="border-color:var(--yellow)"></i>mid</span>
+      <span><i style="opacity:.3"></i>descartado</span>
+      <span><i style="border-color:var(--green)"></i>achado</span></div></section>
+  <section class="panel"><h2>registradores</h2><dl id="vars"></dl><p class="legend" id="stats"></p></section>
+  <section class="panel full"><h2>código</h2><pre id="code"></pre></section>
+  <section class="panel full"><h2>memória · O(1) extra</h2>
+    <p id="memstat"></p><div id="mem"></div>
+    <p class="legend">O array só é lido; lo, hi, mid e ans são registradores.</p>
+  </section>
+</div>
+</template>
+<template id="tpl-semiaberto" data-label="Semiaberto">
+<p class="lead"><b>Invariante:</b> se o alvo existe, ele está em <code>a[lo..hi)</code>: lo entra, <span class="hl">hi fica
+  de fora</span>. Por isso hi começa em <code>n</code>, uma casa depois do fim, e o laço é <code>while (lo &lt; hi)</code>:
+  <code>lo = hi</code> já é uma faixa vazia. Para descartar mid pela direita basta <code>hi = mid</code>, porque hi
+  nunca é candidato; pela esquerda continua <code>lo = mid + 1</code>. Misturar quebra de novo: com
+  <code>hi = mid - 1</code> a casa <code>mid - 1</code> sai <b>sem ter sido olhada</b>; com <code>while (lo &lt;= hi)</code>
+  o código lê <code>a[n]</code>, fora do array, e com <code>lo = hi = mid</code> o <code>hi = mid</code> não muda nada,
+  um <b>laço infinito</b>. É o estilo de <code>lower_bound</code> e dos fatiamentos <code>a[lo:hi]</code>.</p>
+
+<div class="cx"><span>tempo <b>O(log n)</b></span><span>espaço <b>O(1)</b></span><p>A faixa [lo, hi) perde mid e metade do resto a cada volta: no máximo ⌈log₂(n + 1)⌉ voltas. Só lo, hi, mid e ans de memória extra.</p></div>
+<div class="layout">
+  <section class="panel"><h2>array a[k]</h2>
+    <div id="viz"></div>
+    <div class="legend"><span><i style="border-color:var(--cyan);background:#00f0ff44"></i>a[mid] lido</span>
+      <span><i style="border-color:var(--yellow)"></i>mid</span>
+      <span><i style="opacity:.3"></i>descartado</span>
+      <span><i style="border-color:var(--green)"></i>achado</span>
+      <span><i style="border-style:dashed"></i>a[n]: só marca o fim</span></div></section>
+  <section class="panel"><h2>registradores</h2><dl id="vars"></dl><p class="legend" id="stats"></p></section>
+  <section class="panel full"><h2>código</h2><pre id="code"></pre></section>
+  <section class="panel full"><h2>memória · O(1) extra</h2>
+    <p id="memstat"></p><div id="mem"></div>
+    <p class="legend">As mesmas n células, só lidas. a[n] não existe: hi = n é só um índice.</p>
+  </section>
+</div>
+</template>
+
+<footer class="ctrl">
+  <p id="msg"></p>
+  <div class="row">
+    <button id="first" title="Home">⏮</button><button id="prev" title="←">◀</button>
+    <button id="play">▶ RUN</button>
+    <button id="next" title="→">▶</button><button id="lastbtn" title="End">⏭</button>
+    <input id="scrub" type="range" min="0" value="0" aria-label="step">
+    <span id="stepno"></span>
+    <label>speed <input id="speed" type="range" min="100" max="1000" value="600"></label>
+    <span class="keys">← → espaço</span>
+  </div>
+</footer>
+
+<script src="../assets/trace.js"></script>
+<script src="../assets/binary-search.js"></script>
+<script src="../assets/player.js"></script>
+<script>
+// Array strip with lo / mid / hi under the cells; outside the candidate range is dimmed.
+// The half-open tab gets a ghost slot a[n] so hi = n has somewhere to point.
+function renderRow(s) {
+  const n = s.dp.length, inR = (k) => k >= s.lo && (s.half ? k < s.hi : k <= s.hi);
+  const cls = (k) => k === s.found ? 'rng' : cellClass(s, k) || (!inR(k) ? 'out' : k === s.mid ? 'mid' : '');
+  const ptr = (k) => [k === s.lo && 'lo', k === s.mid && inR(k) && 'mid', k === s.hi && 'hi'].filter(Boolean).join('·');
+  const ghost = s.half ? `<div class="slot tmp">a[${n}]<div class="cell out">·</div><span class="gen ptr">${ptr(n)}</span></div>` : '';
+  $('viz').innerHTML = '<div class="arr">' + s.dp.map((v, k) =>
+    `<div class="slot">a[${k}]<div class="cell ${cls(k)}">${v}</div><span class="gen ptr">${ptr(k)}</span></div>`).join('') + ghost + '</div>';
+}
+
+const bsMount = (steps, code) => mountPlayer(steps, (s) => {
+  renderCode(code.text, s.line);
+  renderVars(s.vars);
+  renderRow(s);
+  renderMemory(s, (k) => `a[${k}]`, (k) => `base + ${k}·4`);
+  $('stats').innerHTML = `sondagens: <b>${s.probes}</b> · faixa: <b>${s.half ? `[${s.lo}, ${s.hi})` : `[${s.lo}, ${s.hi}]`}</b>`;
+});
+
+mountTabs({
+  fechado: () => bsMount(bsClosed(), BS_CODE.fechado),
+  semiaberto: () => bsMount(bsHalfOpen(), BS_CODE.semiaberto),
+});
+</script>
+</body>
+</html>

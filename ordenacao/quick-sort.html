@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Quick Sort · GRID//RUNNER</title>
+<link rel="stylesheet" href="../assets/style.css">
+<style>
+.arr .cell.le { --c: #00f0ff99; }
+.arr .cell.gt { --c: #ff2a6d99; }
+.arr .cell.in { --c: var(--line); }
+.arr .cell.out { opacity: .35; }
+.arr .cell.pv { --c: var(--yellow); box-shadow: 0 0 10px var(--yellow); }
+.arr .cell.fix { --c: var(--green); color: var(--green); }
+.arr .gen.ptr { color: var(--yellow); min-height: 1.2em; }
+</style>
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="../index.html">GRID<em>//</em>RUNNER</a>
+  <nav><a href="../index.html#dp">Dynamic Programming</a><a href="../index.html#grafos">Grafos</a><a class="on" href="../index.html#ordenacao">Ordenação</a><a href="../index.html#busca">Busca Binária</a></nav>
+</header>
+<script src="../assets/github.js"></script>
+<main>
+<h1>QUICK SORT <span class="diff medium">MEDIUM</span></h1>
+<section class="panel problem"><h2>problema</h2>
+  <p>Dado um array de inteiros <code>a</code>, coloque-o em <b>ordem crescente</b> mexendo no próprio array, sem
+    criar uma cópia. Funções prontas de ordenação não valem. A ideia: escolha um <b>pivô</b>, empurre os menores
+    para um lado e os maiores para o outro, e repita em cada lado.</p>
+  <div class="ex"><b>Exemplo 1</b> · <code>a = [4, 1, 5, 3, 2, 3]</code> → <code>[1, 2, 3, 3, 4, 5]</code>
+    <p>É o exemplo animado abaixo. O 3 aparece duas vezes, e cada aba trata o empate com o pivô de um jeito.</p></div>
+  <div class="ex"><b>Exemplo 2</b> · <code>a = [0, -7, 0, 9]</code> → <code>[-7, 0, 0, 9]</code>
+    <p>Negativos e repetidos são permitidos.</p></div>
+  <div class="ex"><b>Exemplo 3</b> · <code>a = []</code> → <code>[]</code>
+    <p>Array vazio (ou com um elemento só) já está ordenado.</p></div>
+  <p class="legend">Restrições: 0 ≤ n ≤ 5·10⁴ · -5·10⁴ ≤ a[i] ≤ 5·10⁴ · no lugar, sem sort embutido</p>
+</section>
+<nav class="tabs" id="tabs" role="tablist" aria-label="variações"></nav>
+<div id="variant"></div>
+</main>
+
+<template id="tpl-lomuto" data-label="Lomuto">
+<p class="lead"><b>Partição de Lomuto</b>: o pivô é o <b>último</b> do trecho, <code>a[hi]</code>. Um único ponteiro
+  <code>i</code> marca o fim da zona "≤ pivô"; <code>j</code> varre o resto e, ao achar alguém ≤ pivô (inclusive
+  <span class="hl">igual</span>), troca com <code>a[i]</code> e a zona cresce. No fim, uma troca põe o pivô em
+  <code>a[i]</code>, que já é a <b>casa final</b> dele: nunca mais se mexe. A recursão continua em
+  <code>[lo, p-1]</code> e <code>[p+1, hi]</code>. Aqui o pivô é fixo para os passos serem sempre os mesmos; na
+  prática se sorteia o pivô, porque com <code>a[hi]</code> um array <span class="hl">já ordenado</span> gera partições
+  de tamanho n-1 e 0 em toda chamada.</p>
+
+<div class="cx"><span>tempo <b>O(n log n)</b> médio · <b>O(n²)</b> pior</span><span>espaço <b>O(log n)</b> médio · <b>O(n)</b> pior</span><p>Cada nível da recursão compara no máximo n elementos. Se o pivô corta perto do meio, são log n níveis; se ele é sempre o maior ou o menor (array já ordenado, ou todos iguais, já que aqui o igual vai para a esquerda), são n níveis e n²/2 comparações. Pivô sorteado torna esse caso improvável para qualquer entrada. Não há buffer: a memória extra é só a call stack, com log n frames no caso médio e n no pior (chamar a recursão só no lado menor e tratar o maior num laço limita a O(log n)).</p></div>
+<div class="layout">
+  <section class="panel full"><h2>heap · a[]</h2>
+    <div id="viz"></div>
+    <div class="legend"><span><i style="border-color:var(--yellow)"></i>pivô</span>
+      <span><i style="border-color:#00f0ff99"></i>zona ≤ pivô a[lo..i-1]</span>
+      <span><i style="border-color:#ff2a6d99"></i>zona &gt; pivô a[i..j-1]</span>
+      <span><i style="border-color:var(--green)"></i>na casa final</span>
+      <span><i style="border-color:var(--yellow);background:var(--yellow)"></i>escrita</span></div></section>
+  <section class="panel"><h2>registradores</h2><dl id="vars"></dl><p class="legend" id="stats"></p></section>
+  <section class="panel"><h2>call stack</h2><p id="stackstat"></p><div id="stack"></div></section>
+  <section class="panel full"><h2>código</h2><pre id="code"></pre></section>
+  <section class="panel full"><h2>memória · heap (a)</h2>
+    <p id="memstat"></p><div id="mem"></div>
+    <p class="legend">Só as n células do array: toda troca acontece no lugar.</p>
+  </section>
+</div>
+</template>
+<template id="tpl-hoare" data-label="Hoare">
+<p class="lead"><b>Partição de Hoare</b>: o pivô é o <b>valor</b> do meio, <code>a[(lo+hi) &gt;&gt; 1]</code>.
+  <code>i</code> sai da esquerda e para em alguém ≥ pivô; <code>j</code> sai da direita e para em alguém ≤ pivô.
+  Os dois estão do lado errado, então troca e continua até eles se cruzarem. Parar também no
+  <span class="hl">igual</span> parece desperdício, mas espalha os repetidos pelos dois lados. Diferente do
+  <a href="#lomuto">Lomuto</a>, o pivô não termina numa casa fixa: o retorno <code>j</code> só garante
+  <code>a[lo..j] ≤ a[j+1..hi]</code>, por isso a recursão é em <code>[lo, j]</code> e <code>[j+1, hi]</code>. Faz
+  menos trocas, e o pivô do meio já trata bem o array ordenado; um pivô sorteado protege das entradas montadas
+  para cair no pior caso.</p>
+
+<div class="cx"><span>tempo <b>O(n log n)</b> médio · <b>O(n²)</b> pior</span><span>espaço <b>O(log n)</b> médio · <b>O(n)</b> pior</span><p>Cada partição anda i e j até se cruzarem: O(hi - lo). Com cortes equilibrados, log n níveis de n passos cada. O pior caso ainda existe (um pivô do meio que sempre é o menor ou o maior), e com pivô sorteado ele fica muito improvável. Sem buffer: o extra é a call stack, log n frames no caso médio e n no pior.</p></div>
+<div class="layout">
+  <section class="panel full"><h2>heap · a[]</h2>
+    <div id="viz"></div>
+    <div class="legend"><span><i style="border-color:var(--yellow)"></i>pivô</span>
+      <span><i style="border-color:#00f0ff99"></i>já ≤ pivô (esquerda)</span>
+      <span><i style="border-color:#ff2a6d99"></i>já ≥ pivô (direita)</span>
+      <span><i style="border-color:var(--green)"></i>na casa final</span>
+      <span><i style="border-color:var(--yellow);background:var(--yellow)"></i>escrita</span></div></section>
+  <section class="panel"><h2>registradores</h2><dl id="vars"></dl><p class="legend" id="stats"></p></section>
+  <section class="panel"><h2>call stack</h2><p id="stackstat"></p><div id="stack"></div></section>
+  <section class="panel full"><h2>código</h2><pre id="code"></pre></section>
+  <section class="panel full"><h2>memória · heap (a)</h2>
+    <p id="memstat"></p><div id="mem"></div>
+    <p class="legend">Só as n células do array: toda troca acontece no lugar.</p>
+  </section>
+</div>
+</template>
+
+<footer class="ctrl">
+  <p id="msg"></p>
+  <div class="row">
+    <button id="first" title="Home">⏮</button><button id="prev" title="←">◀</button>
+    <button id="play">▶ RUN</button>
+    <button id="next" title="→">▶</button><button id="lastbtn" title="End">⏭</button>
+    <input id="scrub" type="range" min="0" value="0" aria-label="step">
+    <span id="stepno"></span>
+    <label>speed <input id="speed" type="range" min="100" max="1000" value="600"></label>
+    <span class="keys">← → espaço</span>
+  </div>
+</footer>
+
+<script src="../assets/trace.js"></script>
+<script src="../assets/quick-sort.js"></script>
+<script src="../assets/player.js"></script>
+<script>
+// One row over s.dp = a: outside [lo, hi] dimmed, pivot outlined, the two partition zones colored.
+function renderRow(s) {
+  const inR = (r, k) => r && k >= r[0] && k <= r[1];
+  const zone = (k) => s.result || s.done.includes(k) ? 'fix' : s.lo === undefined ? '' : k < s.lo || k > s.hi ? 'out'
+    : k === s.pv ? 'pv' : inR(s.le, k) ? 'le' : inR(s.gt, k) ? 'gt' : 'in';
+  const cls = (k) => cellClass(s, k) || zone(k);
+  const ptr = (k) => [k === s.lo && 'lo', k === s.hi && 'hi', k === s.i && 'i', k === s.j && 'j', k === s.p && 'p']
+    .filter(Boolean).join('·');
+  $('viz').innerHTML = '<div class="arr">' + s.dp.map((v, k) =>
+    `<div class="slot">a[${k}]<div class="cell ${cls(k)}">${cellVal(v)}</div><span class="gen ptr">${ptr(k)}</span></div>`).join('') + '</div>';
+}
+
+const qsMount = (steps, code) => mountPlayer(steps, (s) => {
+  renderCode(code.text, s.line);
+  renderVars(s.vars);
+  renderRow(s);
+  renderStack(s);
+  renderMemory(s, (k) => `a[${k}]`, (k) => `base + ${k}·4`);
+  $('stats').innerHTML = `comparações: <b>${s.cmps}</b> · trocas: <b>${s.swaps}</b>`;
+});
+
+mountTabs({
+  lomuto: () => qsMount(qsLomuto(), QS_CODE.lomuto),
+  hoare: () => qsMount(qsHoare(), QS_CODE.hoare),
+});
+</script>
+</body>
+</html>

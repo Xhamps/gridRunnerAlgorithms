@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Trocas até a k-ésima Permutação · GRID//RUNNER</title>
+<link rel="stylesheet" href="../assets/style.css">
+<style>
+.arr .gen.ptr { color: var(--green); }
+.arr .slot.done .cell { border-color: var(--green); color: var(--green); }
+.rowname { width: 64px; align-self: center; font-size: 12px; color: var(--dim); }
+.arr + .arr { margin-top: 8px; }
+</style>
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="../index.html">GRID<em>//</em>RUNNER</a>
+  <nav><a href="../index.html#dp">Dynamic Programming</a><a href="../index.html#grafos">Grafos</a><a class="on" href="../index.html#ordenacao">Ordenação</a><a href="../index.html#busca">Busca Binária</a></nav>
+</header>
+<script src="../assets/github.js"></script>
+<main>
+<h1>TROCAS ATÉ A K-ÉSIMA PERMUTAÇÃO <span class="diff medium">MEDIUM</span></h1>
+<section class="panel problem"><h2>problema</h2>
+  <p>Você recebe um número grande como string de dígitos <code>num</code> e um inteiro <code>k</code>. Reorganizando os
+    dígitos de <code>num</code>, ordene todos os números <b>maiores que ele</b> do menor para o maior: o
+    <code>k</code>-ésimo dessa lista é o <b>alvo</b>.</p>
+  <p>Retorne o <b>menor número de trocas entre dígitos vizinhos</b> que transforma <code>num</code> no alvo.</p>
+  <div class="ex"><b>Exemplo 1</b> · <code>num = "26613", k = 4</code> → <code>9</code>
+    <p>Os maiores, em ordem: 26631, 31266, 31626, <b>31662</b>. Levar 26613 até 31662 custa 9 trocas vizinhas. É o exemplo animado.</p></div>
+  <div class="ex"><b>Exemplo 2</b> · <code>num = "11112", k = 4</code> → <code>4</code>
+    <p>Os maiores: 11121, 11211, 12111, <b>21111</b>. O 2 anda quatro casas para a esquerda.</p></div>
+  <p class="legend">Restrições: 2 ≤ num.length ≤ 1000 · 1 ≤ k ≤ 1000 · num só tem dígitos · sempre existem pelo menos k números maiores</p>
+</section>
+<nav class="tabs" id="tabs" role="tablist" aria-label="variações"></nav>
+<div id="variant"></div>
+</main>
+
+<template id="tpl-proxima" data-label="Próxima permutação">
+<p class="lead">Primeiro achar o alvo: em vez de listar todas as permutações, aplicamos a <b>próxima permutação</b>
+  <code>k</code> vezes. Cada rodada: da direita para a esquerda, o primeiro dígito menor que o vizinho da direita é o
+  <span class="hl">pivô</span> (tudo à direita dele é decrescente, já está no máximo). Troca o pivô pelo menor dígito
+  do sufixo que é maior que ele e <span class="hl">inverte o sufixo</span>, que vira crescente: o menor arranjo possível.
+  O número cresce o mínimo, então nenhuma permutação é pulada.</p>
+
+<div class="cx"><span>tempo <b>O(k·n)</b></span><span>espaço <b>O(n)</b></span><p>Cada rodada varre o sufixo no máximo três vezes (pivô, sucessor, inversão). Só o array dos n dígitos fica na memória.</p></div>
+<div class="layout">
+  <section class="panel full"><h2>dígitos d[]</h2>
+    <div class="arr" id="viz"></div>
+    <div class="legend"><span><i style="border-color:var(--cyan);background:#00f0ff44"></i>leitura · pivô / d[i]</span>
+      <span><i style="border-color:var(--pink);background:#ff2a6d44"></i>leitura · vizinho / sucessor</span>
+      <span><i style="border-color:var(--yellow);background:var(--yellow)"></i>escrita (troca)</span></div>
+  </section>
+  <section class="panel"><h2>registradores</h2><dl id="vars"></dl></section>
+  <section class="panel"><h2>código</h2><pre id="code"></pre></section>
+  <section class="panel full"><h2>memória · O(n)</h2>
+    <p id="memstat"></p><div id="mem"></div>
+    <p class="legend">Tudo acontece no lugar: as k rodadas reaproveitam as mesmas n células.</p>
+  </section>
+</div>
+</template>
+<template id="tpl-trocas" data-label="Trocas">
+<p class="lead">Com o alvo em mãos, contamos as trocas como um <b>bubble sort guiado</b>: para cada posição
+  <code>i</code>, procuramos em <code>cur</code> a <span class="hl">primeira</span> cópia do dígito que o alvo quer ali e
+  a empurramos para a esquerda, uma troca vizinha por vez. Usar a cópia mais próxima é seguro: dígitos iguais nunca
+  precisam se cruzar, então a ordem relativa entre eles se mantém e o total é o mínimo.</p>
+
+<div class="cx"><span>tempo <b>O(n²)</b></span><span>espaço <b>O(n)</b></span><p>Para cada i, a busca e o arrasto andam no máximo n casas. A memória guarda cur e o alvo, 2n células.</p></div>
+<div class="layout">
+  <section class="panel full"><h2>cur × alvo</h2>
+    <div id="viz"></div>
+    <div class="legend"><span><i style="border-color:var(--cyan);background:#00f0ff44"></i>leitura · cur[j]</span>
+      <span><i style="border-color:var(--pink);background:#ff2a6d44"></i>leitura · target[i]</span>
+      <span><i style="border-color:var(--yellow);background:var(--yellow)"></i>troca vizinha</span>
+      <span><i style="border-color:var(--green)"></i>posição já fixada</span></div>
+  </section>
+  <section class="panel"><h2>registradores</h2><dl id="vars"></dl></section>
+  <section class="panel"><h2>código</h2><pre id="code"></pre></section>
+  <section class="panel full"><h2>memória · O(n)</h2>
+    <p id="memstat"></p><div id="mem"></div>
+    <p class="legend">Linha de cima: cur (muda a cada troca). Linha de baixo: o alvo, só lido.</p>
+  </section>
+</div>
+</template>
+
+<footer class="ctrl">
+  <p id="msg"></p>
+  <div class="row">
+    <button id="first" title="Home">⏮</button><button id="prev" title="←">◀</button>
+    <button id="play">▶ RUN</button>
+    <button id="next" title="→">▶</button><button id="lastbtn" title="End">⏭</button>
+    <input id="scrub" type="range" min="0" value="0" aria-label="step">
+    <span id="stepno"></span>
+    <label>speed <input id="speed" type="range" min="100" max="1000" value="600"></label>
+    <span class="keys">← → espaço</span>
+  </div>
+</footer>
+
+<script src="../assets/trace.js"></script>
+<script src="../assets/kth-swaps.js"></script>
+<script src="../assets/player.js"></script>
+<script>
+const KN = KTH_NUM.length;
+const ptrs = (k, marks) => marks.filter(([, at]) => at === k).map(([name]) => name).join(' · ');
+
+mountTabs({
+proxima: () => mountPlayer(kthProxima(), (s) => {
+  renderCode(KTH_CODE.proxima.text, s.line);
+  renderVars(s.vars);
+  renderMemory(s, (k) => `d[${k}]`, (k) => `base + ${k}·4`);
+  const rev = s.vars && 'l' in s.vars, marks = rev ? [['l', s.i], ['h', s.j]] : [['i', s.i], ['j', s.j]];
+  $('viz').innerHTML = s.dp.map((v, k) =>
+    `<div class="slot">[${k}]<div class="cell ${cellClass(s, k)}">${cellVal(v)}</div><span class="gen ptr">${ptrs(k, marks)}</span></div>`).join('');
+}),
+trocas: () => mountPlayer(kthTrocas(), (s) => {
+  renderCode(KTH_CODE.trocas.text, s.line);
+  renderVars(s.vars);
+  renderMemory(s, (k) => k < KN ? `cur[${k}]` : `target[${k - KN}]`, (k) => `base + ${k}·4`, KN);
+  const row = (from, name, marks) => `<div class="arr"><span class="rowname">${name}</span>` + s.dp.slice(from, from + KN).map((v, c) => {
+    const k = from + c, done = s.i !== undefined && c < s.i && !s.write.includes(k);
+    return `<div class="slot${done || s.result !== undefined ? ' done' : ''}">[${c}]<div class="cell ${cellClass(s, k)}">${cellVal(v)}</div><span class="gen ptr">${ptrs(c, marks)}</span></div>`;
+  }).join('') + '</div>';
+  $('viz').innerHTML = row(0, 'cur', [['j', s.j]]) + row(KN, 'alvo', [['i', s.i]]);
+}),
+});
+</script>
+</body>
+</html>

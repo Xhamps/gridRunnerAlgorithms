@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Elemento Pico · GRID//RUNNER</title>
+<link rel="stylesheet" href="../assets/style.css">
+<style>
+.arr { align-items: flex-end; }
+.arr .col { height: 120px; display: flex; align-items: flex-end; }
+.arr .bar { width: 36px; border: 1px solid var(--line); border-bottom: 0; background: #ffffff10; }
+.arr .bar.r0 { border-color: var(--cyan); background: #00f0ff44; box-shadow: 0 0 10px var(--cyan); }
+.arr .bar.r1 { border-color: var(--pink); background: #ff2a6d44; box-shadow: 0 0 10px var(--pink); }
+.arr .bar.w, .arr .bar.pk { border-color: var(--green); background: #05ffa155; box-shadow: 0 0 14px var(--green); }
+.arr .bar.up { border-color: var(--dim); background: #6d689044; }
+.arr .bar.inf { border: 1px dashed var(--dim); background: none; height: 4px; }
+.arr .out { opacity: .3; }
+.arr .gen.ptr { color: var(--yellow); min-height: 1.2em; }
+</style>
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="../index.html">GRID<em>//</em>RUNNER</a>
+  <nav><a href="../index.html#dp">Dynamic Programming</a><a href="../index.html#grafos">Grafos</a><a href="../index.html#ordenacao">Ordenação</a><a class="on" href="../index.html#busca">Busca Binária</a></nav>
+</header>
+<script src="../assets/github.js"></script>
+<main>
+<h1>ELEMENTO PICO <span class="diff medium">MEDIUM</span></h1>
+<section class="panel problem"><h2>problema</h2>
+  <p>Um <b>pico</b> é um elemento estritamente maior que os dois vizinhos. Dado um array <code>a</code> em que dois
+    vizinhos nunca são iguais, devolva o índice de <b>qualquer</b> pico. Imagine que antes do começo e depois do fim
+    existe <code>-∞</code>: assim as pontas também podem ser picos. O desafio é fazer isso em <b>O(log n)</b>.</p>
+  <div class="ex"><b>Exemplo 1</b> · <code>a = [1, 3, 2, 4, 5, 7, 6, 2]</code> → <code>1</code> ou <code>5</code>
+    <p>É o exemplo animado abaixo. Há dois picos: o 3 (índice 1) e o 7 (índice 5). A aba Linear acha o 1, a Binária acha o 5, e as duas respostas valem.</p></div>
+  <div class="ex"><b>Exemplo 2</b> · <code>a = [1, 2, 3]</code> → <code>2</code>
+    <p>Só sobe: o último é pico, porque depois dele vem -∞.</p></div>
+  <div class="ex"><b>Exemplo 3</b> · <code>a = [5]</code> → <code>0</code>
+    <p>Um elemento sozinho tem -∞ dos dois lados.</p></div>
+  <p class="legend">Restrições: 1 ≤ n ≤ 1000 · -2³¹ ≤ a[i] ≤ 2³¹ - 1 · a[i] ≠ a[i + 1] · tempo O(log n)</p>
+</section>
+<nav class="tabs" id="tabs" role="tablist" aria-label="variações"></nav>
+<div id="variant"></div>
+</main>
+
+<template id="tpl-linear" data-label="Linear">
+<p class="lead">Ande da esquerda para a direita enquanto o array <b>sobe</b>. No primeiro <code>i</code> em que
+  <code>a[i] &gt; a[i + 1]</code>, o elemento <code>a[i]</code> é maior que o da direita (acabou de descer) e maior que o
+  da esquerda (estávamos subindo, ou ele é o primeiro e tem -∞ antes). Se nunca descer, o último é pico.
+  Funciona, mas <span class="hl">olha cada elemento</span>: no pior caso, n - 1 comparações.</p>
+
+<div class="cx"><span>tempo <b>O(n)</b></span><span>espaço <b>O(1)</b></span><p>Uma varredura até a primeira descida, até n - 1 comparações. Só i e ans de memória extra.</p></div>
+<div class="layout">
+  <section class="panel"><h2>array a[k]</h2>
+    <div class="arr" id="viz"></div>
+    <div class="legend"><span><i style="border-color:var(--cyan);background:#00f0ff44"></i>a[i]</span>
+      <span><i style="border-color:var(--pink);background:#ff2a6d44"></i>a[i+1]</span>
+      <span><i style="border-color:var(--dim);background:#6d689044"></i>trecho de subida</span>
+      <span><i style="border-color:var(--green);background:#05ffa155"></i>pico</span></div></section>
+  <section class="panel"><h2>registradores</h2><dl id="vars"></dl><p class="legend" id="stats"></p></section>
+  <section class="panel full"><h2>código</h2><pre id="code"></pre></section>
+  <section class="panel full"><h2>memória · O(1) extra</h2>
+    <p id="memstat"></p><div id="mem"></div>
+    <p class="legend">O array só é lido; i e ans são registradores.</p>
+  </section>
+</div>
+</template>
+<template id="tpl-binaria" data-label="Binária">
+<p class="lead">O array não está ordenado, mas a busca binária funciona olhando a <b>inclinação</b> em <code>mid</code>.
+  Invariante: <span class="hl">existe um pico dentro de a[lo..hi]</span>, porque o vizinho de fora de cada ponta é menor
+  que ela (ou é -∞). Se <code>a[mid] &lt; a[mid + 1]</code>, a encosta sobe para a direita: andando a partir de
+  <code>mid + 1</code>, ou o array desce em algum ponto (ali tem um pico) ou continua subindo até <code>hi</code>, que já
+  é maior que o vizinho de fora. Então <code>lo = mid + 1</code>. Senão, a encosta sobe para a esquerda e o pico está em
+  <code>mid</code> ou antes: <code>hi = mid</code>. Não importa o que há na metade descartada; <b>seguir a subida
+  sempre leva a um pico</b>. Repare que ela acha um pico diferente da aba <a href="#linear">Linear</a>: as duas estão certas.</p>
+
+<div class="cx"><span>tempo <b>O(log n)</b></span><span>espaço <b>O(1)</b></span><p>Cada volta descarta metade de [lo, hi], então são ⌈log₂ n⌉ voltas com uma comparação cada. Só lo, hi e mid de memória extra.</p></div>
+<div class="layout">
+  <section class="panel"><h2>array a[k]</h2>
+    <div class="arr" id="viz"></div>
+    <div class="legend"><span><i style="border-color:var(--cyan);background:#00f0ff44"></i>a[mid]</span>
+      <span><i style="border-color:var(--pink);background:#ff2a6d44"></i>a[mid+1]</span>
+      <span><i style="border-color:var(--line);opacity:.3"></i>fora de [lo, hi]: descartado</span>
+      <span><i style="border-color:var(--green);background:#05ffa155"></i>pico</span></div></section>
+  <section class="panel"><h2>registradores</h2><dl id="vars"></dl><p class="legend" id="stats"></p></section>
+  <section class="panel full"><h2>código</h2><pre id="code"></pre></section>
+  <section class="panel full"><h2>memória · O(1) extra</h2>
+    <p id="memstat"></p><div id="mem"></div>
+    <p class="legend">O array só é lido; lo, hi e mid são registradores.</p>
+  </section>
+</div>
+</template>
+
+<footer class="ctrl">
+  <p id="msg"></p>
+  <div class="row">
+    <button id="first" title="Home">⏮</button><button id="prev" title="←">◀</button>
+    <button id="play">▶ RUN</button>
+    <button id="next" title="→">▶</button><button id="lastbtn" title="End">⏭</button>
+    <input id="scrub" type="range" min="0" value="0" aria-label="step">
+    <span id="stepno"></span>
+    <label>speed <input id="speed" type="range" min="100" max="1000" value="600"></label>
+    <span class="keys">← → espaço</span>
+  </div>
+</footer>
+
+<script src="../assets/trace.js"></script>
+<script src="../assets/peak.js"></script>
+<script src="../assets/player.js"></script>
+<script>
+// Bars over s.dp = a, with -∞ sentinels at both ends. tone(k) = extra bar class, ptr(k) = label under slot k.
+function renderBars(s, tone, ptr) {
+  const lo = Math.min(...s.dp), span = Math.max(...s.dp) - lo || 1, h = (v) => 12 + Math.round(96 * (v - lo) / span);
+  const inf = (lbl) => `<div class="slot out">${lbl}<div class="col"><div class="bar inf"></div></div><div class="cell">-∞</div><span class="gen ptr"></span></div>`;
+  $('viz').innerHTML = inf('a[-1]') + s.dp.map((v, k) => {
+    const out = s.lo !== undefined && (k < s.lo || k > s.hi) ? ' out' : '';
+    const c = k === s.pk ? 'pk' : cellClass(s, k) || tone(k);
+    return `<div class="slot${out}">a[${k}]<div class="col"><div class="bar ${c}" style="height:${h(v)}px"></div></div>` +
+      `<div class="cell ${cellClass(s, k)}">${v}</div><span class="gen ptr">${ptr(k)}</span></div>`;
+  }).join('') + inf(`a[${s.dp.length}]`);
+}
+
+const pkMount = (steps, code, tone, ptr) => mountPlayer(steps, (s) => {
+  renderCode(code.text, s.line);
+  renderVars(s.vars);
+  renderBars(s, (k) => tone(s, k), (k) => ptr(s, k));
+  renderMemory(s, (k) => `a[${k}]`, (k) => `base + ${k}·4`);
+  $('stats').innerHTML = `comparações: <b>${s.cmps}</b>`;
+});
+
+mountTabs({
+  linear: () => pkMount(pkLinear(), PK_CODE.linear, (s, k) => s.i !== undefined && k < s.i ? 'up' : '',
+    (s, k) => [k === s.i && 'i', k === s.i + 1 && 'i+1', k === s.pk && 'pico'].filter(Boolean).join('·')),
+  binaria: () => pkMount(pkBinary(), PK_CODE.binaria, () => '',
+    (s, k) => [k === s.lo && 'lo', k === s.mid && 'mid', k === s.hi && 'hi'].filter(Boolean).join('·')),
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mediana de Dois Arrays · GRID//RUNNER</title>
+<link rel="stylesheet" href="../assets/style.css">
+<style>
+.rows { display: grid; gap: 12px; }
+.rows .name { font-size: 12px; color: var(--dim); margin-bottom: 2px; }
+.arr .gen.ptr { color: var(--yellow); min-height: 1.2em; }
+.arr .cell.out { opacity: .3; }
+.arr .cell.bl { --c: #00f0ff99; }
+.arr .cell.br { --c: #ff2a6d99; }
+.arr .slot.tmp .cell { border-style: dashed; }
+.arr.cut { gap: 0; flex-wrap: nowrap; overflow-x: auto; }
+.gap { position: relative; width: 12px; flex: none; }
+.gap.on::before { content: ''; position: absolute; left: 4px; top: 14px; bottom: 18px; width: 3px; background: var(--yellow); box-shadow: 0 0 8px var(--yellow); }
+.gap.out .gen { opacity: .4; }
+.gap .gen.ptr { position: absolute; bottom: 0; left: 50%; transform: translateX(-50%); white-space: nowrap; }
+</style>
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="../index.html">GRID<em>//</em>RUNNER</a>
+  <nav><a href="../index.html#dp">Dynamic Programming</a><a href="../index.html#grafos">Grafos</a><a href="../index.html#ordenacao">Ordenação</a><a class="on" href="../index.html#busca">Busca Binária</a></nav>
+</header>
+<script src="../assets/github.js"></script>
+<main>
+<h1>MEDIANA DE DOIS ARRAYS <span class="diff hard">HARD</span></h1>
+<section class="panel problem"><h2>problema</h2>
+  <p>Você recebe dois arrays de inteiros em ordem crescente, <code>A</code> com <code>m</code> valores e
+    <code>B</code> com <code>n</code>; pelo menos um deles tem algum valor. Devolva a <b>mediana</b> da união dos
+    dois: o valor do meio quando <code>m + n</code> é ímpar, ou a média dos dois do meio quando é par. O desafio é
+    fazer isso em <b>O(log min(m, n))</b>, sem juntar os arrays.</p>
+  <div class="ex"><b>Exemplo 1</b> · <code>A = [2, 9, 11, 15]</code>, <code>B = [1, 3, 4, 6, 13]</code> → <code>6</code>
+    <p>É o exemplo animado abaixo. A união é [1, 2, 3, 4, 6, 9, 11, 13, 15] e o 5º valor, o do meio, é 6.</p></div>
+  <div class="ex"><b>Exemplo 2</b> · <code>A = [1, 2]</code>, <code>B = [3, 4]</code> → <code>2.5</code>
+    <p>Total par: os dois do meio são 2 e 3, e a média dá 2.5.</p></div>
+  <div class="ex"><b>Exemplo 3</b> · <code>A = []</code>, <code>B = [5]</code> → <code>5</code>
+    <p>Um array vazio: o corte nele só pode ser 0, e as bordas viram -∞ e +∞.</p></div>
+  <p class="legend">Restrições: 0 ≤ m, n ≤ 1000 · 1 ≤ m + n ≤ 2000 · -10⁶ ≤ valores ≤ 10⁶ · A e B em ordem crescente</p>
+</section>
+<nav class="tabs" id="tabs" role="tablist" aria-label="variações"></nav>
+<div id="variant"></div>
+</main>
+
+<template id="tpl-merge" data-label="Merge até o meio">
+<p class="lead">A ideia direta é o passo de "juntar" do merge sort: <code>i</code> anda em <code>A</code>,
+  <code>j</code> anda em <code>B</code> e, a cada volta, sai o menor dos dois. Mas não é preciso montar a união
+  inteira: a mediana mora na posição <code>(m + n) / 2</code>, então o laço <span class="hl">para ao chegar no
+  meio</span>. <code>cur</code> guarda o último valor tirado e <code>prev</code> o penúltimo; no fim, total ímpar
+  devolve <code>cur</code> e total par devolve a média dos dois. Simples, mas linear: com um array de um milhão de
+  valores, anda meio milhão de casas.</p>
+
+<div class="cx"><span>tempo <b>O(m + n)</b></span><span>espaço <b>O(1)</b></span><p>O laço tira (m + n) / 2 + 1 valores, cada um com uma comparação. Nada é copiado: só i, j, k, prev e cur.</p></div>
+<div class="layout">
+  <section class="panel"><h2>arrays</h2>
+    <div class="rows" id="viz"></div>
+    <div class="legend"><span><i style="border-color:var(--cyan);background:#00f0ff44"></i>A[i] / tirado</span>
+      <span><i style="border-color:var(--pink);background:#ff2a6d44"></i>B[j]</span>
+      <span><i style="border-color:var(--green)"></i>já tirado</span></div></section>
+  <section class="panel"><h2>registradores</h2><dl id="vars"></dl></section>
+  <section class="panel full"><h2>código</h2><pre id="code"></pre></section>
+  <section class="panel full"><h2>memória · A + B · O(1) extra</h2>
+    <p id="memstat"></p><div id="mem"></div>
+    <p class="legend">Só as células de A e B, apenas lidas. prev e cur são registradores.</p>
+  </section>
+</div>
+</template>
+<template id="tpl-corte" data-label="Busca do corte">
+<p class="lead">Pense num <b>corte</b> que divide cada array em dois: <code>i</code> valores de <code>A</code> e
+  <code>j</code> de <code>B</code> vão para a metade esquerda, que precisa ter <code>half = (m + n + 1) / 2</code>
+  valores, então <code>j = half - i</code>. O corte está certo quando <span class="hl">tudo à esquerda é ≤ tudo à
+  direita</span>; como cada array já é ordenado, basta checar as quatro bordas: <code>aL ≤ bR</code> e
+  <code>bL ≤ aR</code>. Se <code>aL &gt; bR</code>, <code>A</code> deu valores demais e o corte vai para a esquerda; se
+  <code>bL &gt; aR</code>, deu de menos e ele vai para a direita. <b>Invariante:</b> o corte certo está sempre em
+  <code>[lo, hi]</code>, e cada volta descarta metade. Um corte na ponta deixa um lado vazio: ali a borda vale
+  <code>-∞</code> ou <code>+∞</code>, que nunca atrapalha a comparação. A busca roda no array <b>menor</b>, assim
+  <code>j</code> nunca sai de <code>[0, n]</code>.</p>
+
+<div class="cx"><span>tempo <b>O(log min(m, n))</b></span><span>espaço <b>O(1)</b></span><p>Os candidatos a corte são os m + 1 valores de i no array menor, e cada volta corta a faixa [lo, hi] pela metade: ⌈log₂(m + 1)⌉ voltas no máximo, cada uma com 4 leituras. Só lo, hi, i, j e as quatro bordas de memória extra.</p></div>
+<div class="layout">
+  <section class="panel"><h2>arrays + corte</h2>
+    <div class="rows" id="viz"></div>
+    <div class="legend"><span><i style="border-color:var(--yellow);background:var(--yellow)"></i>corte</span>
+      <span><i style="border-color:var(--cyan);background:#00f0ff44"></i>borda esquerda (aL, bL)</span>
+      <span><i style="border-color:var(--pink);background:#ff2a6d44"></i>borda direita (aR, bR)</span>
+      <span><i style="opacity:.3"></i>lado já decidido</span>
+      <span><i style="border-style:dashed"></i>±∞: só uma constante</span></div></section>
+  <section class="panel"><h2>registradores</h2><dl id="vars"></dl></section>
+  <section class="panel full"><h2>código</h2><pre id="code"></pre></section>
+  <section class="panel full"><h2>memória · A + B · O(1) extra</h2>
+    <p id="memstat"></p><div id="mem"></div>
+    <p class="legend">Só as células de A e B, apenas lidas. -∞ e +∞ não ocupam memória: são constantes nas bordas.</p>
+  </section>
+</div>
+</template>
+
+<footer class="ctrl">
+  <p id="msg"></p>
+  <div class="row">
+    <button id="first" title="Home">⏮</button><button id="prev" title="←">◀</button>
+    <button id="play">▶ RUN</button>
+    <button id="next" title="→">▶</button><button id="lastbtn" title="End">⏭</button>
+    <input id="scrub" type="range" min="0" value="0" aria-label="step">
+    <span id="stepno"></span>
+    <label>speed <input id="speed" type="range" min="100" max="1000" value="600"></label>
+    <span class="keys">← → espaço</span>
+  </div>
+</footer>
+
+<script src="../assets/trace.js"></script>
+<script src="../assets/median-two.js"></script>
+<script src="../assets/player.js"></script>
+<script>
+const mdLabel = (s) => (k) => k >= s.offA && k < s.offA + s.m ? `A[${k - s.offA}]` : `B[${k - s.offB}]`;
+const mdMem = (s) => renderMemory(s, mdLabel(s), () => '');
+const mdSlot = (top, v, cls, ptr = '', tmp = false) =>
+  `<div class="slot${tmp ? ' tmp' : ''}">${top}<div class="cell ${cls}">${v}</div><span class="gen ptr">${ptr}</span></div>`;
+
+// Merge: one strip per array, pointer under the cell, consumed values in green.
+function renderMerge(s) {
+  const row = (name, off, len, p, ptr) => `<div><div class="name">${name}</div><div class="arr">` +
+    Array.from({ length: len }, (_, k) => mdSlot(k, s.dp[off + k], cellClass(s, off + k) || (k < p ? 'rng' : ''), k === p ? ptr : '')).join('') +
+    (len ? '' : '<span class="gen">(vazio)</span>') + '</div></div>';
+  $('viz').innerHTML = row(`A (m = ${s.m})`, s.offA, s.m, s.i, 'i') + row(`B (n = ${s.n})`, s.offB, s.n, s.j, 'j');
+}
+
+// Cut: -∞ | gap 0 | X[0] | gap 1 | ... | X[len-1] | gap len | +∞. The cut gap draws a vertical bar.
+// Decided cells (outside the candidate range) are dimmed; the four borders take the colors in s.hl.
+function renderCut(s) {
+  const has = s.lo !== undefined;
+  const row = (name, X, off, len, c, ranged, labels) => {
+    const [lo, hi] = ranged;                          // undecided cuts: lo..hi; undecided cells: X[lo..hi-1]
+    const showB = c !== undefined && s.b >= (X === 'A' ? 1 : 2);
+    const bcls = (k) => {
+      if (!showB) return '';
+      const nm = k === c - 1 ? X.toLowerCase() + 'L' : k === c ? X.toLowerCase() + 'R' : null;
+      return nm ? (s.hl && s.hl[nm]) || (k === c - 1 ? 'bl' : 'br') : '';
+    };
+    const dim = (k) => has && (k < lo || k >= hi) ? 'out' : '';
+    const gap = (g) => `<div class="gap${g === c ? ' on' : ''}${has && (g < lo || g > hi) ? ' out' : ''}"><span class="gen ptr">${labels(g)}</span></div>`;
+    let h = mdSlot('&nbsp;', '-∞', bcls(-1), '', true);
+    for (let g = 0; g <= len; g++) {
+      h += gap(g);
+      if (g < len) h += mdSlot(`${X}[${g}]`, s.dp[off + g], bcls(g) || dim(g));
+    }
+    h += mdSlot('&nbsp;', '+∞', bcls(len), '', true);
+    return `<div><div class="name">${name}</div><div class="arr cut">${h}</div></div>`;
+  };
+  const tag = (g, p) => Object.entries(p).filter(([, v]) => v === g).map(([n]) => n).join('·');
+  $('viz').innerHTML =
+    row(`A (m = ${s.m}) · corte i`, 'A', s.offA, s.m, s.ci, [s.lo, s.hi], (g) => has ? tag(g, { lo: s.lo, hi: s.hi, i: s.ci }) : '') +
+    row(`B (n = ${s.n}) · corte j = half - i`, 'B', s.offB, s.n, s.cj, [s.half - s.hi, s.half - s.lo], (g) => tag(g, { j: s.cj }));
+}
+
+mountTabs({
+  merge: () => mountPlayer(mdMerge(), (s) => {
+    renderCode(MD_CODE.merge.text, s.line);
+    renderVars(s.vars);
+    renderMerge(s);
+    mdMem(s);
+  }),
+  corte: () => mountPlayer(mdCut(), (s) => {
+    renderCode(MD_CODE.corte.text, s.line);
+    renderVars(s.vars);
+    renderCut(s);
+    mdMem(s);
+  }),
+});
+</script>
+</body>
+</html>

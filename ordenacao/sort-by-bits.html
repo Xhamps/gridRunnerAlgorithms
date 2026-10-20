@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ordenável por Bits · GRID//RUNNER</title>
+<link rel="stylesheet" href="../assets/style.css">
+<style>
+.arr .gen.ptr { color: var(--green); }
+.arr .slot.g1 .cell { border-style: dashed; }
+.arr .slot.grp .cell { box-shadow: 0 0 8px var(--green); }
+.arr .slot.off .cell { opacity: .35; }
+</style>
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="../index.html">GRID<em>//</em>RUNNER</a>
+  <nav><a href="../index.html#dp">Dynamic Programming</a><a href="../index.html#grafos">Grafos</a><a class="on" href="../index.html#ordenacao">Ordenação</a><a href="../index.html#busca">Busca Binária</a></nav>
+</header>
+<script src="../assets/github.js"></script>
+<main>
+<h1>ORDENÁVEL POR BITS <span class="diff medium">MEDIUM</span></h1>
+<section class="panel problem"><h2>problema</h2>
+  <p>Você recebe um array <code>a</code> de inteiros positivos. A única operação permitida é trocar dois vizinhos
+    <code>a[j]</code> e <code>a[j+1]</code>, e só quando os dois têm a <b>mesma quantidade de bits 1</b> na escrita
+    binária (o <i>popcount</i>). Pode repetir quantas vezes quiser. Diga se dá para deixar o array em ordem crescente.</p>
+  <div class="ex"><b>Exemplo 1</b> · <code>a = [8, 4, 2, 30, 15]</code> → <code>true</code>
+    <p>8, 4 e 2 têm um bit 1 cada (1000, 100, 10) e podem trocar entre si; 30 e 15 têm quatro (11110, 1111). Ordenando
+      cada bloco sai [2, 4, 8, 15, 30].</p></div>
+  <div class="ex"><b>Exemplo 2</b> · <code>a = [1, 2, 3, 4, 5]</code> → <code>true</code>
+    <p>Já está em ordem: nenhuma troca é necessária.</p></div>
+  <div class="ex"><b>Exemplo 3</b> · <code>a = [1, 8, 4, 12, 3, 16]</code> → <code>false</code>
+    <p>É o exemplo animado. O 3 (popcount 2) precisa ir para antes do 4 e do 8 (popcount 1), mas para isso teria que
+      trocar com eles, o que é proibido.</p></div>
+  <p class="legend">Restrições: 1 ≤ n ≤ 100 · 1 ≤ a[i] ≤ 256</p>
+</section>
+<nav class="tabs" id="tabs" role="tablist" aria-label="variações"></nav>
+<div id="variant"></div>
+</main>
+
+<template id="tpl-bolha" data-label="Bolha">
+<p class="lead">Simula as trocas de verdade: um <b>bubble sort</b> que, antes de trocar um par fora de ordem, confere se os
+  dois têm o mesmo popcount. Se não têm, o par fica como está. Depois de <code>n</code> passadas, tudo que podia andar já
+  andou, então basta checar se o array ficou crescente. Só trocas entre vizinhos fora de ordem são feitas, que é
+  exatamente o que o bubble sort faz: <span class="hl">se ele não consegue ordenar, ninguém consegue</span>.</p>
+
+<div class="cx"><span>tempo <b>O(n²)</b></span><span>espaço <b>O(1)</b></span><p>n passadas com até n − 1 comparações cada. Ordena no próprio array (a cópia de entrada é o único array).</p></div>
+<div class="layout">
+  <section class="panel full"><h2>array a[k] · popcount embaixo</h2>
+    <div class="arr" id="viz"></div>
+    <div class="legend"><span><i style="border-color:var(--cyan);background:#00f0ff44"></i>leitura · a[j]</span>
+      <span><i style="border-color:var(--pink);background:#ff2a6d44"></i>leitura · a[j+1]</span>
+      <span><i style="border-color:var(--yellow);background:var(--yellow)"></i>troca</span></div>
+  </section>
+  <section class="panel"><h2>registradores</h2><dl id="vars"></dl></section>
+  <section class="panel"><h2>código</h2><pre id="code"></pre></section>
+  <section class="panel full"><h2>memória · heap</h2>
+    <p id="memstat"></p><div id="mem"></div>
+    <p class="legend">Só o próprio array: as trocas acontecem no lugar.</p>
+  </section>
+</div>
+</template>
+<template id="tpl-grupos" data-label="Grupos">
+<p class="lead">Repare que trocas nunca mudam a sequência de popcounts: cada <b>grupo</b> (trecho máximo de vizinhos com o
+  mesmo popcount) pode ser embaralhado à vontade, mas os grupos nunca se cruzam. Então o array é ordenável se, para
+  cada grupo, <span class="hl">o menor valor dele for ≥ o maior valor do grupo anterior</span>. Basta uma varredura
+  guardando <code>prevMax</code>, <code>curMin</code> e <code>curMax</code>.</p>
+
+<div class="cx"><span>tempo <b>O(n)</b></span><span>espaço <b>O(1)</b></span><p>Uma passada só, sem trocar nada. Além do array de entrada, só três números e a flag ok.</p></div>
+<div class="layout">
+  <section class="panel full"><h2>array a[k] · popcount embaixo</h2>
+    <div class="arr" id="viz"></div>
+    <div class="legend"><span><i style="border-color:var(--green);box-shadow:0 0 8px var(--green)"></i>grupo aberto</span>
+      <span><i style="border-color:var(--line);border-style:dashed"></i>grupos alternam sólido / tracejado</span>
+      <span><i style="border-color:var(--cyan);background:#00f0ff44"></i>leitura · a[i]</span>
+      <span><i style="border-color:var(--pink);background:#ff2a6d44"></i>leitura · a[i-1]</span></div>
+  </section>
+  <section class="panel"><h2>registradores</h2><dl id="vars"></dl></section>
+  <section class="panel"><h2>código</h2><pre id="code"></pre></section>
+  <section class="panel full"><h2>memória · heap</h2>
+    <p id="memstat"></p><div id="mem"></div>
+    <p class="legend">O array é só lido. prevMax, curMin e curMax ficam em registradores: O(1) extra.</p>
+  </section>
+</div>
+</template>
+
+<footer class="ctrl">
+  <p id="msg"></p>
+  <div class="row">
+    <button id="first" title="Home">⏮</button><button id="prev" title="←">◀</button>
+    <button id="play">▶ RUN</button>
+    <button id="next" title="→">▶</button><button id="lastbtn" title="End">⏭</button>
+    <input id="scrub" type="range" min="0" value="0" aria-label="step">
+    <span id="stepno"></span>
+    <label>speed <input id="speed" type="range" min="100" max="1000" value="600"></label>
+    <span class="keys">← → espaço</span>
+  </div>
+</footer>
+
+<script src="../assets/trace.js"></script>
+<script src="../assets/sort-by-bits.js"></script>
+<script src="../assets/player.js"></script>
+<script>
+// Group index of each position (runs of equal popcount never change under allowed swaps).
+const GROUP = BITS_NUMS.reduce((g, v, k) => (g.push(k && bitsOf(v) === bitsOf(BITS_NUMS[k - 1]) ? g[k - 1] : k ? g[k - 1] + 1 : 0), g), []);
+const slot = (s, k, cls, ptr) =>
+  `<div class="slot ${cls}">a[${k}]<div class="cell ${cellClass(s, k)}">${cellVal(s.dp[k])}</div>` +
+  `<span class="gen">${bitsOf(s.dp[k])}</span><span class="gen ptr">${ptr}</span></div>`;
+
+mountTabs({
+bolha: () => mountPlayer(bitsBubble(), (s) => {
+  renderCode(BITS_CODE.bolha.text, s.line);
+  renderVars(s.vars);
+  renderMemory(s, (k) => `a[${k}]`, (k) => `base + ${k}·4`);
+  const n = s.dp.length, done = s.vars && 'j' in s.vars ? n - s.vars.i : n;
+  $('viz').innerHTML = s.dp.map((_, k) =>
+    slot(s, k, k >= done ? 'off' : '', k === s.i ? (s.vars?.k ? 'k-1' : 'j') : k === s.j ? (s.vars?.k ? 'k' : 'j+1') : '')).join('');
+}),
+grupos: () => mountPlayer(bitsGroups(), (s) => {
+  renderCode(BITS_CODE.grupos.text, s.line);
+  renderVars(s.vars);
+  renderMemory(s, (k) => `a[${k}]`, (k) => `base + ${k}·4`);
+  $('viz').innerHTML = s.dp.map((_, k) =>
+    slot(s, k, `${GROUP[k] % 2 ? 'g1' : ''} ${k >= s.from && k <= s.to ? 'grp' : ''}`, k === s.i ? 'i' : k === s.j ? 'i-1' : '')).join('');
+}),
+});
+</script>
+</body>
+</html>

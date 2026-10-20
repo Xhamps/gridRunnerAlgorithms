@@ -41,7 +41,7 @@ O passo a passo completo, com modelos de módulo, página e teste, está em
 [`.claude/skills/new-challenge/SKILL.md`](.claude/skills/new-challenge/SKILL.md). Resumindo:
 
 1. `assets/<desafio>.js`: listagens de código (`listing`) e um gerador de passos por aba.
-2. `<desafio>.html`: enunciado, um `<template>` por aba, box `.cx` de complexidade.
+2. `<categoria>/<desafio>.html` (`dp/`, `grafos/`): enunciado, um `<template>` por aba, box `.cx` de complexidade.
 3. `test/<desafio>.test.js`: compara cada aba com uma solução independente (força bruta, fórmula...).
 4. Uma entrada em `test/lines.test.js`, que garante que toda linha do código mostrado é visitada.
 5. Um card em `index.html`, na seção certa e na posição do nível (easy → medium → hard).

@@ -15,6 +15,21 @@ const li = require('../assets/large-island.js'), kr = require('../assets/keys-ro
 const bp = require('../assets/bipartite.js'), cs = require('../assets/course-schedule.js');
 
 const st = require('../assets/climbing-stairs.js'), pt = require('../assets/pascal-triangle.js');
+const dj = require('../assets/dijkstra.js');
+
+const mz = require('../assets/move-zeroes.js'), so = require('../assets/semi-ordered.js');
+const sbb = require('../assets/sort-by-bits.js'), ks = require('../assets/kth-swaps.js'), mks = require('../assets/min-k-swaps.js');
+
+const msa = require('../assets/merge-sorted.js'), mll = require('../assets/merge-lists.js');
+const msort = require('../assets/merge-sort.js'), sl = require('../assets/sort-list.js'), rp = require('../assets/reverse-pairs.js');
+
+const ps = require('../assets/parity-sort.js'), qs = require('../assets/quick-sort.js'), sc = require('../assets/sort-colors.js');
+const kl = require('../assets/kth-largest.js'), wg = require('../assets/wiggle-sort.js');
+
+const bs = require('../assets/binary-search.js'), ip = require('../assets/insert-position.js'), sq = require('../assets/sqrt.js');
+const fl = require('../assets/first-last.js'), rs = require('../assets/rotated-search.js'), pk = require('../assets/peak.js');
+const kk = require('../assets/koko.js'), sa = require('../assets/split-array.js'), md = require('../assets/median-two.js');
+const rm = require('../assets/rotated-min.js');
 
 const runs = {
   knapsack: [k.KNAPSACK_CODE, { matriz: k.steps2D(k.ITEMS, k.CAP), array: k.steps1D(k.ITEMS, k.CAP), memo: k.stepsMemo(k.ITEMS, k.CAP) }],
@@ -36,8 +51,34 @@ const runs = {
   rooms: [kr.ROOMS_CODE, { dfs: kr.roomsDFS(), bfs: kr.roomsBFS() }],
   bipartite: [bp.BIP_CODE, { dfs: bp.bipDFS(), bfs: bp.bipBFS() }],
   course: [cs.COURSE_CODE, { dfs: cs.courseDFS(), bfs: cs.courseBFS() }],
+  dijkstra: [dj.DIJ_CODE, { array: dj.dijkstraArray(), heap: dj.dijkstraHeap() }],
   stairs: [st.STAIRS_CODE, { array: st.stairsArray(), vars: st.stairsVars(), memo: st.stairsMemo() }],
   pascal: [pt.PASCAL_CODE, { matriz: pt.pascal2D(), array: pt.pascal1D(), memo: pt.pascalMemo() }],
+  moveZeroes: [mz.MZ_CODE, { bolha: mz.mzBubble(), ponteiros: mz.mzPointers() }],
+  semiOrdered: [so.SEMI_CODE, { bolha: so.semiBubble(), formula: so.semiFormula() }],
+  sortByBits: [sbb.BITS_CODE, { bolha: sbb.bitsBubble(), grupos: sbb.bitsGroups() }],
+  kthSwaps: [ks.KTH_CODE, { proxima: ks.kthProxima(), trocas: ks.kthTrocas() }],
+  minKSwaps: [mks.MKS_CODE, { bolha: mks.mksBubble(), fenwick: mks.mksFenwick() }],
+  mergeSorted: [msa.MSA_CODE, { frente: msa.msFront(), tras: msa.msBack() }],
+  mergeLists: [mll.MLL_CODE, { iterativo: mll.mllIter(), recursivo: mll.mllRec() }],
+  mergeSort: [msort.MS_CODE, { recursivo: msort.msRecursive(), iterativo: msort.msIterative() }],
+  sortList: [sl.SL_CODE, { recursivo: sl.slRecursive(), iterativo: sl.slIterative() }],
+  reversePairs: [rp.RP_CODE, { forca: rp.rpBrute(), merge: rp.rpMerge() }],
+  paritySort: [ps.PAR_CODE, { hoare: ps.parHoare(), lomuto: ps.parLomuto() }],
+  quickSort: [qs.QS_CODE, { lomuto: qs.qsLomuto(), hoare: qs.qsHoare() }],
+  sortColors: [sc.SC_CODE, { duas: sc.scTwoPass(), bandeira: sc.scDutch() }],
+  kthLargest: [kl.KL_CODE, { quickselect: kl.klQuick(), heap: kl.klHeap() }],
+  wiggleSort: [wg.WG_CODE, { ordena: wg.wgSorted(), mediana: wg.wgMedian() }],
+  binarySearch: [bs.BS_CODE, { fechado: bs.bsClosed(), semiaberto: bs.bsHalfOpen() }],
+  insertPosition: [ip.IP_CODE, { linear: ip.ipLinear(), binaria: ip.ipBinary() }],
+  sqrt: [sq.SQ_CODE, { linear: sq.sqLinear(), binaria: sq.sqBinary() }],
+  firstLast: [fl.FL_CODE, { expande: fl.flExpand(), fronteiras: fl.flBounds() }],
+  rotatedSearch: [rs.RS_CODE, { pivo: rs.rsPivot(), direta: rs.rsDirect() }],
+  peak: [pk.PK_CODE, { linear: pk.pkLinear(), binaria: pk.pkBinary() }],
+  koko: [kk.KK_CODE, { linear: kk.kkLinear(), binaria: kk.kkBinary() }],
+  splitArray: [sa.SA_CODE, { binaria: sa.saBinary(), matriz: sa.saDP() }],
+  medianTwo: [md.MD_CODE, { merge: md.mdMerge(), corte: md.mdCut() }],
+  rotatedMin: [rm.RM_CODE, { binaria: rm.rmSteps(rm.RM_NUMS), pior: rm.rmSteps(rm.RM_WORST) }],
 };
 
 for (const [name, [code, variants]] of Object.entries(runs)) {

@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Merge Sort · GRID//RUNNER</title>
+<link rel="stylesheet" href="../assets/style.css">
+<style>
+.rows { display: grid; gap: 10px; }
+.rows .lbl { font-size: 12px; color: var(--dim); }
+.arr .cell.L { --c: #00f0ff99; }
+.arr .cell.R { --c: #ff2a6d99; }
+.arr .cell.in { --c: var(--yellow); }
+.arr .cell.out { opacity: .35; }
+.arr .gen.ptr { color: var(--yellow); min-height: 1.2em; }
+</style>
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="../index.html">GRID<em>//</em>RUNNER</a>
+  <nav><a href="../index.html#dp">Dynamic Programming</a><a href="../index.html#grafos">Grafos</a><a class="on" href="../index.html#ordenacao">Ordenação</a><a href="../index.html#busca">Busca Binária</a></nav>
+</header>
+<script src="../assets/github.js"></script>
+<main>
+<h1>MERGE SORT <span class="diff medium">MEDIUM</span></h1>
+<section class="panel problem"><h2>problema</h2>
+  <p>Dado um array de inteiros <code>a</code>, devolva-o em <b>ordem crescente</b>. Funções prontas de ordenação estão
+    proibidas, e a solução precisa rodar em <b>O(n log n)</b>: algoritmos quadráticos como a bolha estouram o tempo
+    com 50 mil elementos.</p>
+  <div class="ex"><b>Exemplo 1</b> · <code>a = [5, 2, 4, 6, 1, 3]</code> → <code>[1, 2, 3, 4, 5, 6]</code>
+    <p>É o exemplo animado abaixo. Com 6 elementos as metades não são iguais, então aparecem blocos de tamanhos diferentes.</p></div>
+  <div class="ex"><b>Exemplo 2</b> · <code>a = [3, -1, 3, 0]</code> → <code>[-1, 0, 3, 3]</code>
+    <p>Negativos e repetidos são permitidos; os repetidos ficam lado a lado.</p></div>
+  <div class="ex"><b>Exemplo 3</b> · <code>a = [7]</code> → <code>[7]</code>
+    <p>Um elemento só já está ordenado.</p></div>
+  <p class="legend">Restrições: 1 ≤ n ≤ 5·10⁴ · -5·10⁴ ≤ a[i] ≤ 5·10⁴ · tempo O(n log n), sem sort embutido</p>
+</section>
+<nav class="tabs" id="tabs" role="tablist" aria-label="variações"></nav>
+<div id="variant"></div>
+</main>
+
+<template id="tpl-recursivo" data-label="Recursivo">
+<p class="lead"><b>Dividir e conquistar</b> (top-down): <code>sort(lo, hi)</code> corta o trecho ao meio em
+  <code>mid</code>, ordena cada metade com uma chamada recursiva e depois faz o <b>merge</b>. Juntar duas listas já
+  ordenadas é fácil: o menor de todos está na frente de uma delas, então basta comparar as duas cabeças, copiar a
+  menor para <code>tmp</code> e repetir. Quando um lado acaba, <span class="hl">o que sobrou do outro já está em
+  ordem</span> e vai direto. A recursão desce até trechos de 1 elemento, que já estão ordenados.</p>
+
+<div class="cx"><span>tempo <b>O(n log n)</b></span><span>espaço <b>O(n)</b></span><p>A árvore de chamadas tem log n níveis, e os merges de cada nível somam n cópias. O buffer tmp ocupa n células e a call stack chega a log n frames (+1 do merge).</p></div>
+<div class="layout">
+  <section class="panel full"><h2>heap · a[] e tmp[]</h2>
+    <div class="rows" id="viz"></div>
+    <div class="legend"><span><i style="border-color:#00f0ff99"></i>metade esquerda a[lo..mid]</span>
+      <span><i style="border-color:#ff2a6d99"></i>metade direita a[mid+1..hi]</span>
+      <span><i style="border-color:var(--cyan);background:#00f0ff44"></i>a[i]</span>
+      <span><i style="border-color:var(--pink);background:#ff2a6d44"></i>a[j]</span>
+      <span><i style="border-color:var(--yellow);background:var(--yellow)"></i>escrita</span></div></section>
+  <section class="panel"><h2>registradores</h2><dl id="vars"></dl><p class="legend" id="stats"></p></section>
+  <section class="panel"><h2>call stack</h2><p id="stackstat"></p><div id="stack"></div></section>
+  <section class="panel full"><h2>código</h2><pre id="code"></pre></section>
+  <section class="panel full"><h2>memória · heap (a + tmp)</h2>
+    <p id="memstat"></p><div id="mem"></div>
+    <p class="legend">2n células: o array e o buffer. tmp guarda restos de merges antigos; só a faixa lo..hi do merge atual importa.</p>
+  </section>
+</div>
+</template>
+<template id="tpl-iterativo" data-label="Iterativo">
+<p class="lead">O <a href="#recursivo">recursivo</a> só faz trabalho de verdade na volta, nos merges. Dá para
+  pular a descida: <b>bottom-up</b>, cada elemento sozinho já é um bloco ordenado de largura <code>w = 1</code>. Uma
+  passada junta pares vizinhos em blocos de 2, a seguinte em blocos de 4, depois 8... Quando <code>n</code> não é
+  potência de 2, o último bloco direito fica <span class="hl">menor</span> (o <code>Math.min</code> corta o
+  <code>hi</code>) ou nem existe, e aí o bloco esquerdo que sobrou espera a próxima passada. Sem recursão, a stack
+  nunca passa de 1 frame.</p>
+
+<div class="cx"><span>tempo <b>O(n log n)</b></span><span>espaço <b>O(n)</b></span><p>log n passadas (w dobra a cada uma), e cada passada copia no máximo n elementos. O buffer tmp ocupa n células; a stack fica em O(1).</p></div>
+<div class="layout">
+  <section class="panel full"><h2>heap · a[] e tmp[]</h2>
+    <div class="rows" id="viz"></div>
+    <div class="legend"><span><i style="border-color:#00f0ff99"></i>bloco esquerdo a[lo..mid]</span>
+      <span><i style="border-color:#ff2a6d99"></i>bloco direito a[mid+1..hi]</span>
+      <span><i style="border-color:var(--cyan);background:#00f0ff44"></i>a[i]</span>
+      <span><i style="border-color:var(--pink);background:#ff2a6d44"></i>a[j]</span>
+      <span><i style="border-color:var(--yellow);background:var(--yellow)"></i>escrita</span></div></section>
+  <section class="panel"><h2>registradores</h2><dl id="vars"></dl><p class="legend" id="stats"></p></section>
+  <section class="panel"><h2>call stack</h2><p id="stackstat"></p><div id="stack"></div></section>
+  <section class="panel full"><h2>código</h2><pre id="code"></pre></section>
+  <section class="panel full"><h2>memória · heap (a + tmp)</h2>
+    <p id="memstat"></p><div id="mem"></div>
+    <p class="legend">Os mesmos 2n células do recursivo: o que muda é a ordem em que os merges acontecem, não a memória do heap.</p>
+  </section>
+</div>
+</template>
+
+<footer class="ctrl">
+  <p id="msg"></p>
+  <div class="row">
+    <button id="first" title="Home">⏮</button><button id="prev" title="←">◀</button>
+    <button id="play">▶ RUN</button>
+    <button id="next" title="→">▶</button><button id="lastbtn" title="End">⏭</button>
+    <input id="scrub" type="range" min="0" value="0" aria-label="step">
+    <span id="stepno"></span>
+    <label>speed <input id="speed" type="range" min="100" max="1000" value="600"></label>
+    <span class="keys">← → espaço</span>
+  </div>
+</footer>
+
+<script src="../assets/trace.js"></script>
+<script src="../assets/merge-sort.js"></script>
+<script src="../assets/player.js"></script>
+<script>
+// Two rows over s.dp = [...a, ...tmp]: the current [lo, mid, hi] range is outlined, the rest dimmed.
+function renderRows(s) {
+  const n = s.dp.length / 2, end = s.hi ?? s.mid ?? s.lo;
+  const range = (k) => s.result ? 'rng' : s.lo === undefined ? '' : k < s.lo || k > end ? 'out'
+    : s.mid === undefined || s.hi === undefined ? 'in' : k <= s.mid ? 'L' : 'R';
+  const cls = (idx, k) => { const c = cellClass(s, idx); return c && c !== 'junk' ? c : `${c} ${range(k)}`; };
+  const ptrA = (k) => [k === s.lo && 'lo', k === s.mid && 'mid', k === s.hi && 'hi', k === s.i && 'i', k === s.j && 'j'].filter(Boolean).join('·');
+  const row = (name, off, ptr) => `<div class="lbl">${name}</div><div class="arr">` + [...Array(n).keys()].map((k) =>
+    `<div class="slot">${name}[${k}]<div class="cell ${cls(off + k, k)}">${cellVal(s.dp[off + k])}</div><span class="gen ptr">${ptr(k)}</span></div>`).join('') + '</div>';
+  $('viz').innerHTML = row('a', 0, ptrA) + row('tmp', n, (k) => k === s.k ? 'k' : '');
+}
+
+const msMount = (steps, code) => mountPlayer(steps, (s) => {
+  const n = s.dp.length / 2;
+  renderCode(code.text, s.line);
+  renderVars(s.vars);
+  renderRows(s);
+  renderStack(s);
+  renderMemory(s, (k) => k < n ? `a[${k}]` : `tmp[${k - n}]`, (k) => `base + ${k}·4`);
+  $('stats').innerHTML = `comparações: <b>${s.cmps}</b>` + (s.w ? ` · largura w: <b>${s.w}</b>` : '');
+});
+
+mountTabs({
+  recursivo: () => msMount(msRecursive(), MS_CODE.recursivo),
+  iterativo: () => msMount(msIterative(), MS_CODE.iterativo),
+});
+</script>
+</body>
+</html>

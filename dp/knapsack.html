@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Knapsack 0/1 · GRID//RUNNER</title>
+<link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="../index.html">GRID<em>//</em>RUNNER</a>
+  <nav><a class="on" href="../index.html#dp">Dynamic Programming</a><a href="../index.html#grafos">Grafos</a><a href="../index.html#ordenacao">Ordenação</a><a href="../index.html#busca">Busca Binária</a></nav>
+</header>
+<script src="../assets/github.js"></script>
+<main>
+<h1>KNAPSACK 0/1 <span class="diff medium">MEDIUM</span></h1>
+<section class="panel problem"><h2>problema</h2>
+  <p>Você tem <code>n</code> itens, cada um com um <b>peso</b> e um <b>valor</b>, e uma mochila que aguenta no máximo
+    <code>W</code> de peso. Escolha quais itens levar para <b>maximizar o valor total</b> sem passar da capacidade.</p>
+  <p>É "0/1" porque cada item é levado <b>inteiro ou não é levado</b>: não dá para fracionar nem repetir.</p>
+  <div class="ex"><b>Exemplo</b> · itens (peso, valor) = <code>(1, 1) (3, 4) (3, 5) (3, 7)</code>, <code>W = 7</code> → <code>13</code>
+    <p>Levar os itens de peso 1, 3 (valor 5) e 3 (valor 7): peso 7, valor 1 + 5 + 7 = 13. Levar os três itens de
+      peso 3 daria peso 9, acima da capacidade.</p></div>
+</section>
+<nav class="tabs" id="tabs" role="tablist" aria-label="variações"></nav>
+<div id="variant"></div>
+</main>
+
+<template id="tpl-matriz" data-label="Matriz">
+<p class="lead"><b>Tabulation</b>: <code>dp[i][w]</code> = melhor valor usando os
+  primeiros <code>i</code> itens com capacidade <code>w</code>. Cada célula depende só da linha de cima:
+  <span class="hl">pular</span> o item (<code>dp[i-1][w]</code>) ou <span class="hl">pegar</span>
+  (<code>dp[i-1][w-peso] + valor</code>).</p>
+
+<div class="cx"><span>tempo <b>O(n·W)</b></span><span>espaço <b>O(n·W)</b></span><p>n itens × W + 1 capacidades, cada célula em O(1).</p></div>
+<div class="layout">
+  <section class="panel"><h2>itens</h2><div class="scroll"><table id="items"></table></div></section>
+  <section class="panel"><h2>registradores</h2><dl id="vars"></dl></section>
+  <section class="panel full"><h2>tabela dp[i][w]</h2>
+    <div class="scroll"><table class="grid" id="viz"></table></div>
+    <div class="legend"><span><i style="border-color:var(--cyan);background:#00f0ff44"></i>leitura · pular</span>
+      <span><i style="border-color:var(--pink);background:#ff2a6d44"></i>leitura · pegar</span>
+      <span><i style="border-color:var(--yellow);background:var(--yellow)"></i>escrita</span>
+      <span><i style="border-color:var(--line)"></i>░░ não inicializado</span></div>
+  </section>
+  <section class="panel full"><h2>código</h2><pre id="code"></pre></section>
+  <section class="panel full"><h2>memória · bloco contíguo row-major</h2>
+    <p id="memstat"></p><div id="mem"></div>
+    <p class="legend">A matriz vive como um bloco linear na memória (como em C ou um Int32Array): a linha i começa em
+      base + i·(W+1)·4. Borda rosa = início de cada linha. Custo: O(n·W) de espaço.</p>
+  </section>
+</div>
+</template>
+<template id="tpl-array" data-label="Array">
+<p class="lead">O mesmo problema da <a href="#matriz">versão com matriz</a>, mas cada linha só lê a linha
+  anterior, então basta <b>um único array</b> de <code>W + 1</code> células sobrescrito a cada item.
+  O segredo: percorrer <code>w</code> de <span class="hl">trás para frente</span>. Assim <code>dp[w - peso]</code>
+  ainda guarda o valor da rodada anterior (i-1). Se fosse para frente, o item seria usado duas vezes
+  (isso vira o knapsack <i>ilimitado</i>).</p>
+
+<div class="cx"><span>tempo <b>O(n·W)</b></span><span>espaço <b>O(W)</b></span><p>Mesmas contas; uma linha só, percorrida de trás para frente.</p></div>
+<div class="layout">
+  <section class="panel"><h2>itens</h2><div class="scroll"><table id="items"></table></div></section>
+  <section class="panel"><h2>registradores</h2><dl id="vars"></dl></section>
+  <section class="panel full"><h2>array dp[w]</h2>
+    <div class="arr" id="viz"></div>
+    <div class="legend"><span><i style="border-color:var(--cyan);background:#00f0ff44"></i>leitura · pular (valor antigo)</span>
+      <span><i style="border-color:var(--pink);background:#ff2a6d44"></i>leitura · pegar</span>
+      <span><i style="border-color:var(--yellow);background:var(--yellow)"></i>escrita</span>
+      <span><span class="hl">i=k</span> rodada que escreveu a célula</span></div>
+  </section>
+  <section class="panel full"><h2>código</h2><pre id="code"></pre></section>
+  <section class="panel full"><h2>memória · O(W)</h2>
+    <p id="memstat"></p><div id="mem"></div>
+    <p class="legend">A versão com matriz aloca (n+1)·(W+1) = 40 células (160 B). Aqui são só W+1 = 8 (32 B),
+      independente do número de itens. O preço: não dá mais para reconstruir quais itens foram escolhidos.</p>
+  </section>
+</div>
+</template>
+<template id="tpl-memo" data-label="Memo">
+<p class="lead"><b>Memoization</b> é a abordagem <span class="hl">top-down</span>: uma recursão <code>f(i, w)</code> que parte da
+  pergunta final <code>f(n, W)</code> e desce até o caso base. Cada resultado é guardado em <code>memo[i][w]</code>.
+  Se o mesmo subproblema for pedido de novo, ele é devolvido do cache (<span class="hl">cache hit</span>) sem
+  recalcular. Diferente da <a href="#matriz">tabulação</a>, só as células realmente necessárias são
+  calculadas, mas cada chamada ocupa um frame na <b>call stack</b>.</p>
+
+<div class="cx"><span>tempo <b>O(n·W)</b></span><span>espaço <b>O(n·W)</b></span><p>No pior caso todos os estados (i, w) são visitados uma vez. Memo (n+1)×(W+1) e call stack de até n frames.</p></div>
+<div class="layout">
+  <section class="panel"><h2>itens</h2><div class="scroll"><table id="items"></table></div></section>
+  <section class="panel"><h2>registradores</h2><dl id="vars"></dl></section>
+  <section class="panel full"><h2>memo[i][w]</h2>
+    <div class="scroll"><table class="grid" id="viz"></table></div>
+    <div class="legend"><span><i style="border-color:var(--cyan);background:#00f0ff44"></i>leitura · cache hit</span>
+      <span><i style="border-color:var(--yellow);background:var(--yellow)"></i>escrita</span>
+      <span><i style="border-color:var(--line)"></i>░░ nunca calculado</span></div>
+  </section>
+  <section class="panel"><h2>código</h2><pre id="code"></pre></section>
+  <section class="panel"><h2>call stack</h2><p id="stackstat"></p><div id="stack"></div></section>
+  <section class="panel full"><h2>memória · heap (memo)</h2>
+    <p id="memstat"></p><div id="mem"></div>
+    <p class="legend">O memo aloca as mesmas (n+1)·(W+1) células da tabulação, mas preenche só os estados alcançados
+      pela recursão. Em troca, usa a call stack: até n+1 frames empilhados ao mesmo tempo (O(n) de stack).
+      A linha i=0 nunca é gravada, porque o caso base retorna 0 direto.</p>
+  </section>
+</div>
+</template>
+
+<footer class="ctrl">
+  <p id="msg"></p>
+  <div class="row">
+    <button id="first" title="Home">⏮</button><button id="prev" title="←">◀</button>
+    <button id="play">▶ RUN</button>
+    <button id="next" title="→">▶</button><button id="lastbtn" title="End">⏭</button>
+    <input id="scrub" type="range" min="0" value="0" aria-label="step">
+    <span id="stepno"></span>
+    <label>speed <input id="speed" type="range" min="100" max="1000" value="600"></label>
+    <span class="keys">← → espaço</span>
+  </div>
+</footer>
+
+<script src="../assets/trace.js"></script>
+<script src="../assets/knapsack.js"></script>
+<script src="../assets/player.js"></script>
+<script>
+mountTabs({
+matriz: () => {
+  const COLS = CAP + 1;
+  const CODE = KNAPSACK_CODE.matriz.text;
+  const label = (k) => `dp[${Math.floor(k / COLS)}][${k % COLS}]`;
+  const formula = (k) => `base + (${Math.floor(k / COLS)}·${COLS} + ${k % COLS})·4`;
+
+  mountPlayer(steps2D(ITEMS, CAP), (s) => {
+    renderCode(CODE, s.line);
+    renderVars(s.vars);
+    renderItems(ITEMS, s.i);
+    renderMemory(s, label, formula, COLS);
+    let h = '<tr><th></th>' + [...Array(COLS).keys()].map((w) => `<th>w=${w}</th>`).join('') + '</tr>';
+    for (let i = 0; i <= ITEMS.length; i++) {
+      h += `<tr class="${i === s.i ? 'on' : ''}"><th class="rh">${i ? `${i} · ${ITEMS[i - 1].name}` : '0 · ∅'}</th>`;
+      for (let w = 0; w < COLS; w++) {
+        const k = i * COLS + w;
+        h += `<td><div class="cell ${cellClass(s, k)}">${cellVal(s.dp[k])}</div></td>`;
+      }
+      h += '</tr>';
+    }
+    $('viz').innerHTML = h;
+  });
+},
+array: () => {
+  const CODE = KNAPSACK_CODE.array.text;
+
+  mountPlayer(steps1D(ITEMS, CAP), (s) => {
+    renderCode(CODE, s.line);
+    renderVars(s.vars);
+    renderItems(ITEMS, s.i);
+    renderMemory(s, (k) => `dp[${k}]`, (k) => `base + ${k}·4`);
+    $('viz').innerHTML = s.dp.map((v, w) =>
+      `<div class="slot">dp[${w}]<div class="cell ${cellClass(s, w)}">${cellVal(v)}</div>` +
+      `<span class="gen${s.gen[w] === s.i ? ' fresh' : ''}">${s.gen[w] === null ? '' : 'i=' + s.gen[w]}</span></div>`).join('');
+  });
+},
+memo: () => {
+  const COLS = CAP + 1;
+  const CODE = KNAPSACK_CODE.memo.text;
+  const label = (k) => `memo[${Math.floor(k / COLS)}][${k % COLS}]`;
+  const formula = (k) => `base + (${Math.floor(k / COLS)}·${COLS} + ${k % COLS})·4`;
+
+  mountPlayer(stepsMemo(ITEMS, CAP), (s) => {
+    renderCode(CODE, s.line);
+    renderVars(s.vars);
+    renderItems(ITEMS, s.i);
+    renderStack(s);
+    renderMemory(s, label, formula, COLS);
+    let h = '<tr><th></th>' + [...Array(COLS).keys()].map((w) => `<th>w=${w}</th>`).join('') + '</tr>';
+    for (let i = 0; i <= ITEMS.length; i++) {
+      h += `<tr class="${i === s.i ? 'on' : ''}"><th class="rh">${i ? `${i} · ${ITEMS[i - 1].name}` : '0 · ∅'}</th>`;
+      for (let w = 0; w < COLS; w++) h += `<td><div class="cell ${cellClass(s, i * COLS + w)}">${cellVal(s.dp[i * COLS + w])}</div></td>`;
+      h += '</tr>';
+    }
+    $('viz').innerHTML = h;
+  });
+},
+});
+</script>
+</body>
+</html>

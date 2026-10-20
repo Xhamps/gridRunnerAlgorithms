@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dividir com Menor Soma Máxima · GRID//RUNNER</title>
+<link rel="stylesheet" href="../assets/style.css">
+<style>
+.arr .cell.out { opacity: .3; }
+.arr .cell.mid { --c: var(--yellow); box-shadow: 0 0 10px var(--yellow); color: var(--yellow); }
+.arr .cell.p0 { --c: #00f0ff99; }
+.arr .cell.p1 { --c: #ff2a6d99; }
+.arr .cell.p2 { --c: var(--green); }
+.arr .cell.p3 { --c: var(--yellow); }
+.arr .cell.seg { --c: var(--green); color: var(--green); }
+.arr .slot.cut { border-left: 3px solid var(--yellow); padding-left: 4px; }
+.arr .gen.ptr { color: var(--yellow); min-height: 1.2em; }
+</style>
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="../index.html">GRID<em>//</em>RUNNER</a>
+  <nav><a href="../index.html#dp">Dynamic Programming</a><a href="../index.html#grafos">Grafos</a><a href="../index.html#ordenacao">Ordenação</a><a class="on" href="../index.html#busca">Busca Binária</a></nav>
+</header>
+<script src="../assets/github.js"></script>
+<main>
+<h1>DIVIDIR COM MENOR SOMA MÁXIMA <span class="diff hard">HARD</span></h1>
+<section class="panel problem"><h2>problema</h2>
+  <p>Dado um array <code>a</code> de inteiros não negativos e um inteiro <code>k</code>, corte <code>a</code> em
+    exatamente <code>k</code> pedaços <b>contíguos e não vazios</b>. Cada pedaço tem uma soma; a pior delas é a maior.
+    Escolha os cortes de modo que essa <b>maior soma seja a menor possível</b> e retorne esse valor.</p>
+  <div class="ex"><b>Exemplo 1</b> · <code>a = [7, 2, 5, 10, 8]</code>, <code>k = 2</code> → <code>18</code>
+    <p>É o exemplo animado. Cortando em [7, 2, 5] | [10, 8] as somas são 14 e 18. Qualquer outro corte deixa um
+      pedaço com mais de 18 (por exemplo [7, 2, 5, 10] | [8] dá 24).</p></div>
+  <div class="ex"><b>Exemplo 2</b> · <code>a = [1, 2, 3, 4, 5]</code>, <code>k = 2</code> → <code>9</code>
+    <p>[1, 2, 3] | [4, 5]: somas 6 e 9.</p></div>
+  <div class="ex"><b>Exemplo 3</b> · <code>a = [1, 4, 4]</code>, <code>k = 3</code> → <code>4</code>
+    <p>Com k = n, cada elemento fica sozinho e a resposta é o maior deles.</p></div>
+  <p class="legend">Restrições: 1 ≤ n ≤ 1000 · 0 ≤ a[i] ≤ 10⁶ · 1 ≤ k ≤ min(50, n)</p>
+</section>
+<nav class="tabs" id="tabs" role="tablist" aria-label="variações"></nav>
+<div id="variant"></div>
+</main>
+
+<template id="tpl-binaria" data-label="Binária na resposta">
+<p class="lead">Em vez de procurar os cortes, procuramos o <b>valor da resposta</b> <code>S</code>. A pergunta
+  <code>cabe(S)</code> = "cortando de forma gulosa, sem deixar nenhum pedaço passar de <code>S</code>, bastam
+  <code>k</code> pedaços ou menos?" é fácil: enche o pedaço atual até o próximo número estourar, e só então corta.
+  Ela é <span class="hl">monótona</span>: se um limite <code>S</code> serve, qualquer <code>S' &gt; S</code> também serve
+  (os mesmos cortes continuam válidos), e se <code>S</code> não serve, nenhum menor serve. Ter menos de <code>k</code>
+  pedaços não atrapalha: dá para quebrar algum pedaço sem aumentar a maior soma. Então os candidatos formam
+  <code>false … false true … true</code>, e a busca binária acha o primeiro <code>true</code>. Invariante: a resposta
+  está sempre em <code>[lo, hi]</code>; tudo fora disso já foi descartado.</p>
+
+<div class="cx"><span>tempo <b>O(n·log(Σa))</b></span><span>espaço <b>O(1)</b></span><p>log(soma − max) rodadas da busca, e cada cabe(S) varre o array uma vez. Só lo, hi, mid, partes e soma de memória extra.</p></div>
+<div class="layout">
+  <section class="panel full"><h2>candidatos S ∈ [max(a), soma(a)]</h2>
+    <div class="arr" id="viz"></div>
+    <div class="legend"><span><i style="border-color:var(--yellow)"></i>mid</span>
+      <span><i style="border-color:var(--line);opacity:.3"></i>descartado</span>
+      <span><i style="border-color:var(--green)"></i>resposta</span></div></section>
+  <section class="panel"><h2>cortes de cabe(S)</h2>
+    <div class="arr" id="cuts"></div>
+    <div class="legend"><span><i style="border-color:var(--yellow);border-width:0 0 0 3px"></i>corte</span>
+      <span>cores: um pedaço cada</span></div>
+    <p class="legend" id="stats"></p></section>
+  <section class="panel"><h2>registradores</h2><dl id="vars"></dl></section>
+  <section class="panel full"><h2>código</h2><pre id="code"></pre></section>
+  <section class="panel full"><h2>memória · O(1) extra</h2>
+    <p id="memstat"></p><div id="mem"></div>
+    <p class="legend">Só o array de entrada; os candidatos S nunca são guardados, são só o intervalo [lo, hi].</p>
+  </section>
+</div>
+</template>
+<template id="tpl-matriz" data-label="DP">
+<p class="lead"><b>Tabulation</b>: <code>dp[j][i]</code> = a menor "maior soma" possível ao cortar os <code>i</code>
+  primeiros elementos em exatamente <code>j</code> pedaços. Para preencher, escolhemos onde começa o
+  <span class="hl">último pedaço</span>, <code>a[m..i-1]</code>: o resto (<code>m</code> elementos em <code>j - 1</code>
+  pedaços) já está em <code>dp[j-1][m]</code>, e a pior soma é o maior dos dois. Com prefixos, a soma do pedaço sai em
+  O(1). Sem a monotonia da <a href="#binaria">busca binária</a>, testamos todo <code>m</code>.</p>
+
+<div class="cx"><span>tempo <b>O(k·n²)</b></span><span>espaço <b>O(k·n)</b></span><p>k·n células, cada uma testa até n posições m para o último pedaço. Tabela (k+1)×(n+1) mais n+1 prefixos.</p></div>
+<div class="layout">
+  <section class="panel"><h2>array a · prefixos</h2><div class="arr" id="cuts"></div>
+    <div class="legend"><span><i style="border-color:var(--green)"></i>último pedaço a[m..i-1]</span>
+      <span><span class="hl">pre</span> = soma antes de a[x]</span></div></section>
+  <section class="panel"><h2>registradores</h2><dl id="vars"></dl></section>
+  <section class="panel full"><h2>tabela dp[j][i]</h2>
+    <div class="scroll"><table class="grid" id="viz"></table></div>
+    <div class="legend"><span><i style="border-color:var(--cyan);background:#00f0ff44"></i>leitura · dp[j-1][m]</span>
+      <span><i style="border-color:var(--pink);background:#ff2a6d44"></i>leitura · dp[j][i] atual</span>
+      <span><i style="border-color:var(--yellow);background:var(--yellow)"></i>escrita</span>
+      <span>∞ impossível</span></div>
+  </section>
+  <section class="panel full"><h2>código</h2><pre id="code"></pre></section>
+  <section class="panel full"><h2>memória · bloco contíguo row-major</h2>
+    <p id="memstat"></p><div id="mem"></div>
+    <p class="legend">A linha j começa em base + j·(n+1)·4. Só a linha j−1 é lida, então dá para guardar duas linhas
+      e cair para O(n) de espaço.</p>
+  </section>
+</div>
+</template>
+
+<footer class="ctrl">
+  <p id="msg"></p>
+  <div class="row">
+    <button id="first" title="Home">⏮</button><button id="prev" title="←">◀</button>
+    <button id="play">▶ RUN</button>
+    <button id="next" title="→">▶</button><button id="lastbtn" title="End">⏭</button>
+    <input id="scrub" type="range" min="0" value="0" aria-label="step">
+    <span id="stepno"></span>
+    <label>speed <input id="speed" type="range" min="100" max="1000" value="600"></label>
+    <span class="keys">← → espaço</span>
+  </div>
+</footer>
+
+<script src="../assets/trace.js"></script>
+<script src="../assets/split-array.js"></script>
+<script src="../assets/player.js"></script>
+<script>
+mountTabs({
+binaria: () => mountPlayer(saBinary(), (s) => {
+  renderCode(SA_CODE.binaria.text, s.line);
+  renderVars(s.vars);
+  renderMemory(s, (k) => `a[${k}]`, (k) => `base + ${k}·4`);
+  // Candidate strip: S from min to max, dimmed outside [lo, hi].
+  let h = '';
+  for (let S = s.min; S <= s.max; S++) {
+    const c = s.result !== undefined ? (S === s.result ? 'rng' : 'out') : S < s.lo || S > s.hi ? 'out' : S === s.S || S === s.mid && s.S === undefined ? 'mid' : '';
+    const ptr = [S === s.lo && 'lo', S === s.mid && s.result === undefined && 'mid', S === s.hi && 'hi'].filter(Boolean).join('·');
+    h += `<div class="slot"><div class="cell ${c}">${S}</div><span class="gen ptr">${ptr}</span></div>`;
+  }
+  $('viz').innerHTML = h;
+  // Greedy cuts of the current cabe(S).
+  $('cuts').innerHTML = s.dp.map((v, x) => {
+    const p = s.parts[x], cut = x > 0 && (s.cutAt === x || p !== undefined && p !== s.parts[x - 1]);
+    const c = cellClass(s, x) || (p === undefined ? '' : 'p' + p % 4);
+    return `<div class="slot${cut ? ' cut' : ''}">a[${x}]<div class="cell ${c}">${v}</div><span class="gen ptr">${p === undefined ? '' : 'p' + (p + 1)}</span></div>`;
+  }).join('');
+  const sums = [];
+  s.parts.forEach((p, x) => sums[p] = (sums[p] || 0) + s.dp[x]);
+  $('stats').innerHTML = (sums.length ? `somas: <b>${sums.join(' | ')}</b> · ` : '') + `chamadas de cabe: <b>${s.calls}</b>`;
+}),
+matriz: () => {
+  const C = SA_NUMS.length + 1;
+  mountPlayer(saDP(), (s) => {
+    renderCode(SA_CODE.matriz.text, s.line);
+    renderVars(s.vars);
+    renderMemory(s, (k) => `dp[${Math.floor(k / C)}][${k % C}]`, (k) => `base + (${Math.floor(k / C)}·${C} + ${k % C})·4`, C);
+    $('cuts').innerHTML = SA_NUMS.map((v, x) =>
+      `<div class="slot${s.seg && x === s.seg[0] ? ' cut' : ''}">a[${x}]<div class="cell ${s.seg && x >= s.seg[0] && x <= s.seg[1] ? 'seg' : ''}">${v}</div>` +
+      `<span class="gen">pre=${s.pre[x]}</span></div>`).join('');
+    let h = '<tr><th></th>' + [...Array(C).keys()].map((i) => `<th>i=${i}</th>`).join('') + '</tr>';
+    for (let j = 0; j <= SA_K; j++) {
+      h += `<tr class="${j === s.j ? 'on' : ''}"><th class="rh">j = ${j}</th>`;
+      for (let i = 0; i < C; i++) h += `<td><div class="cell ${cellClass(s, j * C + i)}">${cellVal(s.dp[j * C + i])}</div></td>`;
+      h += '</tr>';
+    }
+    $('viz').innerHTML = h;
+  });
+},
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Juntar Listas Ordenadas · GRID//RUNNER</title>
+<link rel="stylesheet" href="../assets/style.css">
+<style>
+.chains { display: grid; gap: 10px; }
+.chain { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; font-size: 12px; color: var(--dim); }
+.chain > b { width: 96px; color: var(--txt); font-weight: normal; }
+.chain .nd { display: grid; justify-items: center; gap: 2px; }
+.chain .nd .cell { min-width: 40px; }
+.chain .nd .cell.tl { --c: var(--yellow); color: var(--yellow); box-shadow: 0 0 10px var(--yellow); }
+.chain .nd .cell.dm { border-style: dashed; color: var(--dim); }
+.chain .ar { color: var(--dim); }
+.chain .nil { color: #3d3760; }
+</style>
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="../index.html">GRID<em>//</em>RUNNER</a>
+  <nav><a href="../index.html#dp">Dynamic Programming</a><a href="../index.html#grafos">Grafos</a><a class="on" href="../index.html#ordenacao">Ordenação</a><a href="../index.html#busca">Busca Binária</a></nav>
+</header>
+<script src="../assets/github.js"></script>
+<main>
+<h1>JUNTAR LISTAS ORDENADAS <span class="diff easy">EASY</span></h1>
+<section class="panel problem"><h2>problema</h2>
+  <p>Você recebe as cabeças de duas <b>listas ligadas simples</b>, <code>a</code> e <code>b</code>, cada uma já em ordem
+    crescente. Junte as duas numa única lista crescente e devolva a cabeça dela. A junção é feita
+    <b>religando os nós que já existem</b>: só os ponteiros <code>next</code> mudam, nenhum valor é copiado para um nó novo.
+    É exatamente a etapa de "intercalar" do merge sort quando os dados estão numa lista ligada.</p>
+  <div class="ex"><b>Exemplo 1</b> · <code>a = 1 → 3 → 6</code>, <code>b = 2 → 3 → 7 → 9</code> → <code>1 → 2 → 3 → 3 → 6 → 7 → 9</code>
+    <p>É o exemplo animado abaixo. A lista A acaba primeiro, e o 7 → 9 de B entra de uma vez no final.</p></div>
+  <div class="ex"><b>Exemplo 2</b> · <code>a = null</code>, <code>b = 0</code> → <code>0</code>
+    <p>Uma lista vazia: a resposta é a outra, sem mexer em nada.</p></div>
+  <div class="ex"><b>Exemplo 3</b> · <code>a = null</code>, <code>b = null</code> → <code>null</code></div>
+  <p class="legend">Restrições: 0 ≤ tamanho de cada lista ≤ 50 · -100 ≤ val ≤ 100 · as duas listas já vêm em ordem crescente</p>
+</section>
+<nav class="tabs" id="tabs" role="tablist" aria-label="variações"></nav>
+<div id="variant"></div>
+</main>
+
+<template id="tpl-iterativo" data-label="Iterativo">
+<p class="lead">Um nó <b>dummy</b> serve de âncora e <code>tail</code> aponta para o último nó já engatado. A cada rodada
+  compara as cabeças <code>a</code> e <code>b</code>, engata a menor em <code>tail.next</code> e avança aquela lista.
+  Quando uma acaba, o resto da outra <span class="hl">já está ordenado e entra com uma única atribuição</span>. Graças ao
+  dummy, o primeiro nó não precisa de caso especial: a resposta é sempre <code>dummy.next</code>.</p>
+
+<div class="cx"><span>tempo <b>O(n + m)</b></span><span>espaço <b>O(1)</b></span><p>Cada rodada engata um nó, no máximo n + m rodadas. Fora os nós que já existiam, só o dummy, tail, a e b ocupam memória.</p></div>
+<div class="layout">
+  <section class="panel full"><h2>listas no heap</h2>
+    <div class="chains" id="viz"></div>
+    <div class="legend"><span><i style="border-color:var(--cyan);background:#00f0ff44"></i>a</span>
+      <span><i style="border-color:var(--pink);background:#ff2a6d44"></i>b</span>
+      <span><i style="border-color:var(--yellow)"></i>tail</span>
+      <span>a linha "pronta" vai do dummy até tail</span></div></section>
+  <section class="panel"><h2>registradores</h2><dl id="vars"></dl><p class="legend" id="stats"></p></section>
+  <section class="panel"><h2>código</h2><pre id="code"></pre></section>
+  <section class="panel full"><h2>memória · heap (val, next por nó)</h2>
+    <p id="memstat"></p><div id="mem"></div>
+    <p class="legend">Cada nó ocupa duas células: o valor e o endereço do próximo. Durante toda a execução só células next são escritas.</p>
+  </section>
+</div>
+</template>
+<template id="tpl-recursivo" data-label="Recursivo">
+<p class="lead">A junção de <code>a</code> e <code>b</code> começa pela menor das duas cabeças; atrás dela vem a junção de
+  <span class="hl">tudo o que sobrou</span>, que é o mesmo problema, menor. Então <code>merge(a, b)</code> escolhe a cabeça,
+  chama a si mesma com o resto e grava o retorno no <code>next</code> dessa cabeça. Os ponteiros são reescritos
+  <b>na volta</b> da recursão, do fim para o começo. Quando uma lista é <code>null</code>, a resposta é a outra inteira.</p>
+
+<div class="cx"><span>tempo <b>O(n + m)</b></span><span>espaço <b>O(n + m)</b></span><p>Cada chamada fixa um nó, então são até n + m + 1 chamadas. Nenhum nó é criado, mas a call stack chega a n + m frames ao mesmo tempo: é o custo de trocar o laço pela recursão.</p></div>
+<div class="layout">
+  <section class="panel full"><h2>listas no heap</h2>
+    <div class="chains" id="viz"></div>
+    <div class="legend"><span><i style="border-color:var(--cyan);background:#00f0ff44"></i>a do frame atual</span>
+      <span><i style="border-color:var(--pink);background:#ff2a6d44"></i>b do frame atual</span>
+      <span>cada linha segue os next a partir de uma cabeça original</span></div></section>
+  <section class="panel"><h2>código</h2><pre id="code"></pre></section>
+  <section class="panel"><h2>call stack</h2><p id="stackstat"></p><div id="stack"></div></section>
+  <section class="panel"><h2>registradores</h2><dl id="vars"></dl></section>
+  <section class="panel full"><h2>memória · heap (val, next por nó)</h2>
+    <p id="memstat"></p><div id="mem"></div>
+    <p class="legend">Sem dummy: só os nós das duas listas. Os next são gravados na volta de cada chamada.</p>
+  </section>
+</div>
+</template>
+
+<footer class="ctrl">
+  <p id="msg"></p>
+  <div class="row">
+    <button id="first" title="Home">⏮</button><button id="prev" title="←">◀</button>
+    <button id="play">▶ RUN</button>
+    <button id="next" title="→">▶</button><button id="lastbtn" title="End">⏭</button>
+    <input id="scrub" type="range" min="0" value="0" aria-label="step">
+    <span id="stepno"></span>
+    <label>speed <input id="speed" type="range" min="100" max="1000" value="600"></label>
+    <span class="keys">← → espaço</span>
+  </div>
+</footer>
+
+<script src="../assets/trace.js"></script>
+<script src="../assets/merge-lists.js"></script>
+<script src="../assets/player.js"></script>
+<script>
+// One row per pointer: follows next from `start`, stops after node `stop` (then only hints where its next points).
+function renderChains(s, rows) {
+  const N = s.nodes, box = (k) => {
+    const n = N[k], c = k === s.a ? 'r0' : k === s.b ? 'r1' : k === s.tail ? 'tl' : n.val === null ? 'dm' : '';
+    return `<div class="nd">${n.name}<div class="cell ${c}">${n.val ?? '·'}</div></div>`;
+  };
+  $('viz').innerHTML = rows.map(([label, start, stop]) => {
+    const parts = [];
+    let k = start;
+    while (k >= 0) {
+      parts.push(box(k));
+      if (k === stop) { k = N[k].next; parts.push(`<span class="nil">${k >= 0 ? N[k].name + '…' : 'null'}</span>`); break; }
+      k = N[k].next;
+    }
+    if (k < 0 && !parts.at(-1)?.includes('nil')) parts.push('<span class="nil">null</span>');
+    return `<div class="chain"><b>${label}</b>${parts.join('<span class="ar">→</span>')}</div>`;
+  }).join('');
+}
+const memLabel = (s) => (k) => `${s.nodes[k >> 1].name}.${k % 2 ? 'next' : 'val'}`;
+
+mountTabs({
+iterativo: () => mountPlayer(mllIter(), (s) => {
+  renderCode(MLL_CODE.iterativo.text, s.line);
+  renderVars(s.vars);
+  renderChains(s, [['pronta', s.nodes[0].next === undefined ? -1 : 0, s.result ? -2 : s.tail], ['a', s.a], ['b', s.b]]);
+  renderMemory(s, memLabel(s), (k) => `base + ${k >> 1}·8${k % 2 ? ' + 4' : ''}`, 2);
+  $('stats').innerHTML = `next reescritos: <b>${s.links}</b> · nós novos: <b>${s.nodes[0].next === undefined ? 0 : 1}</b> (dummy)`;
+}),
+recursivo: () => mountPlayer(mllRec(), (s) => {
+  renderCode(MLL_CODE.recursivo.text, s.line);
+  renderVars(s.vars);
+  renderStack(s);
+  renderChains(s, s.heads.filter((h) => h >= 0).map((h) => [`a partir de ${s.nodes[h].name}`, h]));
+  renderMemory(s, memLabel(s), (k) => `base + ${k >> 1}·8${k % 2 ? ' + 4' : ''}`, 2);
+}),
+});
+</script>
+</body>
+</html>

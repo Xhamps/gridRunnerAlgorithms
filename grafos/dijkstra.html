@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pathfinder · Dijkstra · GRID//RUNNER</title>
+<link rel="stylesheet" href="../assets/style.css">
+<style>
+.gc { grid-template-rows: 1fr auto; line-height: 1; padding: 3px 0; }
+.gc small { font-size: 10px; opacity: .85; }
+.gc.wall { background: repeating-linear-gradient(45deg, #2a2347 0 4px, #0b0a16 4px 8px); }
+.gc.path { background: #05ffa1; border-color: #05ffa1; color: #000; box-shadow: 0 0 14px var(--green); font-weight: bold; }
+#queue .cell { width: auto; min-width: 64px; padding: 0 6px; }
+.gc.end { outline: 2px dashed var(--yellow); outline-offset: 2px; }
+</style>
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="../index.html">GRID<em>//</em>RUNNER</a>
+  <nav><a href="../index.html#dp">Dynamic Programming</a><a class="on" href="../index.html#grafos">Grafos</a><a href="../index.html#ordenacao">Ordenação</a><a href="../index.html#busca">Busca Binária</a></nav>
+</header>
+<script src="../assets/github.js"></script>
+<main>
+<h1>PATHFINDER · DIJKSTRA <span class="diff medium">MEDIUM</span></h1>
+<section class="panel problem"><h2>problema</h2>
+  <p>Um mapa é uma grade <code>R × C</code> de altitudes. Cada célula vale de <code>1</code> a <code>9</code>, ou
+    <code>0</code> quando é uma parede. Dá para andar para cima, para baixo, para a esquerda ou para a direita, e cada passo
+    custa <code>1 + |altura de onde sai − altura para onde vai|</code>: andar no plano custa 1, subir ou descer custa mais.</p>
+  <p>Retorne o menor custo total para ir do canto <code>(0,0)</code> ao canto <code>(R−1,C−1)</code>, ou <code>-1</code> se
+    as paredes isolarem o destino.</p>
+  <div class="ex"><b>Exemplo 1</b> · <code>[[5,0,2],[6,7,2],[5,5,6]]</code> → <code>7</code>
+    <p>Desce pela coluna da esquerda (5 → 6 → 5, custo 2 + 2) e anda pela última linha (5 → 5 → 6, custo 1 + 2).
+      Atravessar o morro de altura 7 no meio sai mais caro.</p></div>
+  <div class="ex"><b>Exemplo 2</b> · <code>[[1,1,1],[1,1,1]]</code> → <code>3</code>
+    <p>Terreno plano: o custo é o número de passos.</p></div>
+  <div class="ex"><b>Exemplo 3</b> · <code>[[3,0],[0,3]]</code> → <code>-1</code>
+    <p>As duas saídas da origem são paredes.</p></div>
+  <p class="legend">Restrições: 1 ≤ R, C ≤ 100 · cada célula vale de 0 a 9 · origem e destino não são paredes</p>
+</section>
+<nav class="tabs" id="tabs" role="tablist" aria-label="variações"></nav>
+<div id="variant"></div>
+</main>
+
+<template id="tpl-array" data-label="Array">
+<p class="lead"><b>Dijkstra clássico</b>: guarda em <code>dist[]</code> o menor custo conhecido até cada célula e, a cada rodada,
+  <span class="hl">varre o array inteiro</span> atrás da célula aberta mais barata. Essa célula é <b>fechada</b>: como todo
+  passo custa pelo menos 1, qualquer caminho por outra aberta já sai mais caro, então o valor dela é definitivo. Depois
+  ela <b>relaxa</b> os vizinhos: se passar por ela fica mais barato, atualiza <code>dist</code> e <code>ant</code>. Diferente
+  da BFS, a célula não é definitiva quando é alcançada pela primeira vez: repare em <code>(2,1)</code>, que entra com custo 7
+  e cai para 5. Quando o alvo é fechado o laço para, e o caminho sai de <code>ant[]</code>, de trás para frente.</p>
+<div class="cx"><span>tempo <b>O(V²)</b></span><span>espaço <b>O(V)</b></span><p>V = R·C células. Cada uma das até V rodadas varre as V células para achar a mínima; relaxar custa O(4) por célula fechada. dist[], feito[] e ant[] com V posições.</p></div>
+<div class="layout">
+  <section class="panel"><h2>mapa</h2><div class="ggrid" id="viz"></div>
+    <div class="legend"><span>número grande = altura · pequeno = dist</span>
+      <span><i style="border-color:var(--green);background:#05ffa11f"></i>alcançada (aberta)</span>
+      <span><i style="border-color:var(--pink);background:#ff2a6d2e"></i>fechada</span>
+      <span><i style="border-color:var(--yellow);background:var(--yellow)"></i>célula atual</span>
+      <span><i style="border-color:var(--cyan)"></i>vizinho / varredura</span>
+      <span><i style="border-color:var(--green);background:var(--green)"></i>caminho final</span></div></section>
+  <section class="panel"><h2>registradores</h2><dl id="vars"></dl></section>
+  <section class="panel"><h2>código</h2><pre id="code"></pre></section>
+  <section class="panel full"><h2>memória · dist[] no heap (row-major)</h2>
+    <p id="memstat"></p><div id="mem"></div>
+    <p class="legend">feito[] e ant[] têm o mesmo tamanho; feito[] aparece em rosa no mapa e ant[] vira o caminho no fim.</p></section>
+</div>
+</template>
+<template id="tpl-heap" data-label="Min-heap">
+<p class="lead"><b>Dijkstra com fila de prioridade</b>: em vez de varrer tudo, as candidatas ficam num <span class="hl">min-heap</span>
+  ordenado por distância, e <code>pop</code> entrega a mais barata em O(log V). O heap não sabe atualizar uma entrada que já está
+  dentro dele, então quando <code>(2,1)</code> melhora de 7 para 5 ela entra <b>de novo</b>, e a entrada velha
+  <code>[7, (2,1)]</code> fica para trás. Quando sai, <code>d &gt; dist[u]</code> denuncia que é velha e ela é descartada
+  (<i>lazy deletion</i>). Assim não é preciso <code>feito[]</code>: a primeira vez que uma célula sai do heap já é com o custo final.</p>
+<div class="cx"><span>tempo <b>O(E·log V)</b></span><span>espaço <b>O(V + E)</b></span><p>E ≤ 4V arestas na grade. Cada relaxamento que melhora faz um push O(log V), e cada entrada sai uma vez. O heap pode guardar uma entrada por relaxamento, inclusive as velhas.</p></div>
+<div class="layout">
+  <section class="panel"><h2>mapa</h2><div class="ggrid" id="viz"></div>
+    <div class="legend"><span>número grande = altura · pequeno = dist</span>
+      <span><i style="border-color:var(--green);background:#05ffa11f"></i>no heap (aberta)</span>
+      <span><i style="border-color:var(--pink);background:#ff2a6d2e"></i>saiu do heap (final)</span>
+      <span><i style="border-color:var(--yellow);background:var(--yellow)"></i>célula atual</span>
+      <span><i style="border-color:var(--cyan)"></i>vizinho</span>
+      <span><i style="border-color:var(--green);background:var(--green)"></i>caminho final</span></div></section>
+  <section class="panel"><h2>registradores</h2><dl id="vars"></dl></section>
+  <section class="panel"><h2>código</h2><pre id="code"></pre></section>
+  <section class="panel"><h2>min-heap · array no heap</h2><p id="queuestat"></p><div class="arr" id="queue"></div>
+    <p class="legend">Cada item é <code>d:(r,c)</code>. O pai do slot i é o slot (i−1)/2, e a raiz (slot 0) é sempre a menor
+      distância. Em amarelo, onde o último push foi parar.</p></section>
+  <section class="panel full"><h2>memória · dist[] no heap (row-major)</h2>
+    <p id="memstat"></p><div id="mem"></div></section>
+</div>
+</template>
+
+<footer class="ctrl">
+  <p id="msg"></p>
+  <div class="row">
+    <button id="first" title="Home">⏮</button><button id="prev" title="←">◀</button>
+    <button id="play">▶ RUN</button>
+    <button id="next" title="→">▶</button><button id="lastbtn" title="End">⏭</button>
+    <input id="scrub" type="range" min="0" value="0" aria-label="step">
+    <span id="stepno"></span>
+    <label>speed <input id="speed" type="range" min="100" max="1000" value="600"></label>
+    <span class="keys">← → espaço</span>
+  </div>
+</footer>
+
+<script src="../assets/trace.js"></script>
+<script src="../assets/dijkstra.js"></script>
+<script src="../assets/player.js"></script>
+<script>
+const R = DIJ_GRID.length, C = DIJ_GRID[0].length, G = DIJ_GRID.flat();
+const same = (p, k) => p && p[0] * C + p[1] === k;
+const formula = (k) => `base + (${Math.floor(k / C)}·${C} + ${k % C})·4`;
+const at = (k) => `dist[${Math.floor(k / C)}][${k % C}]`;
+function draw(s) {
+  $('viz').style.gridTemplateColumns = `repeat(${C}, 44px)`;
+  $('viz').innerHTML = G.map((h, k) => {
+    const d = s.dp[k], reached = d !== null && d !== '∞';
+    const cls = s.path?.includes(k) ? 'path' : same(s.cur, k) ? 'cur' : same(s.nb, k) ? 'nb'
+      : h === 0 ? 'wall' : s.done[k] ? 'seen' : reached ? 'land' : '';
+    const end = k === 0 || k === G.length - 1 ? ' end' : '';
+    return `<div class="gc ${cls}${end}" title="(${Math.floor(k / C)}, ${k % C})">${h === 0 ? '' : `<b>${h}</b><small>${reached ? d : '∞'}</small>`}</div>`;
+  }).join('');
+}
+// The min-heap as an array: slot 0 is the root; hw = slot where the last push settled.
+function renderHeap(s) {
+  $('queue').innerHTML = s.heap.map((e, k) =>
+    `<div class="slot"><small>${hex(QBASE + k * 8)}</small><div class="cell ${k === s.hw ? 'w' : k === 0 ? 'r0' : ''}">${esc(e.label)}</div>` +
+    `<span class="gen fresh">${k === 0 ? 'raiz' : `pai ${(k - 1) >> 1}`}</span></div>`).join('') || '<div class="frame">(vazio)</div>';
+  $('queuestat').innerHTML = `<span>no heap: <b>${s.heap.length}</b></span><span>alocado: <b>${s.heap.length * 8} B</b></span>` +
+    `<span>pico: <b>${s.maxQueue}</b></span>` + (s.popped ? `<span>saiu: <b>${esc(s.popped)}</b></span>` : '');
+}
+
+mountTabs({
+array: () => mountPlayer(dijkstraArray(), (s) => {
+  renderCode(DIJ_CODE.array.text, s.line);
+  renderVars(s.vars);
+  renderMemory(s, at, formula, C);
+  draw(s);
+}),
+heap: () => mountPlayer(dijkstraHeap(), (s) => {
+  renderCode(DIJ_CODE.heap.text, s.line);
+  renderVars(s.vars);
+  renderHeap(s);
+  renderMemory(s, at, formula, C);
+  draw(s);
+}),
+});
+</script>
+</body>
+</html>

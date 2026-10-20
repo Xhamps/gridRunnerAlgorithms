@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Number of Islands · GRID//RUNNER</title>
+<link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="../index.html">GRID<em>//</em>RUNNER</a>
+  <nav><a href="../index.html#dp">Dynamic Programming</a><a class="on" href="../index.html#grafos">Grafos</a><a href="../index.html#ordenacao">Ordenação</a><a href="../index.html#busca">Busca Binária</a></nav>
+</header>
+<script src="../assets/github.js"></script>
+<main>
+<h1>NUMBER OF ISLANDS <span class="diff medium">MEDIUM</span></h1>
+<section class="panel problem"><h2>problema</h2>
+  <p>Você recebe um mapa em forma de grade <code>R × C</code>, onde <code>'1'</code> é terra e <code>'0'</code> é água.
+    Uma <b>ilha</b> é um grupo de terras ligadas na horizontal ou na vertical (diagonal não conta). Tudo fora da grade
+    é água. Retorne quantas ilhas existem.</p>
+  <p>Visto como grafo: cada terra é um nó, e terras vizinhas são ligadas por uma aresta. Contar ilhas é contar
+    <b>componentes conexos</b>, e para isso basta uma busca (DFS ou BFS) a partir de cada terra ainda não visitada.</p>
+  <div class="ex"><b>Exemplo 1</b> · <code>["11001", "10011", "00100"]</code> → <code>3</code>
+    <p>O canto de cima à esquerda (3 terras), o grupo da direita (3 terras) e a terra sozinha no meio.</p></div>
+  <div class="ex"><b>Exemplo 2</b> · <code>["111", "010", "111"]</code> → <code>1</code>
+    <p>A coluna do meio liga as duas linhas: é uma ilha só.</p></div>
+  <p class="legend">Restrições: 1 ≤ R, C ≤ 300 · cada célula é '0' ou '1'</p>
+</section>
+<nav class="tabs" id="tabs" role="tablist" aria-label="variações"></nav>
+<div id="variant"></div>
+</main>
+
+<template id="tpl-dfs" data-label="DFS">
+<p class="lead"><b>Busca em profundidade</b>: ao achar uma terra nova, conta uma ilha e chama <code>dfs</code>, que
+  marca a célula e se chama para os 4 vizinhos. Ela vai o mais <span class="hl">fundo</span> possível numa direção antes de
+  tentar a próxima, e o caminho de volta fica guardado na <b>call stack</b>. A própria grade serve de "visitado"
+  (<code>'#'</code>), então o único custo extra é a pilha: no pior caso (tudo terra) ela chega a R·C frames.</p>
+<div class="cx"><span>tempo <b>O(R·C)</b></span><span>espaço <b>O(R·C)</b></span><p>Cada célula é visitada um número constante de vezes. A grade é marcada no lugar; o espaço extra é a call stack, que pode chegar a R·C frames.</p></div>
+<div class="layout">
+  <section class="panel"><h2>grade</h2><div class="ggrid" id="viz"></div>
+    <div class="legend"><span><i style="border-color:var(--green);background:#05ffa11f"></i>terra</span>
+      <span><i style="border-color:var(--pink);background:#ff2a6d2e"></i>visitado '#'</span>
+      <span><i style="border-color:var(--yellow);background:var(--yellow)"></i>célula atual</span>
+      <span><i style="border-color:var(--cyan)"></i>vizinho chamado</span></div></section>
+  <section class="panel"><h2>registradores</h2><dl id="vars"></dl></section>
+  <section class="panel"><h2>código</h2><pre id="code"></pre></section>
+  <section class="panel"><h2>call stack</h2><p id="stackstat"></p><div id="stack"></div></section>
+  <section class="panel full"><h2>memória · grade no heap (row-major)</h2>
+    <p id="memstat"></p><div id="mem"></div>
+    <p class="legend">A marcação é feita na própria grade: nenhum array <code>visited</code> extra. Espaço extra O(R·C) só na
+      call stack, no pior caso.</p></section>
+</div>
+</template>
+<template id="tpl-bfs" data-label="BFS">
+<p class="lead"><b>Busca em largura</b>: ao achar uma terra nova, conta uma ilha e coloca a célula numa <b>fila</b>.
+  Enquanto a fila não esvazia, tira o primeiro e enfileira os vizinhos de terra. A ilha é "inundada" em
+  <span class="hl">camadas</span>: primeiro tudo a distância 1, depois 2... Detalhe importante: a célula é marcada
+  <b>ao entrar</b> na fila, não ao sair, senão a mesma terra poderia ser enfileirada por dois vizinhos.
+  Sem recursão: a call stack fica vazia e a fila mora no heap.</p>
+<div class="cx"><span>tempo <b>O(R·C)</b></span><span>espaço <b>O(R·C)</b></span><p>Cada célula entra na fila no máximo uma vez. No pior caso a fila é O(R·C), em geral bem menor.</p></div>
+<div class="layout">
+  <section class="panel"><h2>grade</h2><div class="ggrid" id="viz"></div>
+    <div class="legend"><span><i style="border-color:var(--green);background:#05ffa11f"></i>terra</span>
+      <span><i style="border-color:var(--pink);background:#ff2a6d2e"></i>visitado '#'</span>
+      <span><i style="border-color:var(--yellow);background:var(--yellow)"></i>célula atual</span>
+      <span><i style="border-color:var(--cyan)"></i>vizinho</span></div></section>
+  <section class="panel"><h2>registradores</h2><dl id="vars"></dl></section>
+  <section class="panel"><h2>código</h2><pre id="code"></pre></section>
+  <section class="panel"><h2>fila · heap</h2><p id="queuestat"></p><div class="arr" id="queue"></div>
+    <p class="legend">head = próximo a sair · tail = último a entrar · apagados já saíram da fila.</p></section>
+  <section class="panel full"><h2>memória · grade no heap (row-major)</h2>
+    <p id="memstat"></p><div id="mem"></div>
+    <p class="legend">Grade marcada no lugar. Espaço extra: a fila, que guarda só a "fronteira" da busca: no pior caso O(R·C), mas em geral bem menor que a grade.</p></section>
+</div>
+</template>
+
+<footer class="ctrl">
+  <p id="msg"></p>
+  <div class="row">
+    <button id="first" title="Home">⏮</button><button id="prev" title="←">◀</button>
+    <button id="play">▶ RUN</button>
+    <button id="next" title="→">▶</button><button id="lastbtn" title="End">⏭</button>
+    <input id="scrub" type="range" min="0" value="0" aria-label="step">
+    <span id="stepno"></span>
+    <label>speed <input id="speed" type="range" min="100" max="1000" value="600"></label>
+    <span class="keys">← → espaço</span>
+  </div>
+</footer>
+
+<script src="../assets/trace.js"></script>
+<script src="../assets/islands.js"></script>
+<script src="../assets/player.js"></script>
+<script>
+const R = ISLAND_GRID.length, C = ISLAND_GRID[0].length;
+const label = (k) => `g[${Math.floor(k / C)}][${k % C}]`;
+const formula = (k) => `base + (${Math.floor(k / C)}·${C} + ${k % C})·4`;
+const same = (p, r, c) => p && p[0] === r && p[1] === c;
+const draw = (s) => renderGrid('viz', C, s.dp.map((v, k) => {
+  const r = Math.floor(k / C), c = k % C;
+  return [v, same(s.cur, r, c) ? 'cur' : same(s.nb, r, c) ? 'nb' : v === '#' ? 'seen' : v === '1' ? 'land' : 'water'];
+}));
+
+mountTabs({
+dfs: () => mountPlayer(islandsDFS(), (s) => {
+  renderCode(ISLAND_CODE.dfs.text, s.line);
+  renderVars(s.vars);
+  renderStack(s);
+  renderMemory(s, label, formula, C);
+  draw(s);
+}),
+bfs: () => mountPlayer(islandsBFS(), (s) => {
+  renderCode(ISLAND_CODE.bfs.text, s.line);
+  renderVars(s.vars);
+  renderQueue(s);
+  renderMemory(s, label, formula, C);
+  draw(s);
+}),
+});
+</script>
+</body>
+</html>

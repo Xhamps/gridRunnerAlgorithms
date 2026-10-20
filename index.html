@@ -9,7 +9,7 @@
 <body>
 <header class="top">
   <a class="brand" href="index.html">GRID<em>//</em>RUNNER</a>
-  <nav><a href="#dp">Dynamic Programming</a><a href="#grafos">Grafos</a></nav>
+  <nav><a href="#dp">Dynamic Programming</a><a href="#grafos">Grafos</a><a href="#ordenacao">Ordenação</a><a href="#busca">Busca Binária</a></nav>
 </header>
 <script src="assets/github.js"></script>
 <main>
@@ -38,57 +38,57 @@
 
 <h2 class="sec" id="dp">// DYNAMIC PROGRAMMING</h2>
 <div class="cards">
-  <a class="card" data-diff="easy" href="climbing-stairs.html">
+  <a class="card" data-diff="easy" href="dp/climbing-stairs.html">
     <span class="tag">● ONLINE · ARRAY · VARIÁVEIS · MEMO</span><span class="diff easy">EASY</span>
     <h3>Climbing Stairs</h3>
     <p>Subir 1 ou 2 degraus por vez: Fibonacci disfarçado, de O(n) para O(1) com duas variáveis.</p>
   </a>
-  <a class="card" data-diff="easy" href="pascal-triangle.html">
+  <a class="card" data-diff="easy" href="dp/pascal-triangle.html">
     <span class="tag">● ONLINE · MATRIZ · ARRAY · MEMO</span><span class="diff easy">EASY</span>
     <h3>Pascal's Triangle</h3>
     <p>Cada número é a soma dos dois de cima: C(i, j) linha a linha, num array só (de trás para frente) ou sob demanda.</p>
   </a>
-  <a class="card" data-diff="medium" href="knapsack.html">
+  <a class="card" data-diff="medium" href="dp/knapsack.html">
     <span class="tag">● ONLINE · MATRIZ · ARRAY · MEMO</span><span class="diff medium">MEDIUM</span>
     <h3>Knapsack 0/1</h3>
     <p>Escolher itens com peso e valor para maximizar o valor sem estourar a mochila.</p>
   </a>
-  <a class="card" data-diff="medium" href="coin-change.html">
+  <a class="card" data-diff="medium" href="dp/coin-change.html">
     <span class="tag">● ONLINE · MATRIZ · ARRAY · MEMO</span><span class="diff medium">MEDIUM</span>
     <h3>Coin Change</h3>
     <p>Menor número de moedas para formar um valor: knapsack ilimitado, com o loop para frente.</p>
   </a>
-  <a class="card" data-diff="medium" href="predict-winner.html">
+  <a class="card" data-diff="medium" href="dp/predict-winner.html">
     <span class="tag">● ONLINE · MATRIZ · ARRAY · MEMO</span><span class="diff medium">MEDIUM</span>
     <h3>Predict the Winner</h3>
     <p>Jogo de duas pontas: dp[i][j] = melhor diferença de pontos no intervalo.</p>
   </a>
-  <a class="card" data-diff="medium" href="stone-game.html">
+  <a class="card" data-diff="medium" href="dp/stone-game.html">
     <span class="tag">● ONLINE · MATRIZ · ARRAY · MEMO</span><span class="diff medium">MEDIUM</span>
     <h3>Stone Game</h3>
     <p>Pilhas de pedras nas pontas: mesma DP de intervalo, e um atalho que sempre dá true.</p>
   </a>
-  <a class="card" data-diff="medium" href="stock-cooldown.html">
+  <a class="card" data-diff="medium" href="dp/stock-cooldown.html">
     <span class="tag">● ONLINE · MATRIZ · ARRAY · MEMO</span><span class="diff medium">MEDIUM</span>
     <h3>Stock com Cooldown</h3>
     <p>Comprar e vender ações com um dia de cooldown: máquina de 3 estados.</p>
   </a>
-  <a class="card" data-diff="medium" href="lis.html">
+  <a class="card" data-diff="medium" href="dp/lis.html">
     <span class="tag">● ONLINE · MATRIZ · ARRAY · MEMO · BINÁRIA</span><span class="diff medium">MEDIUM</span>
     <h3>LIS</h3>
     <p>Maior subsequência crescente: O(n²) com dp[i] e O(n log n) com busca binária em tails.</p>
   </a>
-  <a class="card" data-diff="medium" href="lcs.html">
+  <a class="card" data-diff="medium" href="dp/lcs.html">
     <span class="tag">● ONLINE · MATRIZ · ARRAY · MEMO</span><span class="diff medium">MEDIUM</span>
     <h3>LCS</h3>
     <p>Maior subsequência comum entre duas strings: diagonal + 1 quando casa, e o caminho de volta revela qual é.</p>
   </a>
-  <a class="card" data-diff="hard" href="burst-balloons.html">
+  <a class="card" data-diff="hard" href="dp/burst-balloons.html">
     <span class="tag">● ONLINE · MATRIZ · MEMO</span><span class="diff hard">HARD</span>
     <h3>Burst Balloons</h3>
     <p>Estourar balões para juntar moedas: a DP de intervalo pensando em quem estoura por último.</p>
   </a>
-  <a class="card" data-diff="hard" href="regex-matching.html">
+  <a class="card" data-diff="hard" href="dp/regex-matching.html">
     <span class="tag">● ONLINE · MATRIZ · ARRAY · MEMO</span><span class="diff hard">HARD</span>
     <h3>Regex Matching</h3>
     <p>Casamento de padrões com '.' e '*' usando uma tabela booleana.</p>
@@ -98,52 +98,57 @@
 
 <h2 class="sec" id="grafos">// GRAFOS · DFS × BFS</h2>
 <div class="cards">
-  <a class="card" data-diff="easy" href="flood-fill.html">
+  <a class="card" data-diff="easy" href="grafos/flood-fill.html">
     <span class="tag">● ONLINE · DFS · BFS</span><span class="diff easy">EASY</span>
     <h3>Flood Fill</h3>
     <p>O balde de tinta: repinta a região conectada à célula inicial.</p>
   </a>
-  <a class="card" data-diff="easy" href="path-exists.html">
+  <a class="card" data-diff="easy" href="grafos/path-exists.html">
     <span class="tag">● ONLINE · DFS · BFS</span><span class="diff easy">EASY</span>
     <h3>Find if Path Exists</h3>
     <p>Alcançabilidade num grafo não dirigido, com componentes separadas.</p>
   </a>
-  <a class="card" data-diff="medium" href="islands.html">
+  <a class="card" data-diff="medium" href="grafos/islands.html">
     <span class="tag">● ONLINE · DFS · BFS</span><span class="diff medium">MEDIUM</span>
     <h3>Number of Islands</h3>
     <p>Contar componentes conexos numa grade: a busca afunda cada ilha encontrada.</p>
   </a>
-  <a class="card" data-diff="medium" href="max-area-island.html">
+  <a class="card" data-diff="medium" href="grafos/max-area-island.html">
     <span class="tag">● ONLINE · DFS · BFS</span><span class="diff medium">MEDIUM</span>
     <h3>Max Area of Island</h3>
     <p>A busca devolve o tamanho da ilha: soma de 1 + vizinhos.</p>
   </a>
-  <a class="card" data-diff="medium" href="rotting-oranges.html">
+  <a class="card" data-diff="medium" href="grafos/rotting-oranges.html">
     <span class="tag">● ONLINE · DFS · BFS</span><span class="diff medium">MEDIUM</span>
     <h3>Rotting Oranges</h3>
     <p>BFS multi-origem por minutos; a DFS precisa revisitar para achar o menor tempo.</p>
   </a>
-  <a class="card" data-diff="medium" href="pacific-atlantic.html">
+  <a class="card" data-diff="medium" href="grafos/pacific-atlantic.html">
     <span class="tag">● ONLINE · DFS · BFS</span><span class="diff medium">MEDIUM</span>
     <h3>Pacific Atlantic</h3>
     <p>Busca reversa: sobe a partir das bordas de cada oceano e cruza os resultados.</p>
   </a>
-  <a class="card" data-diff="medium" href="keys-rooms.html">
+  <a class="card" data-diff="medium" href="grafos/keys-rooms.html">
     <span class="tag">● ONLINE · DFS · BFS</span><span class="diff medium">MEDIUM</span>
     <h3>Keys and Rooms</h3>
     <p>Cada chave é uma aresta dirigida: dá para abrir todas as salas?</p>
   </a>
-  <a class="card" data-diff="medium" href="bipartite.html">
+  <a class="card" data-diff="medium" href="grafos/bipartite.html">
     <span class="tag">● ONLINE · DFS · BFS</span><span class="diff medium">MEDIUM</span>
     <h3>Is Graph Bipartite</h3>
     <p>Pintar com 2 cores: um ciclo ímpar torna impossível.</p>
   </a>
-  <a class="card" data-diff="medium" href="course-schedule.html">
+  <a class="card" data-diff="medium" href="grafos/course-schedule.html">
     <span class="tag">● ONLINE · DFS · BFS</span><span class="diff medium">MEDIUM</span>
     <h3>Course Schedule</h3>
     <p>Detectar ciclo num grafo dirigido: DFS com 3 estados × BFS de Kahn.</p>
   </a>
-  <a class="card" data-diff="hard" href="large-island.html">
+  <a class="card" data-diff="medium" href="grafos/dijkstra.html">
+    <span class="tag">● ONLINE · ARRAY · MIN-HEAP</span><span class="diff medium">MEDIUM</span>
+    <h3>Pathfinder · Dijkstra</h3>
+    <p>Menor custo num mapa com desnível: fecha sempre a célula aberta mais barata.</p>
+  </a>
+  <a class="card" data-diff="hard" href="grafos/large-island.html">
     <span class="tag">● ONLINE · DFS · BFS</span><span class="diff hard">HARD</span>
     <h3>Making a Large Island</h3>
     <p>Rotula ilhas, depois testa cada água somando ilhas vizinhas distintas.</p>
@@ -151,10 +156,150 @@
   <p class="empty" hidden>Nenhum desafio desse nível nesta seção.</p>
 </div>
 
-<h2 class="sec">// EM BREVE</h2>
+<h2 class="sec" id="ordenacao">// ORDENAÇÃO · BUBBLE SORT</h2>
 <div class="cards">
-  <div class="card off"><span class="tag">○ OFFLINE</span><h3>Sorting</h3><p>Bubble, merge, quick sort.</p></div>
-  <div class="card off"><span class="tag">○ OFFLINE</span><h3>Binary Search</h3><p>Divisão e conquista em O(log n).</p></div>
+  <a class="card" data-diff="easy" href="ordenacao/move-zeroes.html">
+    <span class="tag">● ONLINE · BOLHA · DOIS PONTEIROS</span><span class="diff easy">EASY</span>
+    <h3>Mover Zeros</h3>
+    <p>Bubble sort pela chave "é zero?" com trocas entre vizinhos, e depois a versão O(n) com ponteiros de leitura e escrita.</p>
+  </a>
+  <a class="card" data-diff="easy" href="ordenacao/semi-ordered.html">
+    <span class="tag">● ONLINE · BOLHA · FÓRMULA</span><span class="diff easy">EASY</span>
+    <h3>Permutação Semi-Ordenada</h3>
+    <p>Leva o 1 ao início e o n ao fim com trocas vizinhas: simulação em bolha e a fórmula que desconta o cruzamento.</p>
+  </a>
+  <a class="card" data-diff="medium" href="ordenacao/sort-by-bits.html">
+    <span class="tag">● ONLINE · BOLHA · GRUPOS</span><span class="diff medium">MEDIUM</span>
+    <h3>Ordenável por Bits</h3>
+    <p>Trocas só entre vizinhos com o mesmo popcount: simula o bubble sort com a restrição ou resolve em O(n) com o mínimo e o máximo de cada grupo.</p>
+  </a>
+  <a class="card" data-diff="medium" href="ordenacao/kth-swaps.html">
+    <span class="tag">● ONLINE · PRÓXIMA PERMUTAÇÃO · TROCAS</span><span class="diff medium">MEDIUM</span>
+    <h3>Trocas até a k-ésima Permutação</h3>
+    <p>Próxima permutação k vezes para achar o alvo, depois um bubble guiado conta as trocas vizinhas mínimas.</p>
+  </a>
+  <a class="card" data-diff="hard" href="ordenacao/min-k-swaps.html">
+    <span class="tag">● ONLINE · BOLHA · FENWICK</span><span class="diff hard">HARD</span>
+    <h3>Menor Número com k Trocas</h3>
+    <p>Guloso com orçamento: borbulha o menor dígito ao alcance, ou monta a resposta com filas por dígito e uma árvore de Fenwick.</p>
+  </a>
+  <p class="empty" hidden>Nenhum desafio desse nível nesta seção.</p>
+</div>
+
+<h2 class="sec">// ORDENAÇÃO · MERGE SORT</h2>
+<div class="cards">
+  <a class="card" data-diff="easy" href="ordenacao/merge-sorted.html">
+    <span class="tag">● ONLINE · PELA FRENTE · DE TRÁS</span><span class="diff easy">EASY</span>
+    <h3>Juntar Arrays Ordenados</h3>
+    <p>O passo de juntar do merge sort: com cópia auxiliar pela frente, ou de trás para frente sem memória extra.</p>
+  </a>
+  <a class="card" data-diff="easy" href="ordenacao/merge-lists.html">
+    <span class="tag">● ONLINE · ITERATIVO · RECURSIVO</span><span class="diff easy">EASY</span>
+    <h3>Juntar Listas Ordenadas</h3>
+    <p>A etapa de intercalar do merge sort em listas ligadas: religa ponteiros next sem copiar nós, com dummy + tail ou por recursão.</p>
+  </a>
+  <a class="card" data-diff="medium" href="ordenacao/merge-sort.html">
+    <span class="tag">● ONLINE · RECURSIVO · ITERATIVO</span><span class="diff medium">MEDIUM</span>
+    <h3>Merge Sort</h3>
+    <p>Dividir e conquistar em O(n log n): metades ordenadas juntadas num buffer tmp, de cima para baixo com recursão ou de baixo para cima com blocos de largura 1, 2, 4...</p>
+  </a>
+  <a class="card" data-diff="medium" href="ordenacao/sort-list.html">
+    <span class="tag">● ONLINE · RECURSIVO · ITERATIVO</span><span class="diff medium">MEDIUM</span>
+    <h3>Ordenar Lista Ligada</h3>
+    <p>Merge sort só religando ponteiros: meio com slow/fast e recursão, ou passadas bottom-up com memória O(1).</p>
+  </a>
+  <a class="card" data-diff="hard" href="ordenacao/reverse-pairs.html">
+    <span class="tag">● ONLINE · FORÇA BRUTA · MERGE SORT</span><span class="diff hard">HARD</span>
+    <h3>Pares Invertidos</h3>
+    <p>Conta pares com a[i] &gt; 2·a[j] aproveitando o merge sort: com as metades ordenadas, um ponteiro que só avança conta os pares que cruzam.</p>
+  </a>
+  <p class="empty" hidden>Nenhum desafio desse nível nesta seção.</p>
+</div>
+
+<h2 class="sec">// ORDENAÇÃO · QUICK SORT</h2>
+<div class="cards">
+  <a class="card" data-diff="easy" href="ordenacao/parity-sort.html">
+    <span class="tag">● ONLINE · DUAS PONTAS · LOMUTO</span><span class="diff easy">EASY</span>
+    <h3>Pares Antes dos Ímpares</h3>
+    <p>A partição do quick sort com o pivô "é par?": Hoare com duas pontas contra Lomuto com um ponteiro de escrita, comparando o número de trocas.</p>
+  </a>
+  <a class="card" data-diff="medium" href="ordenacao/quick-sort.html">
+    <span class="tag">● ONLINE · LOMUTO · HOARE</span><span class="diff medium">MEDIUM</span>
+    <h3>Quick Sort</h3>
+    <p>Partição no lugar em volta de um pivô: Lomuto deixa o pivô na casa final, Hoare cruza dois ponteiros e espalha os repetidos.</p>
+  </a>
+  <a class="card" data-diff="medium" href="ordenacao/sort-colors.html">
+    <span class="tag">● ONLINE · DUAS PARTIÇÕES · TRÊS PONTEIROS</span><span class="diff medium">MEDIUM</span>
+    <h3>Ordenar Cores</h3>
+    <p>Separa 0, 1 e 2 no próprio array: duas partições seguidas ou uma passada só com lo/mid/hi (bandeira holandesa).</p>
+  </a>
+  <a class="card" data-diff="medium" href="ordenacao/kth-largest.html">
+    <span class="tag">● ONLINE · QUICKSELECT · MIN-HEAP</span><span class="diff medium">MEDIUM</span>
+    <h3>k-ésimo Maior</h3>
+    <p>Acha uma posição da ordem sem ordenar tudo: a partição que só desce para um lado, ou um min-heap com os k maiores.</p>
+  </a>
+  <a class="card" data-diff="hard" href="ordenacao/wiggle-sort.html">
+    <span class="tag">● ONLINE · ORDENA · QUICKSELECT</span><span class="diff hard">HARD</span>
+    <h3>Zigue-Zague</h3>
+    <p>Alterna vales e picos sem vizinhos iguais: ordena e intercala as metades de trás para frente, ou acha a mediana com quickselect e faz uma partição em 3 vias sobre índices virtuais.</p>
+  </a>
+  <p class="empty" hidden>Nenhum desafio desse nível nesta seção.</p>
+</div>
+
+<h2 class="sec" id="busca">// BUSCA BINÁRIA</h2>
+<div class="cards">
+  <a class="card" data-diff="easy" href="busca/binary-search.html">
+    <span class="tag">● ONLINE · INTERVALO FECHADO · SEMIABERTO</span><span class="diff easy">EASY</span>
+    <h3>Busca Binária</h3>
+    <p>Acha um valor num array ordenado em O(log n), com as duas convenções de intervalo, [lo, hi] e [lo, hi), e o invariante de cada uma.</p>
+  </a>
+  <a class="card" data-diff="easy" href="busca/insert-position.html">
+    <span class="tag">● ONLINE · LINEAR · BINÁRIA</span><span class="diff easy">EASY</span>
+    <h3>Posição de Inserção</h3>
+    <p>Lower bound com intervalo semiaberto [lo, hi): o lo final é a resposta, mesmo quando o alvo não está no array.</p>
+  </a>
+  <a class="card" data-diff="easy" href="busca/sqrt.html">
+    <span class="tag">● ONLINE · LINEAR · BINÁRIA</span><span class="diff easy">EASY</span>
+    <h3>Raiz Quadrada Inteira</h3>
+    <p>Busca binária na resposta: sem array, a reta de candidatos 0..x vira o espaço de busca e o teste k² ≤ x corta metade a cada volta.</p>
+  </a>
+  <a class="card" data-diff="medium" href="busca/first-last.html">
+    <span class="tag">● ONLINE · ACHA E EXPANDE · DUAS FRONTEIRAS</span><span class="diff medium">MEDIUM</span>
+    <h3>Primeira e Última Posição</h3>
+    <p>Busca binária por fronteira: trocar &lt; por &lt;= leva o limite da primeira cópia do alvo para logo depois da última.</p>
+  </a>
+  <a class="card" data-diff="medium" href="busca/rotated-search.html">
+    <span class="tag">● ONLINE · ACHA O PIVÔ · UMA BUSCA SÓ</span><span class="diff medium">MEDIUM</span>
+    <h3>Busca em Array Rotacionado</h3>
+    <p>Busca binária num array crescente que foi girado: ache o degrau primeiro, ou descubra a cada passo qual metade está ordenada.</p>
+  </a>
+  <a class="card" data-diff="medium" href="busca/peak.html">
+    <span class="tag">● ONLINE · LINEAR · BINÁRIA</span><span class="diff medium">MEDIUM</span>
+    <h3>Elemento Pico</h3>
+    <p>Busca binária num array desordenado: seguir a subida sempre leva a um pico.</p>
+  </a>
+  <a class="card" data-diff="medium" href="busca/koko.html">
+    <span class="tag">● ONLINE · LINEAR · BINÁRIA</span><span class="diff medium">MEDIUM</span>
+    <h3>Velocidade Mínima</h3>
+    <p>Busca binária na resposta: a velocidade v não está num array, mas hours(v) só diminui quando v cresce.</p>
+  </a>
+  <a class="card" data-diff="hard" href="busca/split-array.html">
+    <span class="tag">● ONLINE · BINÁRIA NA RESPOSTA · DP</span><span class="diff hard">HARD</span>
+    <h3>Dividir com Menor Soma Máxima</h3>
+    <p>Busca binária sobre o valor da resposta com um teste guloso monótono, comparada à DP O(k·n²) de onde cortar o último pedaço.</p>
+  </a>
+  <a class="card" data-diff="hard" href="busca/median-two.html">
+    <span class="tag">● ONLINE · MERGE ATÉ O MEIO · BUSCA DO CORTE</span><span class="diff hard">HARD</span>
+    <h3>Mediana de Dois Arrays</h3>
+    <p>Busca binária sobre um corte, não sobre um valor: quatro bordas e ±∞ acham a mediana em O(log min(m, n)).</p>
+  </a>
+  <a class="card" data-diff="hard" href="busca/rotated-min.html">
+    <span class="tag">● ONLINE · CASO COMUM · PIOR CASO</span><span class="diff hard">HARD</span>
+    <h3>Mínimo Rotacionado com Repetidos</h3>
+    <p>Busca binária contra a ponta direita: o empate força hi-- e mostra por que repetidos levam o pior caso a O(n).</p>
+  </a>
+  <p class="empty" hidden>Nenhum desafio desse nível nesta seção.</p>
+</div>
 </div>
 </main>
 <script>

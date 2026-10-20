@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>k-ésimo Maior · GRID//RUNNER</title>
+<link rel="stylesheet" href="../assets/style.css">
+<style>
+.rows { display: grid; gap: 10px; }
+.rows .lbl { font-size: 12px; color: var(--dim); }
+.arr .cell.out { opacity: .35; }
+.arr .cell.in { --c: #00f0ff99; }
+.arr .cell.lt { --c: #05ffa199; }
+.arr .cell.pv { --c: #ff2a6d99; }
+.arr .cell.goal { outline: 2px dashed var(--yellow); outline-offset: 2px; }
+.arr .gen.ptr { color: var(--yellow); min-height: 1.2em; }
+.tree { display: grid; gap: 14px; }
+.tree .lv { display: flex; justify-content: space-around; }
+.tree .slot { display: grid; justify-items: center; gap: 2px; font-size: 12px; color: var(--dim); min-width: 44px; }
+.tree .slot.gap { visibility: hidden; }
+</style>
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="../index.html">GRID<em>//</em>RUNNER</a>
+  <nav><a href="../index.html#dp">Dynamic Programming</a><a href="../index.html#grafos">Grafos</a><a class="on" href="../index.html#ordenacao">Ordenação</a><a href="../index.html#busca">Busca Binária</a></nav>
+</header>
+<script src="../assets/github.js"></script>
+<main>
+<h1>K-ÉSIMO MAIOR <span class="diff medium">MEDIUM</span></h1>
+<section class="panel problem"><h2>problema</h2>
+  <p>Dado um array de inteiros <code>a</code>, fora de ordem, e um número <code>k</code>, devolva o <b>k-ésimo maior</b>
+    elemento: o que ficaria na posição <code>k</code> se o array fosse ordenado do maior para o menor. Repetidos contam
+    cada um como uma posição, então não é o k-ésimo maior <i>valor distinto</i>.</p>
+  <p>Ordenar tudo resolve em O(n log n), mas a graça é fazer menos trabalho: só uma posição interessa.</p>
+  <div class="ex"><b>Exemplo 1</b> · <code>a = [3, 7, 1, 8, 2, 9, 5], k = 3</code> → <code>7</code>
+    <p>É o exemplo animado abaixo. Em ordem decrescente: 9, 8, 7, ... O terceiro é o 7.</p></div>
+  <div class="ex"><b>Exemplo 2</b> · <code>a = [3, 2, 3, 1, 2, 4, 5, 5, 6], k = 4</code> → <code>4</code>
+    <p>Decrescente: 6, 5, 5, 4. Os dois 5 ocupam duas posições.</p></div>
+  <div class="ex"><b>Exemplo 3</b> · <code>a = [-1, -5, 0, -3], k = 2</code> → <code>-1</code>
+    <p>Negativos valem normalmente: o maior é 0 e o segundo é -1.</p></div>
+  <p class="legend">Restrições: 1 ≤ k ≤ n ≤ 10⁵ · -10⁴ ≤ a[i] ≤ 10⁴ · sem ordenar o array inteiro</p>
+</section>
+<nav class="tabs" id="tabs" role="tablist" aria-label="variações"></nav>
+<div id="variant"></div>
+</main>
+
+<template id="tpl-quickselect" data-label="Quickselect">
+<p class="lead">O k-ésimo maior é quem cai na casa <code>alvo = n − k</code> da ordem crescente. A <b>partição</b> do quicksort
+  coloca um elemento, o <b>pivô</b>, exatamente na casa final dele: tudo que é menor vai para a esquerda e o resto fica à
+  direita. Se o pivô caiu no alvo, acabou. Se caiu depois, o alvo está à esquerda; se caiu antes, à direita. Diferente do
+  quicksort, que ordena os dois lados, aqui <span class="hl">só um lado continua</span>, e o trecho
+  <code>[lo, hi]</code> encolhe a cada rodada. A partição é a de Lomuto: pivô <code>a[hi]</code> e <code>st</code> marcando
+  o fim da parte dos menores.</p>
+<div class="cx"><span>tempo <b>O(n)</b> médio · <b>O(n²)</b> pior</span><span>espaço <b>O(1)</b></span><p>Se o pivô corta o trecho perto do meio, as varreduras somam n + n/2 + n/4 + ... ≈ 2n. Com o pivô fixo em a[hi], um array já ordenado faz o trecho perder só uma casa por rodada: n + (n−1) + ... = O(n²). Sortear o pivô (trocar a[hi] com uma casa aleatória antes de particionar) torna esse azar improvável para qualquer entrada. Tudo acontece no próprio array, com meia dúzia de variáveis.</p></div>
+<div class="layout">
+  <section class="panel full"><h2>heap · a[]</h2>
+    <div class="rows" id="viz"></div>
+    <div class="legend"><span><i style="border-color:#00f0ff99"></i>trecho a[lo..hi]</span>
+      <span><i style="border-color:#05ffa199"></i>menores que o pivô a[lo..st−1]</span>
+      <span><i style="border-color:#ff2a6d99"></i>pivô</span>
+      <span><i style="border-color:var(--yellow);border-style:dashed"></i>casa do alvo</span>
+      <span><i style="border-color:var(--cyan);background:#00f0ff44"></i>a[j]</span>
+      <span><i style="border-color:var(--yellow);background:var(--yellow)"></i>escrita</span></div></section>
+  <section class="panel"><h2>registradores</h2><dl id="vars"></dl><p class="legend" id="stats"></p></section>
+  <section class="panel"><h2>código</h2><pre id="code"></pre></section>
+  <section class="panel full"><h2>memória · heap (a)</h2>
+    <p id="memstat"></p><div id="mem"></div>
+    <p class="legend">Só o array de entrada: a partição troca elementos no lugar, sem buffer.</p></section>
+</div>
+</template>
+<template id="tpl-heap" data-label="Min-heap">
+<p class="lead">Outra ideia: varrer o array uma vez guardando só os <b>k maiores vistos até agora</b>. Eles ficam num
+  <span class="hl">min-heap</span>, em que a raiz <code>h[0]</code> é o menor. Cada número entra no fim e <b>sobe</b>
+  enquanto for menor que o pai. Se o heap passou de <code>k</code>, a raiz sai: ela é menor que outros k números, então
+  não pode ser um dos k maiores. O último vai para a raiz e <b>desce</b>, trocando com o menor filho. No fim, o heap tem
+  os k maiores, e a raiz, o menor deles, é a resposta. Funciona até com os números chegando aos poucos (um stream), sem
+  guardar o array.</p>
+<div class="cx"><span>tempo <b>O(n log k)</b></span><span>espaço <b>O(k)</b></span><p>Cada um dos n números faz um push e talvez um pop, e subir ou descer num heap de k + 1 elementos custa O(log k). A memória é só o heap, com k + 1 casas; o array não é modificado.</p></div>
+<div class="layout">
+  <section class="panel full"><h2>entrada · a[] e min-heap h[]</h2>
+    <div class="rows" id="viz"></div>
+    <div class="legend"><span><i style="border-color:#00f0ff99"></i>x atual</span>
+      <span><i style="border-color:var(--cyan);background:#00f0ff44"></i>comparado (1º)</span>
+      <span><i style="border-color:var(--pink);background:#ff2a6d44"></i>comparado (2º)</span>
+      <span><i style="border-color:var(--yellow);background:var(--yellow)"></i>escrita</span></div></section>
+  <section class="panel"><h2>registradores</h2><dl id="vars"></dl><p class="legend" id="stats"></p></section>
+  <section class="panel"><h2>código</h2><pre id="code"></pre></section>
+  <section class="panel full"><h2>memória · heap (h)</h2>
+    <p id="memstat"></p><div id="mem"></div>
+    <p class="legend">k + 1 casas: o pai da casa i é a casa (i − 1) &gt;&gt; 1, e os filhos são 2i + 1 e 2i + 2. A casa k só é usada entre o push e o pop.</p></section>
+</div>
+</template>
+
+<footer class="ctrl">
+  <p id="msg"></p>
+  <div class="row">
+    <button id="first" title="Home">⏮</button><button id="prev" title="←">◀</button>
+    <button id="play">▶ RUN</button>
+    <button id="next" title="→">▶</button><button id="lastbtn" title="End">⏭</button>
+    <input id="scrub" type="range" min="0" value="0" aria-label="step">
+    <span id="stepno"></span>
+    <label>speed <input id="speed" type="range" min="100" max="1000" value="600"></label>
+    <span class="keys">← → espaço</span>
+  </div>
+</footer>
+
+<script src="../assets/trace.js"></script>
+<script src="../assets/kth-largest.js"></script>
+<script src="../assets/player.js"></script>
+<script>
+const klSlot = (name, k, cls, v, ptr = '') =>
+  `<div class="slot">${name}[${k}]<div class="cell ${cls}">${cellVal(v)}</div><span class="gen ptr">${ptr}</span></div>`;
+
+// Quickselect: a[] with the [lo, hi] range, the "less than pivot" prefix a[lo..st-1], the pivot and the target slot.
+function klRowQuick(s) {
+  const L = KL_CODE.quickselect.at, placed = [L.place, L.found, L.left, L.right].includes(s.line);
+  const pv = placed ? s.st : s.hi;  // the pivot sits at hi until the final swap moves it to st
+  const range = (k) => k === pv && s.piv !== undefined ? 'pv' : k < s.lo || k > s.hi ? 'out'
+    : s.piv !== undefined && k < s.st ? 'lt' : 'in';
+  const cls = (k) => { const c = cellClass(s, k); return (c || range(k)) + (k === s.alvo ? ' goal' : ''); };
+  const ptr = (k) => [k === s.lo && 'lo', k === s.hi && 'hi', k === s.st && 'st', k === s.j && 'j', k === s.alvo && 'alvo']
+    .filter(Boolean).join('·');
+  $('viz').innerHTML = '<div class="lbl">a</div><div class="arr">' + s.dp.map((v, k) => klSlot('a', k, cls(k), v, ptr(k))).join('') + '</div>';
+}
+
+// Min-heap: the input with x highlighted, then h[] drawn as a tree (level d holds slots 2^d - 1 .. 2^(d+1) - 2).
+function klRowHeap(s) {
+  const input = KL_NUMS.map((v, k) => klSlot('a', k, k === s.idx ? 'in' : k < (s.idx ?? 0) ? 'out' : '', v, k === s.idx ? 'x' : '')).join('');
+  let tree = '';
+  for (let d = 0, first = 0; first < s.dp.length; d++, first = 2 * first + 1) {
+    tree += '<div class="lv">' + [...Array(1 << d).keys()].map((t) => {
+      const k = first + t;
+      return k < s.dp.length ? klSlot('h', k, cellClass(s, k), s.dp[k], k === 0 ? 'raiz' : '') : '<div class="slot gap"></div>';
+    }).join('') + '</div>';
+  }
+  $('viz').innerHTML = `<div class="lbl">a</div><div class="arr">${input}</div><div class="lbl">min-heap h</div><div class="tree">${tree}</div>`;
+}
+
+mountTabs({
+  quickselect: () => mountPlayer(klQuick(), (s) => {
+    renderCode(KL_CODE.quickselect.text, s.line);
+    renderVars(s.vars);
+    klRowQuick(s);
+    renderMemory(s, (k) => `a[${k}]`, (k) => `base + ${k}·4`);
+    $('stats').innerHTML = `partições: <b>${s.parts}</b> · comparações: <b>${s.cmps}</b>`;
+  }),
+  heap: () => mountPlayer(klHeap(), (s) => {
+    renderCode(KL_CODE.heap.text, s.line);
+    renderVars(s.vars);
+    klRowHeap(s);
+    renderMemory(s, (k) => `h[${k}]`, (k) => `base + ${k}·4`);
+    $('stats').innerHTML = `no heap: <b>${s.size}</b> · pico: <b>${s.maxQueue}</b> · trocas: <b>${s.swaps}</b>` +
+      (s.popped !== undefined ? ` · saiu: <b>${s.popped}</b>` : '');
+  }),
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Velocidade Mínima · GRID//RUNNER</title>
+<link rel="stylesheet" href="../assets/style.css">
+<style>
+.arr .gen.ptr { color: var(--yellow); min-height: 1.2em; }
+.arr .cell.out { opacity: .35; }
+.arr .cell.ok { --c: var(--green); color: var(--green); }
+.arr .cell.bad { --c: #ff2a6d99; color: var(--pink); }
+.arr .cell.cur { --c: var(--cyan); background: #00f0ff22; box-shadow: 0 0 10px var(--cyan); color: var(--cyan); }
+.arr .cell.ans { --c: var(--yellow); background: var(--yellow); color: #000; font-weight: bold; }
+.vlabel { margin: 14px 0 6px; font-size: 12px; color: var(--dim); }
+</style>
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="../index.html">GRID<em>//</em>RUNNER</a>
+  <nav><a href="../index.html#dp">Dynamic Programming</a><a href="../index.html#grafos">Grafos</a><a href="../index.html#ordenacao">Ordenação</a><a class="on" href="../index.html#busca">Busca Binária</a></nav>
+</header>
+<script src="../assets/github.js"></script>
+<main>
+<h1>VELOCIDADE MÍNIMA <span class="diff medium">MEDIUM</span></h1>
+<section class="panel problem"><h2>problema</h2>
+  <p>Há <code>n</code> pilhas de bananas, a pilha <code>i</code> com <code>piles[i]</code> bananas, e <code>h</code>
+    horas para comer tudo. Você escolhe uma velocidade inteira <code>v</code>: a cada hora, pega <b>uma</b> pilha e
+    come até <code>v</code> bananas dela. Se a pilha tinha menos que <code>v</code>, ela acaba e o resto daquela hora
+    é <b>desperdiçado</b>: não dá para começar outra pilha na mesma hora. Devolva a <b>menor</b> <code>v</code> que
+    termina todas as pilhas em no máximo <code>h</code> horas.</p>
+  <div class="ex"><b>Exemplo 1</b> · <code>piles = [3, 6, 7, 11], h = 8</code> → <code>4</code>
+    <p>É o exemplo animado abaixo. A 4 por hora: 1 + 2 + 2 + 3 = 8 horas, cabe. A 3 por hora: 1 + 2 + 3 + 4 = 10, estoura.</p></div>
+  <div class="ex"><b>Exemplo 2</b> · <code>piles = [30, 11, 23, 4, 20], h = 5</code> → <code>30</code>
+    <p>Cinco pilhas em cinco horas: cada pilha tem que sair numa hora só, inclusive a de 30.</p></div>
+  <div class="ex"><b>Exemplo 3</b> · <code>piles = [30, 11, 23, 4, 20], h = 6</code> → <code>23</code>
+    <p>Com uma hora a mais, a pilha de 30 pode levar duas horas, e a de 23 ainda precisa sair numa.</p></div>
+  <p class="legend">Restrições: 1 ≤ n ≤ 10⁴ · n ≤ h ≤ 10⁹ · 1 ≤ piles[i] ≤ 10⁹</p>
+</section>
+<nav class="tabs" id="tabs" role="tablist" aria-label="variações"></nav>
+<div id="variant"></div>
+</main>
+
+<template id="tpl-linear" data-label="Velocidade crescente">
+<p class="lead">O jeito direto: testa <code>v = 1, 2, 3…</code> e para na primeira que cabe. Para testar, a função
+  <code>hours(v)</code> soma <code>ceil(p / v)</code> de cada pilha: são as horas cheias que aquela pilha consome,
+  contando a última hora mesmo que ela sobre. Como cada velocidade menor já foi testada e falhou, a primeira que cabe
+  é a <span class="hl">menor</span>. O problema é o custo: se a resposta for grande (piles com 10⁹), são bilhões de
+  chamadas.</p>
+
+<div class="cx"><span>tempo <b>O(n · V)</b></span><span>espaço <b>O(1)</b></span><p>V é a resposta: até V chamadas de hours, cada uma percorrendo as n pilhas. No pior caso V = max(piles). Só v, t e um frame de hours na stack.</p></div>
+<div class="layout">
+  <section class="panel full"><h2>heap · piles[] e a reta de velocidades</h2>
+    <div id="viz"></div>
+    <div class="legend"><span><i style="border-color:var(--cyan);background:#00f0ff44"></i>pilha lida / v atual</span>
+      <span><i style="border-color:#ff2a6d99"></i>estourou h</span>
+      <span><i style="border-color:var(--green)"></i>cabe em h</span>
+      <span><i style="border-color:var(--yellow);background:var(--yellow)"></i>resposta</span></div></section>
+  <section class="panel"><h2>registradores</h2><dl id="vars"></dl><p class="legend" id="stats"></p></section>
+  <section class="panel"><h2>call stack</h2><p id="stackstat"></p><div id="stack"></div></section>
+  <section class="panel full"><h2>código</h2><pre id="code"></pre></section>
+  <section class="panel full"><h2>memória · heap (piles)</h2>
+    <p id="memstat"></p><div id="mem"></div>
+    <p class="legend">As pilhas só são lidas. A reta de velocidades não existe na memória: é só o valor de v.</p>
+  </section>
+</div>
+</template>
+<template id="tpl-binaria" data-label="Binária na resposta">
+<p class="lead">Não há array ordenado para buscar, mas a <b>resposta</b> mora numa faixa: <code>v</code> entre 1 e
+  <code>max(piles)</code> (mais rápido que a maior pilha não ajuda, cada pilha já leva 1 hora). E
+  <code>hours(v)</code> nunca aumenta quando <code>v</code> aumenta, então "cabe em h" é falso, falso, …, verdadeiro,
+  verdadeiro. A busca procura onde vira verdadeiro. Invariante: <span class="hl">a menor velocidade que cabe está
+  sempre em [lo, hi]</span>. Se <code>mid</code> cabe, ele pode ser a resposta e tudo acima é pior: <code>hi = mid</code>.
+  Se não cabe, nada até <code>mid</code> cabe: <code>lo = mid + 1</code>. Quando <code>lo = hi</code>, sobrou um só.</p>
+
+<div class="cx"><span>tempo <b>O(n · log M)</b></span><span>espaço <b>O(1)</b></span><p>M = max(piles). A faixa cai pela metade a cada volta: log M chamadas de hours, cada uma O(n). Mesmo com M = 10⁹ são umas 30 chamadas. Memória: lo, hi, mid e um frame de hours.</p></div>
+<div class="layout">
+  <section class="panel full"><h2>heap · piles[] e a reta de velocidades</h2>
+    <div id="viz"></div>
+    <div class="legend"><span><i style="border-color:var(--cyan);background:#00f0ff44"></i>pilha lida / mid</span>
+      <span><i style="border-color:#ff2a6d99"></i>estourou h</span>
+      <span><i style="border-color:var(--green)"></i>cabe em h</span>
+      <span><i style="border-color:var(--line)"></i>fora de [lo, hi]: descartado</span>
+      <span><i style="border-color:var(--yellow);background:var(--yellow)"></i>resposta</span></div></section>
+  <section class="panel"><h2>registradores</h2><dl id="vars"></dl><p class="legend" id="stats"></p></section>
+  <section class="panel"><h2>call stack</h2><p id="stackstat"></p><div id="stack"></div></section>
+  <section class="panel full"><h2>código</h2><pre id="code"></pre></section>
+  <section class="panel full"><h2>memória · heap (piles)</h2>
+    <p id="memstat"></p><div id="mem"></div>
+    <p class="legend">As pilhas só são lidas. lo, hi e mid são registradores: a faixa de velocidades nunca é alocada.</p>
+  </section>
+</div>
+</template>
+
+<footer class="ctrl">
+  <p id="msg"></p>
+  <div class="row">
+    <button id="first" title="Home">⏮</button><button id="prev" title="←">◀</button>
+    <button id="play">▶ RUN</button>
+    <button id="next" title="→">▶</button><button id="lastbtn" title="End">⏭</button>
+    <input id="scrub" type="range" min="0" value="0" aria-label="step">
+    <span id="stepno"></span>
+    <label>speed <input id="speed" type="range" min="100" max="1000" value="600"></label>
+    <span class="keys">← → espaço</span>
+  </div>
+</footer>
+
+<script src="../assets/trace.js"></script>
+<script src="../assets/koko.js"></script>
+<script src="../assets/player.js"></script>
+<script>
+// Piles row (hours per pile under each) + number line 1..max (hours measured under each tried v; lo/mid/hi/v labels).
+function renderKoko(s) {
+  const piles = s.dp.map((v, k) => `<div class="slot">piles[${k}]<div class="cell ${cellClass(s, k)}">${v}</div>` +
+    `<span class="gen ptr">${s.each?.[k] != null ? s.each[k] + 'h' : ''}</span></div>`).join('');
+  const line = Array.from({ length: s.max }, (_, i) => {
+    const v = i + 1, t = s.tried[v];
+    const cls = v === s.ans ? 'ans' : v === s.cur || v === s.mid ? 'cur'
+      : s.lo !== undefined && (v < s.lo || v > s.hi) ? 'out' : t === undefined ? '' : t <= s.h ? 'ok' : 'bad';
+    const ptr = [v === s.lo && 'lo', v === s.mid && 'mid', v === s.hi && 'hi', s.lo === undefined && v === s.cur && 'v']
+      .filter(Boolean).join('·');
+    return `<div class="slot">${t === undefined ? '&nbsp;' : t + 'h'}<div class="cell ${cls}">${v}</div><span class="gen ptr">${ptr}</span></div>`;
+  }).join('');
+  $('viz').innerHTML = `<div class="arr">${piles}</div><p class="vlabel">velocidades v (acima: hours(v) já medido · h = ${s.h})</p><div class="arr">${line}</div>`;
+}
+
+const kkMount = (steps, code) => mountPlayer(steps, (s) => {
+  renderCode(code.text, s.line);
+  renderVars(s.vars);
+  renderKoko(s);
+  renderStack(s);
+  renderMemory(s, (k) => `piles[${k}]`, (k) => `base + ${k}·4`);
+  $('stats').innerHTML = `chamadas de hours: <b>${s.calls}</b>`;
+});
+
+mountTabs({
+  linear: () => kkMount(kkLinear(), KK_CODE.linear),
+  binaria: () => kkMount(kkBinary(), KK_CODE.binaria),
+});
+</script>
+</body>
+</html>
