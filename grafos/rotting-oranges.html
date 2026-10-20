@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rotting Oranges · GRID//RUNNER</title>
+<link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="../index.html">GRID<em>//</em>RUNNER</a>
+  <nav><a href="../index.html#dp">Dynamic Programming</a><a class="on" href="../index.html#grafos">Grafos</a><a href="../index.html#ordenacao">Ordenação</a><a href="../index.html#busca">Busca Binária</a></nav>
+</header>
+<script src="../assets/github.js"></script>
+<main>
+<h1>ROTTING ORANGES <span class="diff medium">MEDIUM</span></h1>
+<section class="panel problem"><h2>problema</h2>
+  <p>Uma caixa é uma grade <code>R × C</code> em que cada célula vale <code>0</code> (vazia), <code>1</code> (laranja fresca)
+    ou <code>2</code> (laranja podre). A cada minuto, toda laranja fresca vizinha (cima, baixo, esquerda ou direita) de uma
+    podre também apodrece.</p>
+  <p>Retorne o número mínimo de minutos até não sobrar nenhuma laranja fresca, ou <code>-1</code> se alguma nunca apodrecer.</p>
+  <div class="ex"><b>Exemplo 1</b> · <code>[[2,1,1],[1,1,0],[0,1,1]]</code> → <code>4</code>
+    <p>A podridão sai do canto (0,0) e a última a apodrecer é a do canto oposto, (2,2), no minuto 4.</p></div>
+  <div class="ex"><b>Exemplo 2</b> · <code>[[2,1,1],[0,1,1],[1,0,1]]</code> → <code>-1</code>
+    <p>A laranja em (2,0) está cercada por células vazias e pela borda: nunca apodrece.</p></div>
+  <div class="ex"><b>Exemplo 3</b> · <code>[[0,2]]</code> → <code>0</code>
+    <p>Não há laranja fresca: a resposta já é 0 minutos.</p></div>
+  <p class="legend">Restrições: 1 ≤ R, C ≤ 10 · cada célula é 0, 1 ou 2</p>
+</section>
+<nav class="tabs" id="tabs" role="tablist" aria-label="variações"></nav>
+<div id="variant"></div>
+</main>
+
+<template id="tpl-dfs" data-label="DFS">
+<p class="lead"><b>Busca em profundidade com relaxamento</b>: cada laranja podre chama <code>dfs(r, c, 0)</code>, que grava em
+  <code>t[r][c]</code> o minuto em que a podridão chega e se espalha com <code>min + 1</code>. O problema: a DFS segue um
+  caminho até o fim antes de tentar outro, então muitas vezes chega a uma célula por um caminho <span class="hl">longo</span>
+  primeiro. Por isso ela não pode usar um simples "visitado": precisa <b>revisitar</b> a célula sempre que achar um tempo
+  <i>menor</i> e corrigir tudo o que vem depois. Repare no passo em que <code>t(0,1)</code> cai de 3 para 1. Funciona, mas
+  faz trabalho repetido; a BFS evita isso.</p>
+<div class="cx"><span>tempo <b>O((R·C)²)</b></span><span>espaço <b>O(R·C)</b></span><p>Pior caso: uma célula pode ser revisitada a cada tempo menor encontrado, uma vez por laranja podre inicial. Grade de tempos + call stack.</p></div>
+<div class="layout">
+  <section class="panel"><h2>caixa</h2><div class="ggrid" id="viz"></div>
+    <div class="legend"><span><i style="border-color:var(--green);background:#05ffa11f"></i>1 fresca</span>
+      <span><i style="border-color:var(--pink);background:#ff2a6d2e"></i>podre · tN = minuto em que apodrece</span>
+      <span><i style="border-color:var(--yellow);background:var(--yellow)"></i>célula atual</span>
+      <span><i style="border-color:var(--cyan)"></i>vizinho</span></div></section>
+  <section class="panel"><h2>registradores</h2><dl id="vars"></dl></section>
+  <section class="panel"><h2>código</h2><pre id="code"></pre></section>
+  <section class="panel"><h2>call stack</h2><p id="stackstat"></p><div id="stack"></div></section>
+  <section class="panel full"><h2>memória · t[] no heap (row-major)</h2>
+    <p id="memstat"></p><div id="mem"></div>
+    <p class="legend">t[] é a única memória extra além da pilha: R·C inteiros. Uma célula pode ser escrita mais de uma vez,
+      sempre com um valor menor.</p></section>
+</div>
+</template>
+<template id="tpl-bfs" data-label="BFS">
+<p class="lead"><b>Busca em largura multi-source</b>: em vez de começar de uma laranja só, <span class="hl">todas</span> as podres
+  entram na fila no início, como se fossem uma única fonte. A fila é processada em <b>camadas</b>: o que está nela no começo
+  de um minuto é exatamente o que apodreceu no minuto anterior. Como a BFS anda em ondas, a primeira vez que alcança uma
+  laranja já é pelo caminho mais curto, então cada célula é visitada <b>uma vez só</b>: O(R·C). A própria grade serve de
+  visitado (1 vira 2).</p>
+<div class="cx"><span>tempo <b>O(R·C)</b></span><span>espaço <b>O(R·C)</b></span><p>Cada laranja entra na fila uma vez só: a BFS já chega pelo caminho mais curto.</p></div>
+<div class="layout">
+  <section class="panel"><h2>caixa</h2><div class="ggrid" id="viz"></div>
+    <div class="legend"><span><i style="border-color:var(--green);background:#05ffa11f"></i>1 fresca</span>
+      <span><i style="border-color:var(--pink);background:#ff2a6d2e"></i>podre · tN = minuto em que apodrece</span>
+      <span><i style="border-color:var(--yellow);background:var(--yellow)"></i>célula atual</span>
+      <span><i style="border-color:var(--cyan)"></i>vizinho</span></div></section>
+  <section class="panel"><h2>registradores</h2><dl id="vars"></dl></section>
+  <section class="panel"><h2>código</h2><pre id="code"></pre></section>
+  <section class="panel"><h2>fila · heap</h2><p id="queuestat"></p><div class="arr" id="queue"></div>
+    <p class="legend">head = próximo a sair · tail = último a entrar · apagados já saíram da fila.</p></section>
+  <section class="panel full"><h2>memória · grade no heap (row-major)</h2>
+    <p id="memstat"></p><div id="mem"></div>
+    <p class="legend">A grade é alterada no lugar (1 → 2). O minuto de cada célula, mostrado na caixa, é só para a
+      visualização: o algoritmo só precisa do contador <code>min</code>.</p></section>
+</div>
+</template>
+
+<footer class="ctrl">
+  <p id="msg"></p>
+  <div class="row">
+    <button id="first" title="Home">⏮</button><button id="prev" title="←">◀</button>
+    <button id="play">▶ RUN</button>
+    <button id="next" title="→">▶</button><button id="lastbtn" title="End">⏭</button>
+    <input id="scrub" type="range" min="0" value="0" aria-label="step">
+    <span id="stepno"></span>
+    <label>speed <input id="speed" type="range" min="100" max="1000" value="600"></label>
+    <span class="keys">← → espaço</span>
+  </div>
+</footer>
+
+<script src="../assets/trace.js"></script>
+<script src="../assets/rotting-oranges.js"></script>
+<script src="../assets/player.js"></script>
+<script>
+const R = ORANGES.length, C = ORANGES[0].length;
+const same = (p, r, c) => p && p[0] === r && p[1] === c;
+const formula = (k) => `base + (${Math.floor(k / C)}·${C} + ${k % C})·4`;
+const at = (name) => (k) => `${name}[${Math.floor(k / C)}][${k % C}]`;
+// rotten (or already reached by the DFS) shows its minute; fresh shows 1; empty shows 0
+const draw = (s, g) => renderGrid('viz', C, g.map((v, k) => {
+  const r = Math.floor(k / C), c = k % C, tm = s.tm[k], hit = tm !== null && tm !== Infinity;
+  const text = v === 0 ? '0' : hit ? `t${tm}` : String(v);
+  return [text, same(s.cur, r, c) ? 'cur' : same(s.nb, r, c) ? 'nb' : v === 0 ? 'water' : hit || v === 2 ? 'seen' : 'land'];
+}));
+
+mountTabs({
+dfs: () => mountPlayer(orangesDFS(), (s) => {
+  renderCode(ORANGE_CODE.dfs.text, s.line);
+  renderVars(s.vars);
+  renderStack(s);
+  renderMemory(s, at('t'), formula, C);
+  draw(s, s.g);
+}),
+bfs: () => mountPlayer(orangesBFS(), (s) => {
+  renderCode(ORANGE_CODE.bfs.text, s.line);
+  renderVars(s.vars);
+  renderQueue(s);
+  renderMemory(s, at('g'), formula, C);
+  draw(s, s.dp);
+}),
+});
+</script>
+</body>
+</html>

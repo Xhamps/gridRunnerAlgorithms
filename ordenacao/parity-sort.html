@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pares Antes dos Ímpares · GRID//RUNNER</title>
+<link rel="stylesheet" href="../assets/style.css">
+<style>
+.arr .cell.odd { color: var(--dim); }
+.arr .gen.ptr { color: var(--yellow); min-height: 1.2em; }
+</style>
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="../index.html">GRID<em>//</em>RUNNER</a>
+  <nav><a href="../index.html#dp">Dynamic Programming</a><a href="../index.html#grafos">Grafos</a><a class="on" href="../index.html#ordenacao">Ordenação</a><a href="../index.html#busca">Busca Binária</a></nav>
+</header>
+<script src="../assets/github.js"></script>
+<main>
+<h1>PARES ANTES DOS ÍMPARES <span class="diff easy">EASY</span></h1>
+<section class="panel problem"><h2>problema</h2>
+  <p>Dado um array de inteiros <code>a</code>, reorganize-o <b>no próprio lugar</b> para que todos os números
+    <b>pares</b> fiquem antes de todos os <b>ímpares</b>. Dentro de cada grupo a ordem não importa: qualquer arrumação
+    com os pares na frente é aceita.</p>
+  <div class="ex"><b>Exemplo 1</b> · <code>a = [2, 3, 1, 4, 7, 6, 5]</code> → <code>[2, 6, 4, 1, 7, 3, 5]</code>
+    <p>É o exemplo animado abaixo. A aba Lomuto chega em <code>[2, 4, 6, 3, 7, 1, 5]</code>, que também vale.</p></div>
+  <div class="ex"><b>Exemplo 2</b> · <code>a = [5]</code> → <code>[5]</code>
+    <p>Um único número já está separado.</p></div>
+  <div class="ex"><b>Exemplo 3</b> · <code>a = [-3, 0, 8]</code> → <code>[8, 0, -3]</code> (ou <code>[0, 8, -3]</code>)
+    <p>Zero é par, e negativos seguem a mesma regra.</p></div>
+  <p class="legend">Restrições: 1 ≤ n ≤ 5·10⁴ · -10⁴ ≤ a[i] ≤ 10⁴ · memória extra O(1)</p>
+</section>
+<nav class="tabs" id="tabs" role="tablist" aria-label="variações"></nav>
+<div id="variant"></div>
+</main>
+
+<template id="tpl-hoare" data-label="Duas pontas">
+<p class="lead">É a <b>partição de Hoare</b> do quick sort, só que o pivô virou a pergunta "é par?". O ponteiro
+  <code>i</code> sai da esquerda pulando pares, que já estão no lado certo, e <code>j</code> sai da direita pulando
+  ímpares. Quando os dois param, <code>a[i]</code> é um ímpar perdido na esquerda e <code>a[j]</code> é um par perdido
+  na direita: <span class="hl">uma única troca conserta os dois</span>. Só troca o que está errado, por isso costuma
+  fazer menos trocas que o <a href="#lomuto">Lomuto</a>.</p>
+
+<div class="cx"><span>tempo <b>O(n)</b></span><span>espaço <b>O(1)</b></span><p>i só anda para a direita e j só para a esquerda, então juntos passam por cada casa uma vez. No máximo n/2 trocas. Só i e j de memória extra.</p></div>
+<div class="layout">
+  <section class="panel"><h2>array a[k]</h2>
+    <div class="arr" id="viz"></div>
+    <div class="legend"><span><i style="border-color:var(--cyan);background:#00f0ff44"></i>a[i]</span>
+      <span><i style="border-color:var(--pink);background:#ff2a6d44"></i>a[j]</span>
+      <span><i style="border-color:var(--yellow);background:var(--yellow)"></i>troca</span>
+      <span><i style="border-color:var(--green)"></i>casas já resolvidas</span></div></section>
+  <section class="panel"><h2>registradores</h2><dl id="vars"></dl><p class="legend" id="stats"></p></section>
+  <section class="panel full"><h2>código</h2><pre id="code"></pre></section>
+  <section class="panel full"><h2>memória · O(1) extra</h2>
+    <p id="memstat"></p><div id="mem"></div>
+    <p class="legend">Tudo acontece nas n células do próprio array; i e j são só dois registradores.</p>
+  </section>
+</div>
+</template>
+<template id="tpl-lomuto" data-label="Lomuto">
+<p class="lead">É a <b>partição de Lomuto</b> do quick sort com o mesmo pivô "é par?". Um só ponteiro de leitura
+  <code>r</code> varre da esquerda para a direita, e <code>w</code> marca onde entra o próximo par. A região
+  <code>a[0..w-1]</code> só tem pares e <code>a[w..r-1]</code> só tem ímpares. Cada par encontrado troca com
+  <code>a[w]</code>. É mais simples de escrever, mas <span class="hl">faz uma troca por par</span>, até mesmo quando
+  ele já está no lugar (troca consigo mesmo). Nas <a href="#hoare">duas pontas</a> o mesmo exemplo precisa de menos trocas.</p>
+
+<div class="cx"><span>tempo <b>O(n)</b></span><span>espaço <b>O(1)</b></span><p>Uma varredura com r; cada casa é lida uma vez. Uma troca por número par, até n trocas. Só r e w de memória extra.</p></div>
+<div class="layout">
+  <section class="panel"><h2>array a[k]</h2>
+    <div class="arr" id="viz"></div>
+    <div class="legend"><span><i style="border-color:var(--cyan);background:#00f0ff44"></i>a[r] lido</span>
+      <span><i style="border-color:var(--yellow);background:var(--yellow)"></i>troca</span>
+      <span><i style="border-color:var(--green)"></i>a[0..w-1] só pares</span></div></section>
+  <section class="panel"><h2>registradores</h2><dl id="vars"></dl><p class="legend" id="stats"></p></section>
+  <section class="panel full"><h2>código</h2><pre id="code"></pre></section>
+  <section class="panel full"><h2>memória · O(1) extra</h2>
+    <p id="memstat"></p><div id="mem"></div>
+    <p class="legend">As mesmas n células; w e r são só dois registradores.</p>
+  </section>
+</div>
+</template>
+
+<footer class="ctrl">
+  <p id="msg"></p>
+  <div class="row">
+    <button id="first" title="Home">⏮</button><button id="prev" title="←">◀</button>
+    <button id="play">▶ RUN</button>
+    <button id="next" title="→">▶</button><button id="lastbtn" title="End">⏭</button>
+    <input id="scrub" type="range" min="0" value="0" aria-label="step">
+    <span id="stepno"></span>
+    <label>speed <input id="speed" type="range" min="100" max="1000" value="600"></label>
+    <span class="keys">← → espaço</span>
+  </div>
+</footer>
+
+<script src="../assets/trace.js"></script>
+<script src="../assets/parity-sort.js"></script>
+<script src="../assets/player.js"></script>
+<script>
+// Array strip: done(k) marks settled cells in green, ptr(k) is the pointer label under cell k. Odd numbers are dimmed.
+const renderArr = (s, done, ptr) => $('viz').innerHTML = s.dp.map((v, k) => {
+  const c = cellClass(s, k) || (done(k) ? 'rng' : v % 2 ? 'odd' : '');
+  return `<div class="slot">a[${k}]<div class="cell ${c}">${v}</div><span class="gen ptr">${ptr(k)}</span></div>`;
+}).join('');
+
+mountTabs({
+hoare: () => mountPlayer(parHoare(), (s) => {
+  renderCode(PAR_CODE.hoare.text, s.line);
+  renderVars(s.vars);
+  renderArr(s, (k) => s.result || k < s.i || k > s.j, (k) => [k === s.i && 'i', k === s.j && 'j'].filter(Boolean).join(' · '));
+  renderMemory(s, (k) => `a[${k}]`, (k) => `base + ${k}·4`);
+  $('stats').innerHTML = `trocas: <b>${s.swaps}</b>`;
+}),
+lomuto: () => mountPlayer(parLomuto(), (s) => {
+  renderCode(PAR_CODE.lomuto.text, s.line);
+  renderVars(s.vars);
+  renderArr(s, (k) => k < s.w, (k) => [k === s.w && 'w', k === s.r && 'r'].filter(Boolean).join(' · '));
+  renderMemory(s, (k) => `a[${k}]`, (k) => `base + ${k}·4`);
+  $('stats').innerHTML = `trocas: <b>${s.swaps}</b>`;
+}),
+});
+</script>
+</body>
+</html>

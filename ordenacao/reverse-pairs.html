@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pares Invertidos · GRID//RUNNER</title>
+<link rel="stylesheet" href="../assets/style.css">
+<style>
+.arr .gen.ptr { color: var(--yellow); min-height: 1.2em; }
+.arr + .arr { margin-top: 10px; }
+.arr .slot.out { opacity: .35; }
+</style>
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="../index.html">GRID<em>//</em>RUNNER</a>
+  <nav><a href="../index.html#dp">Dynamic Programming</a><a href="../index.html#grafos">Grafos</a><a class="on" href="../index.html#ordenacao">Ordenação</a><a href="../index.html#busca">Busca Binária</a></nav>
+</header>
+<script src="../assets/github.js"></script>
+<main>
+<h1>PARES INVERTIDOS <span class="diff hard">HARD</span></h1>
+<section class="panel problem"><h2>problema</h2>
+  <p>Dado um array de inteiros <code>a</code>, conte quantos pares de posições <code>i &lt; j</code> têm
+    <code>a[i] &gt; 2 · a[j]</code>, ou seja, o da esquerda passa do <b>dobro</b> do da direita. Não basta ser maior:
+    <code>4</code> antes de <code>2</code> não conta, porque 4 não é maior que 4.</p>
+  <div class="ex"><b>Exemplo 1</b> · <code>a = [4, -3, 2, -2, 1]</code> → <code>5</code>
+    <p>É o exemplo animado abaixo. Os pares são 4 com -3, -2 e 1; -3 com -2; e 2 com -2. Com negativos o dobro fica
+      ainda menor: -3 &gt; 2 · (-2) = -4 conta, mesmo -3 sendo menor que -2. Já 4 com 2 e 2 com 1 estão fora de
+      ordem, mas não passam do dobro.</p></div>
+  <div class="ex"><b>Exemplo 2</b> · <code>a = [1, 3, 2, 3, 1]</code> → <code>2</code>
+    <p>Só os dois 3 contra o 1 do fim (3 &gt; 2). O 3 antes do 2 não conta.</p></div>
+  <div class="ex"><b>Exemplo 3</b> · <code>a = [2, 4, 3, 5, 1]</code> → <code>3</code>
+    <p>4, 3 e 5 passam do dobro do 1 final; o 2 empata com 2 · 1 e fica de fora.</p></div>
+  <p class="legend">Restrições: 1 ≤ n ≤ 5·10⁴ · -2³¹ ≤ a[i] ≤ 2³¹ - 1 (o dobro pode estourar 32 bits: use 64 bits ou números de JS)</p>
+</section>
+<nav class="tabs" id="tabs" role="tablist" aria-label="variações"></nav>
+<div id="variant"></div>
+</main>
+
+<template id="tpl-forca" data-label="Força bruta">
+<p class="lead">A linha de base: testar <b>todo par</b> <code>(i, j)</code> com <code>i &lt; j</code> e contar os que passam
+  em <code>a[i] &gt; 2 · a[j]</code>. Simples e correto, mas são <span class="hl">n·(n-1)/2 comparações</span>:
+  com n = 5·10⁴, mais de um bilhão.</p>
+
+<div class="cx"><span>tempo <b>O(n²)</b></span><span>espaço <b>O(1)</b></span><p>Dois laços aninhados testam cada par uma vez. Só i, j e cnt ocupam memória além do array.</p></div>
+<div class="layout">
+  <section class="panel"><h2>array a[k]</h2>
+    <div class="arr" id="viz"></div>
+    <div class="legend"><span><i style="border-color:var(--cyan);background:#00f0ff44"></i>a[i]</span>
+      <span><i style="border-color:var(--pink);background:#ff2a6d44"></i>a[j]</span></div></section>
+  <section class="panel"><h2>registradores</h2><dl id="vars"></dl><p class="legend" id="stats"></p></section>
+  <section class="panel full"><h2>código</h2><pre id="code"></pre></section>
+  <section class="panel full"><h2>memória · O(1) extra</h2>
+    <p id="memstat"></p><div id="mem"></div>
+    <p class="legend">Só as n células do array, que nem chegam a ser escritas.</p>
+  </section>
+</div>
+</template>
+<template id="tpl-merge" data-label="Merge sort">
+<p class="lead">Divida o array ao meio. Todo par está <b>dentro</b> da esquerda, <b>dentro</b> da direita ou
+  <b>cruza</b> as metades. Os dois primeiros tipos a recursão conta. Para os que cruzam, a ordem dentro de cada
+  metade não importa, então dá para contar <span class="hl">depois de ordenar as duas</span>. Com elas ordenadas, se
+  <code>a[i]</code> passa do dobro de <code>a[j]</code>, o <code>a[i+1]</code> (maior) também passa: o ponteiro
+  <code>j</code> só anda para a frente, e cada <code>a[i]</code> soma <code>j - (mid + 1)</code>. Por fim, um merge
+  normal com <code>tmp</code> entrega o trecho ordenado para quem chamou.</p>
+
+<div class="cx"><span>tempo <b>O(n log n)</b></span><span>espaço <b>O(n)</b></span><p>log n níveis de recursão; em cada nível, a contagem com i e j e o merge andam O(n) no total. O tmp tem n células e a call stack chega a log n frames.</p></div>
+<div class="layout">
+  <section class="panel"><h2>array a[k] · tmp[k]</h2>
+    <div class="arr" id="viz"></div>
+    <div class="arr" id="tmp"></div>
+    <div class="legend"><span><i style="border-color:var(--cyan);background:#00f0ff44"></i>leitura · a[i] ou a[p]</span>
+      <span><i style="border-color:var(--pink);background:#ff2a6d44"></i>leitura · a[j]</span>
+      <span><i style="border-color:var(--yellow);background:var(--yellow)"></i>escrita</span>
+      <span><i style="border-color:var(--green)"></i>trecho a[lo..hi] do frame</span></div></section>
+  <section class="panel"><h2>registradores</h2><dl id="vars"></dl><p class="legend" id="stats"></p></section>
+  <section class="panel"><h2>código</h2><pre id="code"></pre></section>
+  <section class="panel"><h2>call stack</h2><p id="stackstat"></p><div id="stack"></div></section>
+  <section class="panel full"><h2>memória · heap (a + tmp)</h2>
+    <p id="memstat"></p><div id="mem"></div>
+    <p class="legend">As n primeiras células são o array, ordenado aos pedaços; as n seguintes são o tmp, reaproveitado por todos os merges.</p>
+  </section>
+</div>
+</template>
+
+<footer class="ctrl">
+  <p id="msg"></p>
+  <div class="row">
+    <button id="first" title="Home">⏮</button><button id="prev" title="←">◀</button>
+    <button id="play">▶ RUN</button>
+    <button id="next" title="→">▶</button><button id="lastbtn" title="End">⏭</button>
+    <input id="scrub" type="range" min="0" value="0" aria-label="step">
+    <span id="stepno"></span>
+    <label>speed <input id="speed" type="range" min="100" max="1000" value="600"></label>
+    <span class="keys">← → espaço</span>
+  </div>
+</footer>
+
+<script src="../assets/trace.js"></script>
+<script src="../assets/reverse-pairs.js"></script>
+<script src="../assets/player.js"></script>
+<script>
+// One strip of cells dp[off..off+len-1]; ptr(k) = pointer labels under cell k, inRange(k) = green frame range.
+const renderStrip = (id, s, off, len, name, ptr, inRange = () => false) => $(id).innerHTML = [...Array(len).keys()].map((k) => {
+  const c = cellClass(s, off + k) || (inRange(k) ? 'rng' : '');
+  return `<div class="slot">${name}[${k}]<div class="cell ${c}">${cellVal(s.dp[off + k])}</div><span class="gen ptr">${ptr(k)}</span></div>`;
+}).join('');
+const tag = (pairs) => pairs.filter(([, on]) => on).map(([t]) => t).join(' · ');
+
+mountTabs({
+forca: () => mountPlayer(rpBrute(), (s) => {
+  renderCode(RP_CODE.forca.text, s.line);
+  renderVars(s.vars);
+  renderStrip('viz', s, 0, s.dp.length, 'a', (k) => tag([['i', k === s.i], ['j', k === s.j]]));
+  renderMemory(s, (k) => `a[${k}]`, (k) => `base + ${k}·4`);
+  $('stats').innerHTML = `cnt: <b>${s.cnt}</b> · comparações: <b>${s.cmps}</b>`;
+}),
+merge: () => mountPlayer(rpMerge(), (s) => {
+  const n = s.dp.length / 2, name = (k) => k < n ? `a[${k}]` : `tmp[${k - n}]`;
+  renderCode(RP_CODE.merge.text, s.line);
+  renderVars(s.vars);
+  renderStack(s);
+  renderStrip('viz', s, 0, n, 'a',
+    (k) => tag([['i', k === s.i], ['j', k === s.j], ['p', k === s.p], ['q', k === s.q], ['mid', s.i === undefined && s.p === undefined && k === s.mid]]),
+    (k) => s.lo !== undefined && k >= s.lo && k <= s.hi);
+  renderStrip('tmp', s, n, n, 'tmp', (k) => k === s.k ? 'k' : '');
+  renderMemory(s, name, (k) => k < n ? `base + ${k}·4` : `tmp + ${k - n}·4`);
+  $('stats').innerHTML = `pares contados: <b>${s.total}</b>`;
+}),
+});
+</script>
+</body>
+</html>

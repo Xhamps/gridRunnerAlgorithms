@@ -10,7 +10,7 @@ navegador (globais) e no Node (`module.exports`), e os mesmos geradores alimenta
 
 ```
 assets/<id>.js        listagens de código + um gerador de passos por aba
-<id>.html             enunciado + abas (<template>) + render de cada aba
+<cat>/<id>.html       enunciado + abas (<template>) + render de cada aba
 test/<id>.test.js     corretude contra uma solução independente
 test/lines.test.js    + 1 entrada (toda linha nomeada é visitada)
 index.html            + 1 card, na seção e na posição do nível
@@ -102,13 +102,13 @@ if (typeof module !== 'undefined') module.exports = { <SAMPLE>, <ID>_CODE, <id>2
 - Mantenha as abas com no máximo 150 a 220 passos. Use exemplos pequenos (n de 4 a 6, grades 3×3 a 3×5).
 - Confira com uma força bruta toda afirmação numérica dos exemplos do enunciado, como "Alice termina com 9 × 8".
 
-## 4. `<id>.html`
+## 4. `<cat>/<id>.html`
 
-Copie uma página da mesma família. Estrutura:
+Crie em `dp/`, `grafos/`, `ordenacao/` ou `busca/` (a pasta da categoria; os caminhos são relativos, por isso `../assets/` e `../index.html`). Copie uma página da mesma família. Estrutura:
 
 - `<title>Nome · GRID//RUNNER</title>` e o nav de categorias, com `class="on"` na categoria certa:
-  `<nav><a class="on" href="index.html#dp">Dynamic Programming</a><a href="index.html#grafos">Grafos</a></nav>`
-  (para uma categoria nova, crie a seção no index e atualize o nav em **todas** as páginas).
+  `<nav><a class="on" href="../index.html#dp">Dynamic Programming</a><a href="../index.html#grafos">Grafos</a><a href="../index.html#ordenacao">Ordenação</a><a href="../index.html#busca">Busca Binária</a></nav>`
+  (para uma categoria nova, crie a pasta, a seção no index, um `COPY` no `Dockerfile` e atualize o nav em **todas** as páginas).
 - `<h1>NOME <span class="diff medium">MEDIUM</span></h1>`.
 - `<section class="panel problem"><h2>problema</h2>`: enunciado, `.ex` com exemplos (um deles é o animado),
   `.legend` com as restrições. Strings e padrões no `h2` levam `style="text-transform:none"`.
@@ -120,7 +120,7 @@ Copie uma página da mesma família. Estrutura:
     `vars`, `code`, `mem`, `memstat`, `stack`, `stackstat`, `queue`, `queuestat`; a visualização principal fica
     em `viz`.
 - O footer `.ctrl` é idêntico em todas as páginas: copie.
-- Scripts, nesta ordem: `assets/trace.js`, o módulo (e o módulo base, se reaproveitar), `assets/player.js`.
+- Scripts, nesta ordem: `../assets/trace.js`, o módulo (e o módulo base, se reaproveitar), `../assets/player.js`.
   Depois, inline:
 
 ```js
@@ -168,11 +168,11 @@ Depois, adicione o desafio em `test/lines.test.js`, com o require no topo e a en
 
 ## 6. `index.html`
 
-Adicione o card na seção certa (`#dp`, `#grafos`...), **na posição do nível**: os cards de cada seção ficam em
+Adicione o card na seção certa (`#dp`, `#grafos`, `#ordenacao`, `#busca`), **na posição do nível**: os cards de cada seção ficam em
 ordem easy → medium → hard. O atributo `data-diff` alimenta o filtro e as contagens.
 
 ```html
-  <a class="card" data-diff="medium" href="<id>.html">
+  <a class="card" data-diff="medium" href="<cat>/<id>.html">
     <span class="tag">● ONLINE · MATRIZ · ARRAY · MEMO</span><span class="diff medium">MEDIUM</span>
     <h3>Nome</h3>
     <p>Uma linha dizendo o que o desafio ensina de novo.</p>

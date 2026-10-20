@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Busca em Array Rotacionado · GRID//RUNNER</title>
+<link rel="stylesheet" href="../assets/style.css">
+<style>
+.arr { align-items: flex-end; }
+.arr .col { height: 96px; display: flex; align-items: flex-end; }
+.arr .bar { width: 44px; background: #2a234766; border-top: 2px solid var(--line); }
+.arr .slot.out { opacity: .3; }
+.arr .slot.half .bar { background: #05ffa122; border-top-color: var(--green); }
+.arr .slot.mid .bar { background: #00f0ff33; border-top-color: var(--cyan); }
+.arr .slot.step { border-left: 2px dashed var(--pink); padding-left: 4px; }
+.arr .cell.pv { --c: var(--yellow); color: var(--yellow); }
+.arr .cell.got { --c: var(--green); color: var(--green); box-shadow: 0 0 12px var(--green); }
+.arr .gen.ptr { color: var(--yellow); min-height: 1.2em; }
+</style>
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="../index.html">GRID<em>//</em>RUNNER</a>
+  <nav><a href="../index.html#dp">Dynamic Programming</a><a href="../index.html#grafos">Grafos</a><a href="../index.html#ordenacao">Ordenação</a><a class="on" href="../index.html#busca">Busca Binária</a></nav>
+</header>
+<script src="../assets/github.js"></script>
+<main>
+<h1>BUSCA EM ARRAY ROTACIONADO <span class="diff medium">MEDIUM</span></h1>
+<section class="panel problem"><h2>problema</h2>
+  <p>Um array crescente de números <b>distintos</b> foi <b>rotacionado</b> num ponto que você não conhece: um bloco do
+    começo foi cortado e colado no fim, como <code>[1, 2, 4, 5, 6, 7]</code> virando <code>[5, 6, 7, 1, 2, 4]</code>.
+    Dado esse array <code>a</code> e um valor <code>target</code>, devolva o índice de <code>target</code> em
+    <code>a</code>, ou <code>-1</code> se ele não estiver lá. A busca precisa ser <b>O(log n)</b>: varrer o array inteiro não vale.</p>
+  <div class="ex"><b>Exemplo 1</b> · <code>a = [18, 21, 2, 4, 5, 7, 9, 10, 12, 13, 15]</code>, <code>target = 5</code> → <code>4</code>
+    <p>É o exemplo animado abaixo. O degrau fica entre o 21 e o 2; o 5 está na parte da direita.</p></div>
+  <div class="ex"><b>Exemplo 2</b> · <code>a = [4, 5, 6, 7, 0, 1, 2]</code>, <code>target = 3</code> → <code>-1</code>
+    <p>O 3 cairia entre o 2 e o 4, mas não existe.</p></div>
+  <div class="ex"><b>Exemplo 3</b> · <code>a = [8]</code>, <code>target = 8</code> → <code>0</code>
+    <p>Um elemento só: rotacionar não muda nada.</p></div>
+  <p class="legend">Restrições: 1 ≤ n ≤ 5000 · -10⁴ ≤ a[i], target ≤ 10⁴ · valores distintos · tempo O(log n)</p>
+</section>
+<nav class="tabs" id="tabs" role="tablist" aria-label="variações"></nav>
+<div id="variant"></div>
+</main>
+
+<template id="tpl-pivo" data-label="Acha o pivô">
+<p class="lead">O array rotacionado é <b>duas fatias crescentes</b> coladas, com um <span class="hl">degrau</span> para baixo
+  entre elas. A 1ª busca binária acha o índice <code>k</code> do menor elemento, que é onde o degrau cai. A regra:
+  se <code>a[mid] &gt; a[hi]</code>, o valor desce em algum ponto depois de <code>mid</code>; senão, tudo de
+  <code>mid</code> a <code>hi</code> sobe e o menor está em <code>mid</code> ou antes. Invariante: <b>o menor está
+  sempre em a[lo..hi]</b>. Sabendo <code>k</code>, basta comparar <code>target</code> com as pontas para escolher a
+  fatia certa e rodar uma busca binária comum nela, com o invariante <b>"se target existe, está em a[lo..hi]"</b>.</p>
+
+<div class="cx"><span>tempo <b>O(log n)</b></span><span>espaço <b>O(1)</b></span><p>Duas buscas binárias seguidas, cada uma corta o intervalo pela metade: log n + log n. Só lo, hi, mid, k e ans ocupam memória.</p></div>
+<div class="layout">
+  <section class="panel full"><h2>array a[k]</h2>
+    <div class="arr" id="viz"></div>
+    <div class="legend"><span><i style="border-color:var(--cyan);background:#00f0ff44"></i>a[mid]</span>
+      <span><i style="border-color:var(--pink);background:#ff2a6d44"></i>comparado com mid</span>
+      <span><i style="border-color:var(--yellow)"></i>pivô k (o menor)</span>
+      <span><i style="border-color:var(--pink);border-style:dashed"></i>degrau da rotação</span>
+      <span>apagado: descartado</span></div></section>
+  <section class="panel"><h2>registradores</h2><dl id="vars"></dl><p class="legend" id="stats"></p></section>
+  <section class="panel"><h2>código</h2><pre id="code"></pre></section>
+  <section class="panel full"><h2>memória · O(1) extra</h2>
+    <p id="memstat"></p><div id="mem"></div>
+    <p class="legend">O array só é lido; nenhuma casa é escrita. lo, hi, mid, k e ans são registradores.</p>
+  </section>
+</div>
+</template>
+<template id="tpl-direta" data-label="Uma busca só">
+<p class="lead">Dá para não procurar o pivô. Qualquer <code>mid</code> divide <code>a[lo..hi]</code> em duas metades, e o
+  degrau só cabe em uma delas: a <span class="hl">outra está ordenada</span>. Se <code>a[lo] ≤ a[mid]</code>, a esquerda
+  é a ordenada; senão, é a direita. Numa metade ordenada basta olhar as pontas para saber se <code>target</code> cabe
+  nela; se não cabe, ele só pode estar na outra. Invariante: <b>se target existe, está em a[lo..hi]</b>. O laço
+  estreita até sobrar um candidato e só no fim confere se ele é o alvo, então um único <code>return</code> cobre
+  achou e não achou.</p>
+
+<div class="cx"><span>tempo <b>O(log n)</b></span><span>espaço <b>O(1)</b></span><p>Uma busca só: cada volta descarta metade do intervalo com duas comparações, log n voltas. Só lo, hi e mid de memória extra.</p></div>
+<div class="layout">
+  <section class="panel full"><h2>array a[k]</h2>
+    <div class="arr" id="viz"></div>
+    <div class="legend"><span><i style="border-color:var(--cyan);background:#00f0ff44"></i>a[mid]</span>
+      <span><i style="border-color:var(--pink);background:#ff2a6d44"></i>ponta comparada</span>
+      <span><i style="border-color:var(--green);background:#05ffa122"></i>metade ordenada</span>
+      <span><i style="border-color:var(--pink);border-style:dashed"></i>degrau da rotação</span>
+      <span>apagado: descartado</span></div></section>
+  <section class="panel"><h2>registradores</h2><dl id="vars"></dl><p class="legend" id="stats"></p></section>
+  <section class="panel"><h2>código</h2><pre id="code"></pre></section>
+  <section class="panel full"><h2>memória · O(1) extra</h2>
+    <p id="memstat"></p><div id="mem"></div>
+    <p class="legend">O array só é lido; nenhuma casa é escrita. lo, hi e mid são registradores.</p>
+  </section>
+</div>
+</template>
+
+<footer class="ctrl">
+  <p id="msg"></p>
+  <div class="row">
+    <button id="first" title="Home">⏮</button><button id="prev" title="←">◀</button>
+    <button id="play">▶ RUN</button>
+    <button id="next" title="→">▶</button><button id="lastbtn" title="End">⏭</button>
+    <input id="scrub" type="range" min="0" value="0" aria-label="step">
+    <span id="stepno"></span>
+    <label>speed <input id="speed" type="range" min="100" max="1000" value="600"></label>
+    <span class="keys">← → espaço</span>
+  </div>
+</footer>
+
+<script src="../assets/trace.js"></script>
+<script src="../assets/rotated-search.js"></script>
+<script src="../assets/player.js"></script>
+<script>
+// Bars sized by value, so the rotation shows up as a drop; outside [lo, hi] dimmed; lo / mid / hi under the cells.
+function renderBars(s) {
+  const a = s.dp, lo = Math.min(...a), span = Math.max(...a) - lo || 1;
+  const step = a.findIndex((v, k) => k && v < a[k - 1]);
+  const out = (k) => s.result === undefined && (k < s.lo || k > s.hi);
+  const half = (k) => s.half && k >= s.half[0] && k <= s.half[1];
+  const slot = (k) => [out(k) && 'out', half(k) && 'half', k === s.mid && 'mid', k === step && 'step'].filter(Boolean).join(' ');
+  const cell = (k) => k === s.found ? 'got' : cellClass(s, k) || (k === s.k ? 'pv' : '');
+  const ptr = (k) => s.result !== undefined ? (k === s.found ? 'ans' : '')
+    : [k === s.lo && 'lo', k === s.mid && 'mid', k === s.hi && 'hi'].filter(Boolean).join('·');
+  $('viz').innerHTML = a.map((v, k) =>
+    `<div class="slot ${slot(k)}">a[${k}]<div class="col"><div class="bar" style="height:${8 + (v - lo) / span * 84}px"></div></div>` +
+    `<div class="cell ${cell(k)}">${v}</div><span class="gen ptr">${ptr(k)}</span></div>`).join('');
+}
+
+const rsMount = (steps, code) => mountPlayer(steps, (s) => {
+  renderCode(code.text, s.line);
+  renderVars(s.vars);
+  renderBars(s);
+  renderMemory(s, (k) => `a[${k}]`, (k) => `base + ${k}·4`);
+  $('stats').innerHTML = `sondagens (mid calculados): <b>${s.probes}</b>`;
+});
+
+mountTabs({
+  pivo: () => rsMount(rsPivot(), RS_CODE.pivo),
+  direta: () => rsMount(rsDirect(), RS_CODE.direta),
+});
+</script>
+</body>
+</html>

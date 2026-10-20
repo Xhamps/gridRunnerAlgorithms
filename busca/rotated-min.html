@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mínimo Rotacionado com Repetidos · GRID//RUNNER</title>
+<link rel="stylesheet" href="../assets/style.css">
+<style>
+.arr .cell.out { opacity: .3; }
+.arr .cell.ans { --c: var(--green); color: var(--green); box-shadow: 0 0 10px var(--green); }
+.arr .gen.ptr { color: var(--yellow); min-height: 1.2em; }
+</style>
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="../index.html">GRID<em>//</em>RUNNER</a>
+  <nav><a href="../index.html#dp">Dynamic Programming</a><a href="../index.html#grafos">Grafos</a><a href="../index.html#ordenacao">Ordenação</a><a class="on" href="../index.html#busca">Busca Binária</a></nav>
+</header>
+<script src="../assets/github.js"></script>
+<main>
+<h1>MÍNIMO ROTACIONADO COM REPETIDOS <span class="diff hard">HARD</span></h1>
+<section class="panel problem"><h2>problema</h2>
+  <p>Um array <code>a</code> estava em ordem crescente, <b>com valores repetidos permitidos</b>, e foi girado um número
+    desconhecido de vezes: um pedaço do fim passou para o começo, sem mudar a ordem interna. Devolva o <b>menor valor</b>
+    do array. Tente fazer menos trabalho que olhar casa por casa sempre que der.</p>
+  <div class="ex"><b>Exemplo 1</b> · <code>a = [6, 7, 8, 1, 1, 2, 3, 4, 5, 6]</code> → <code>1</code>
+    <p>Era <code>[1, 1, 2, 3, 4, 5, 6, 6, 7, 8]</code> girado três vezes. É o exemplo animado em <i>Caso comum</i>: as
+      pontas iguais (6 e 6) já mostram por que repetidos atrapalham.</p></div>
+  <div class="ex"><b>Exemplo 2</b> · <code>a = [1, 0, 1, 1, 1, 1, 1, 1, 1, 1]</code> → <code>0</code>
+    <p>Quase tudo igual: quase toda comparação empata. É o exemplo de <i>Pior caso</i>.</p></div>
+  <div class="ex"><b>Exemplo 3</b> · <code>a = [3, 3, 3]</code> → <code>3</code>
+    <p>Sem queda nenhuma: qualquer casa é o mínimo.</p></div>
+  <p class="legend">Restrições: 1 ≤ n ≤ 5000 · -5000 ≤ a[i] ≤ 5000 · a é um array crescente (não estrito) girado de 1 a n vezes</p>
+</section>
+<nav class="tabs" id="tabs" role="tablist" aria-label="variações"></nav>
+<div id="variant"></div>
+</main>
+
+<template id="tpl-binaria" data-label="Caso comum">
+<p class="lead">Busca binária comparando <code>a[mid]</code> com a ponta direita <code>a[hi]</code>. O
+  <b>invariante</b>: <span class="hl">o mínimo sempre está dentro de a[lo..hi]</span>. Se <code>a[mid] &gt; a[hi]</code>,
+  a queda fica entre mid e hi, e o mínimo vem depois de mid: <code>lo = mid + 1</code>. Se <code>a[mid] &lt; a[hi]</code>,
+  o trecho de mid até hi sobe sem queda, então <code>hi = mid</code>. No <b>empate</b> não dá para saber o lado, mas dá
+  para jogar fora só a casa <code>hi</code>: o mesmo valor continua em <code>mid</code>, então o mínimo não se perde.
+  Com poucos empates, quase toda iteração corta metade do intervalo.</p>
+
+<div class="cx"><span>tempo <b>O(log n)</b> médio</span><span>espaço <b>O(1)</b></span><p>Cada comparação sem empate descarta metade de a[lo..hi]; aqui houve um único hi--, então foram 3 iterações para 10 casas. Só lo, mid e hi ocupam memória extra.</p></div>
+<div class="layout">
+  <section class="panel"><h2>array a[k]</h2>
+    <div id="viz"></div>
+    <div class="legend"><span><i style="border-color:var(--cyan);background:#00f0ff44"></i>a[mid]</span>
+      <span><i style="border-color:var(--pink);background:#ff2a6d44"></i>a[hi]</span>
+      <span><i style="opacity:.3"></i>descartado</span>
+      <span><i style="border-color:var(--green)"></i>mínimo</span></div></section>
+  <section class="panel"><h2>registradores</h2><dl id="vars"></dl><p class="legend" id="stats"></p></section>
+  <section class="panel full"><h2>código</h2><pre id="code"></pre></section>
+  <section class="panel full"><h2>memória · O(1) extra</h2>
+    <p id="memstat"></p><div id="mem"></div>
+    <p class="legend">O array só é lido; lo, mid e hi são três registradores.</p>
+  </section>
+</div>
+</template>
+<template id="tpl-pior" data-label="Pior caso">
+<p class="lead">Mesmo código, outra entrada. Quando quase tudo é igual, <code>a[mid] = a[hi]</code> em quase toda
+  iteração e o <code>hi--</code> encolhe o intervalo de <b>uma casa por vez</b>: a busca vira uma varredura linear.
+  Nenhum algoritmo escapa disso: em <code>[1, 1, …, 0, …, 1]</code> o 0 pode estar em qualquer casa, e cada casa
+  lida só conta sobre ela mesma. <span class="hl">Quem não lê a casa do 0 não tem como distinguir esse array de um só de
+  1s</span>, então no pior caso é preciso olhar Ω(n) casas. O invariante continua valendo a cada passo.</p>
+
+<div class="cx"><span>tempo <b>O(n)</b> pior caso</span><span>espaço <b>O(1)</b></span><p>Cada hi-- tira só uma casa, e pode acontecer até n - 1 vezes (array quase todo igual). Aqui foram 6 hi-- em 8 iterações, contra 3 a 4 de uma busca binária limpa. A memória extra segue sendo lo, mid e hi.</p></div>
+<div class="layout">
+  <section class="panel"><h2>array a[k]</h2>
+    <div id="viz"></div>
+    <div class="legend"><span><i style="border-color:var(--cyan);background:#00f0ff44"></i>a[mid]</span>
+      <span><i style="border-color:var(--pink);background:#ff2a6d44"></i>a[hi]</span>
+      <span><i style="opacity:.3"></i>descartado</span>
+      <span><i style="border-color:var(--green)"></i>mínimo</span></div></section>
+  <section class="panel"><h2>registradores</h2><dl id="vars"></dl><p class="legend" id="stats"></p></section>
+  <section class="panel full"><h2>código</h2><pre id="code"></pre></section>
+  <section class="panel full"><h2>memória · O(1) extra</h2>
+    <p id="memstat"></p><div id="mem"></div>
+    <p class="legend">As mesmas casas, só lidas. O custo extra é de tempo, não de memória.</p>
+  </section>
+</div>
+</template>
+
+<footer class="ctrl">
+  <p id="msg"></p>
+  <div class="row">
+    <button id="first" title="Home">⏮</button><button id="prev" title="←">◀</button>
+    <button id="play">▶ RUN</button>
+    <button id="next" title="→">▶</button><button id="lastbtn" title="End">⏭</button>
+    <input id="scrub" type="range" min="0" value="0" aria-label="step">
+    <span id="stepno"></span>
+    <label>speed <input id="speed" type="range" min="100" max="1000" value="600"></label>
+    <span class="keys">← → espaço</span>
+  </div>
+</footer>
+
+<script src="../assets/trace.js"></script>
+<script src="../assets/rotated-min.js"></script>
+<script src="../assets/player.js"></script>
+<script>
+// One row over s.dp = a: outside [lo, hi] dimmed, lo / mid / hi labels under the cells, answer in green.
+function renderRow(s) {
+  const cls = (k) => s.result !== undefined && k === s.lo ? 'ans' : cellClass(s, k) || (k < s.lo || k > s.hi ? 'out' : '');
+  const ptr = (k) => [k === s.lo && 'lo', k === s.mid && 'mid', k === s.hi && 'hi'].filter(Boolean).join('·');
+  $('viz').innerHTML = '<div class="arr">' + s.dp.map((v, k) =>
+    `<div class="slot">a[${k}]<div class="cell ${cls(k)}">${cellVal(v)}</div><span class="gen ptr">${ptr(k)}</span></div>`).join('') + '</div>';
+}
+
+const rmMount = (nums, code) => mountPlayer(rmSteps(nums), (s) => {
+  renderCode(code.text, s.line);
+  renderVars(s.vars);
+  renderRow(s);
+  renderMemory(s, (k) => `a[${k}]`, (k) => `base + ${k}·4`);
+  $('stats').innerHTML = `iterações: <b>${s.iters}</b> · passos de hi--: <b>${s.decs}</b> · ⌈log₂ n⌉ = <b>${Math.ceil(Math.log2(s.dp.length))}</b>`;
+});
+
+mountTabs({
+  binaria: () => rmMount(RM_NUMS, RM_CODE.binaria),
+  pior: () => rmMount(RM_WORST, RM_CODE.pior),
+});
+</script>
+</body>
+</html>

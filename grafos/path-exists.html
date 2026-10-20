@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Find if Path Exists · GRID//RUNNER</title>
+<link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="../index.html">GRID<em>//</em>RUNNER</a>
+  <nav><a href="../index.html#dp">Dynamic Programming</a><a class="on" href="../index.html#grafos">Grafos</a><a href="../index.html#ordenacao">Ordenação</a><a href="../index.html#busca">Busca Binária</a></nav>
+</header>
+<script src="../assets/github.js"></script>
+<main>
+<h1>FIND IF PATH EXISTS <span class="diff easy">EASY</span></h1>
+<section class="panel problem"><h2>problema</h2>
+  <p>Há um grafo <b>não dirigido</b> com <code>n</code> nós, numerados de <code>0</code> a <code>n − 1</code>, e uma lista
+    <code>edges</code> em que cada <code>[a, b]</code> é uma aresta entre <code>a</code> e <code>b</code>. Pode haver nós
+    soltos e o grafo pode ter várias partes separadas.</p>
+  <p>Dados <code>origem</code> e <code>destino</code>, retorne <code>true</code> se existir algum caminho entre eles.</p>
+  <div class="ex"><b>Exemplo 1</b> · <code>n = 9</code>, arestas como no desenho, <code>origem = 0, destino = 5</code> → <code>true</code>
+    <p>0 → 1 → 3 → 5, por exemplo.</p></div>
+  <div class="ex"><b>Exemplo 2</b> · o mesmo grafo, <code>origem = 0, destino = 8</code> → <code>false</code>
+    <p>7 e 8 formam uma parte separada: nenhuma aresta liga essa parte ao resto. É o exemplo animado abaixo, em que a
+      busca precisa visitar <i>toda</i> a componente da origem antes de desistir.</p></div>
+  <p class="legend">Restrições: 1 ≤ n ≤ 2·10⁵ · 0 ≤ edges.length ≤ 2·10⁵ · sem arestas repetidas nem laços</p>
+</section>
+<nav class="tabs" id="tabs" role="tablist" aria-label="variações"></nav>
+<div id="variant"></div>
+</main>
+
+<template id="tpl-dfs" data-label="DFS">
+<p class="lead"><b>Busca em profundidade</b>: a partir da origem, segue o primeiro vizinho não visitado, depois o primeiro
+  vizinho <i>dele</i>, e assim por diante, até um <span class="hl">beco sem saída</span>. Aí volta (desempilha) e tenta o
+  próximo vizinho. <code>visto[u]</code> impede que um ciclo (0 → 1 → 3 → 2 → 0) vire uma recursão infinita.</p>
+<div class="cx"><span>tempo <b>O(V + E)</b></span><span>espaço <b>O(V + E)</b></span><p>Cada nó e cada aresta são olhados no máximo duas vezes. Lista de adjacência + visto[] + call stack de até V frames.</p></div>
+<div class="layout">
+  <section class="panel"><h2>grafo</h2><div id="viz"></div>
+    <div class="legend"><span><i style="border-color:var(--yellow);background:var(--yellow)"></i>nó atual</span>
+      <span><i style="border-color:var(--cyan)"></i>vizinho / aresta olhada</span>
+      <span><i style="border-color:var(--pink);background:#ff2a6d33"></i>visitado</span>
+      <span><i style="border-color:var(--green);border-style:dashed"></i>destino</span></div></section>
+  <section class="panel"><h2>registradores</h2><dl id="vars"></dl></section>
+  <section class="panel"><h2>código</h2><pre id="code"></pre></section>
+  <section class="panel"><h2>call stack</h2><p id="stackstat"></p><div id="stack"></div></section>
+  <section class="panel full"><h2>memória · visto[] no heap</h2>
+    <p id="memstat"></p><div id="mem"></div>
+    <p class="legend">visto ocupa n células. A call stack pode chegar a n frames num grafo em forma de linha. A lista de adjacência
+      (não mostrada) ocupa O(n + arestas).</p></section>
+</div>
+</template>
+<template id="tpl-bfs" data-label="BFS">
+<p class="lead"><b>Busca em largura</b>: visita os nós em <span class="hl">ondas</span>: primeiro os vizinhos da origem,
+  depois os vizinhos deles, e assim por diante. Isso garante que o primeiro caminho encontrado é o mais curto em número de
+  arestas, algo que a DFS não garante. Para só saber <i>se</i> existe caminho, as duas servem.</p>
+<div class="cx"><span>tempo <b>O(V + E)</b></span><span>espaço <b>O(V + E)</b></span><p>Igual, com a fila (até V nós) no lugar da call stack.</p></div>
+<div class="layout">
+  <section class="panel"><h2>grafo</h2><div id="viz"></div>
+    <div class="legend"><span><i style="border-color:var(--yellow);background:var(--yellow)"></i>nó atual</span>
+      <span><i style="border-color:var(--cyan)"></i>vizinho / aresta olhada</span>
+      <span><i style="border-color:var(--pink);background:#ff2a6d33"></i>visitado</span>
+      <span><i style="border-color:var(--green);border-style:dashed"></i>destino</span></div></section>
+  <section class="panel"><h2>registradores</h2><dl id="vars"></dl></section>
+  <section class="panel"><h2>código</h2><pre id="code"></pre></section>
+  <section class="panel"><h2>fila · heap</h2><p id="queuestat"></p><div class="arr" id="queue"></div>
+    <p class="legend">head = próximo a sair · tail = último a entrar · apagados já saíram da fila.</p></section>
+  <section class="panel full"><h2>memória · visto[] no heap</h2>
+    <p id="memstat"></p><div id="mem"></div>
+    <p class="legend">Sem recursão: a call stack não cresce. A fila guarda no máximo n nós.</p></section>
+</div>
+</template>
+
+<footer class="ctrl">
+  <p id="msg"></p>
+  <div class="row">
+    <button id="first" title="Home">⏮</button><button id="prev" title="←">◀</button>
+    <button id="play">▶ RUN</button>
+    <button id="next" title="→">▶</button><button id="lastbtn" title="End">⏭</button>
+    <input id="scrub" type="range" min="0" value="0" aria-label="step">
+    <span id="stepno"></span>
+    <label>speed <input id="speed" type="range" min="100" max="1000" value="600"></label>
+    <span class="keys">← → espaço</span>
+  </div>
+</footer>
+
+<script src="../assets/trace.js"></script>
+<script src="../assets/path-exists.js"></script>
+<script src="../assets/player.js"></script>
+<script>
+const G = { ...PATH_GRAPH, directed: false };
+const draw = (s) => renderGraph('viz', G,
+  (k) => [k === s.cur ? 'cur' : k === s.nb ? 'nb' : s.dp[k] ? 'seen' : '', k === G.destino ? 'goal' : ''].join(' '),
+  (a, b) => (a === s.cur && b === s.nb) || (b === s.cur && a === s.nb) ? 'on' : s.dp[a] && s.dp[b] ? 'used' : '');
+
+mountTabs({
+dfs: () => mountPlayer(pathDFS(), (s) => {
+  renderCode(PATH_CODE.dfs.text, s.line);
+  renderVars(s.vars);
+  renderStack(s);
+  renderMemory(s, (k) => `visto[${k}]`, (k) => `base + ${k}·4`);
+  draw(s);
+}),
+bfs: () => mountPlayer(pathBFS(), (s) => {
+  renderCode(PATH_CODE.bfs.text, s.line);
+  renderVars(s.vars);
+  renderQueue(s);
+  renderMemory(s, (k) => `visto[${k}]`, (k) => `base + ${k}·4`);
+  draw(s);
+}),
+});
+</script>
+</body>
+</html>

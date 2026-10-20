@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ordenar Lista Ligada · GRID//RUNNER</title>
+<link rel="stylesheet" href="../assets/style.css">
+<style>
+.chains { display: grid; gap: 14px; }
+.chain { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 2px 0; }
+.node { display: grid; justify-items: center; gap: 2px; font-size: 12px; color: var(--dim); }
+.node .cell { min-width: 40px; }
+.node .cell.dummy { border-style: dashed; color: var(--dim); }
+.node .ptr { color: var(--yellow); font-size: 11px; min-height: 1.2em; }
+.arrow { color: var(--pink); padding: 12px 4px 0; font-size: 16px; }
+.nil { color: var(--dim); padding-top: 12px; font-size: 14px; }
+</style>
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="../index.html">GRID<em>//</em>RUNNER</a>
+  <nav><a href="../index.html#dp">Dynamic Programming</a><a href="../index.html#grafos">Grafos</a><a class="on" href="../index.html#ordenacao">Ordenação</a><a href="../index.html#busca">Busca Binária</a></nav>
+</header>
+<script src="../assets/github.js"></script>
+<main>
+<h1>ORDENAR LISTA LIGADA <span class="diff medium">MEDIUM</span></h1>
+<section class="panel problem"><h2>problema</h2>
+  <p>Recebemos a cabeça <code>head</code> de uma lista <b>simplesmente ligada</b>: cada nó tem um valor e um ponteiro
+    <code>next</code> para o seguinte. Devolva a cabeça da mesma lista em ordem <b>crescente</b>. Os nós não trocam de
+    valor: quem muda de lugar são os ponteiros. A meta é tempo <b>O(n log n)</b>.</p>
+  <div class="ex"><b>Exemplo 1</b> · <code>4 → 2 → 5 → 1 → 3</code> → <code>1 → 2 → 3 → 4 → 5</code>
+    <p>É o exemplo animado abaixo. Com 5 nós a divisão sai desigual (3 + 2) e sobram blocos sem par.</p></div>
+  <div class="ex"><b>Exemplo 2</b> · <code>2 → 1 → 2</code> → <code>1 → 2 → 2</code>
+    <p>Valores repetidos ficam lado a lado; com <code>&lt;=</code> no merge, o primeiro 2 continua antes do segundo.</p></div>
+  <div class="ex"><b>Exemplo 3</b> · lista vazia → lista vazia</div>
+  <p class="legend">Restrições: 0 ≤ n ≤ 5·10⁴ · -10⁵ ≤ val ≤ 10⁵ · sem acesso por índice: só dá para andar pelo next</p>
+</section>
+<nav class="tabs" id="tabs" role="tablist" aria-label="variações"></nav>
+<div id="variant"></div>
+</main>
+
+<template id="tpl-recursivo" data-label="Recursivo">
+<p class="lead"><b>Merge sort top-down</b>. Sem índices, o meio é achado com dois ponteiros: <code>fast</code> anda dois
+  nós enquanto <code>slow</code> anda um, então quando <code>fast</code> chega ao fim, <code>slow</code> está no meio.
+  Um <code>slow.next = null</code> <span class="hl">corta a lista em duas</span>, cada metade é ordenada pela própria
+  função e o <code>merge</code> costura as duas religando ponteiros, com um nó <code>dummy</code> na frente para não
+  tratar o primeiro nó à parte. Nenhum valor é copiado.</p>
+
+<div class="cx"><span>tempo <b>O(n log n)</b></span><span>espaço <b>O(log n)</b></span><p>A lista é dividida ao meio log n vezes e cada nível faz O(n) de busca do meio e de merge. A memória extra é a call stack, que tem a altura da recursão: log n frames.</p></div>
+<div class="layout">
+  <section class="panel full"><h2>heap · listas ligadas</h2>
+    <div class="chains" id="viz"></div>
+    <div class="legend"><span><i style="border-color:var(--cyan);background:#00f0ff44"></i>a.val lido</span>
+      <span><i style="border-color:var(--pink);background:#ff2a6d44"></i>b.val lido</span>
+      <span><i style="border-color:var(--yellow);background:var(--yellow)"></i>next reescrito</span>
+      <span>cada linha = uma lista solta no heap · ∅ = null</span></div></section>
+  <section class="panel"><h2>código</h2><pre id="code"></pre></section>
+  <section class="panel"><h2>registradores</h2><dl id="vars"></dl>
+    <h2 style="margin-top:16px">call stack</h2><p id="stackstat"></p><div id="stack"></div></section>
+  <section class="panel full"><h2>memória · heap (nós)</h2>
+    <p id="memstat"></p><div id="mem"></div>
+    <p class="legend">Cada nó ocupa duas células: val e next (o índice do próximo nó). Os val nunca são escritos; só os next.
+      A última dupla é o dummy, alocado em cada merge e descartado na volta.</p>
+  </section>
+</div>
+</template>
+<template id="tpl-iterativo" data-label="Iterativo">
+<p class="lead"><b>Merge sort bottom-up</b>. No <a href="#recursivo">recursivo</a> a pilha guarda onde cada metade
+  começa. Aqui não há pilha: primeiro conta os <code>n</code> nós e depois faz passadas com <code>size</code> = 1, 2,
+  4... Em cada passada, <code>split</code> destaca dois blocos de <code>size</code> nós (já ordenados pela passada
+  anterior), <code>merge</code> os intercala e <span class="hl">pendura o resultado na cauda</span> <code>prev</code>.
+  Um bloco que fica sem par passa direto. Só uns poucos ponteiros de memória extra.</p>
+
+<div class="cx"><span>tempo <b>O(n log n)</b></span><span>espaço <b>O(1)</b></span><p>São ⌈log₂ n⌉ passadas, e cada uma percorre a lista um número constante de vezes (split, merge e a caminhada até a cauda). Memória extra: o dummy e uns ponteiros, sem recursão.</p></div>
+<div class="layout">
+  <section class="panel full"><h2>heap · listas ligadas</h2>
+    <div class="chains" id="viz"></div>
+    <div class="legend"><span><i style="border-color:var(--cyan);background:#00f0ff44"></i>a.val lido</span>
+      <span><i style="border-color:var(--pink);background:#ff2a6d44"></i>b.val lido</span>
+      <span><i style="border-color:var(--yellow);background:var(--yellow)"></i>next reescrito</span>
+      <span>cada linha = uma lista solta no heap · ∅ = null</span></div></section>
+  <section class="panel"><h2>código</h2><pre id="code"></pre></section>
+  <section class="panel"><h2>registradores</h2><dl id="vars"></dl></section>
+  <section class="panel full"><h2>memória · heap (nós)</h2>
+    <p id="memstat"></p><div id="mem"></div>
+    <p class="legend">As mesmas células de nós do início ao fim: só os next mudam. O dummy (última dupla) vive a execução inteira.</p>
+  </section>
+</div>
+</template>
+
+<footer class="ctrl">
+  <p id="msg"></p>
+  <div class="row">
+    <button id="first" title="Home">⏮</button><button id="prev" title="←">◀</button>
+    <button id="play">▶ RUN</button>
+    <button id="next" title="→">▶</button><button id="lastbtn" title="End">⏭</button>
+    <input id="scrub" type="range" min="0" value="0" aria-label="step">
+    <span id="stepno"></span>
+    <label>speed <input id="speed" type="range" min="100" max="1000" value="600"></label>
+    <span class="keys">← → espaço</span>
+  </div>
+</footer>
+
+<script src="../assets/trace.js"></script>
+<script src="../assets/sort-list.js"></script>
+<script src="../assets/player.js"></script>
+<script>
+// Decode the heap (dp[2k] = val, dp[2k+1] = next) and draw every chain that nobody points to, one per row.
+function renderLists(s) {
+  const m = s.dp.length / 2, D = m - 1, alive = (k) => s.dp[2 * k] !== null;
+  const next = (k) => (typeof s.dp[2 * k + 1] === 'number' ? s.dp[2 * k + 1] : null);
+  const pointed = new Set([...Array(m).keys()].filter(alive).map(next));
+  const roots = [D, ...Array(D).keys()].filter((k) => alive(k) && !pointed.has(k));
+  const names = (k) => Object.entries(s.ptr).filter(([, v]) => v === k).map(([n]) => n).join(' · ');
+  const cls = (k) => (s.write.includes(2 * k + 1) ? 'w' : s.read[0] === 2 * k ? 'r0' : s.read[1] === 2 * k ? 'r1' : '');
+  const box = (k) => `<div class="node">${k === D ? 'dummy' : '#' + k}<div class="cell ${cls(k)}${k === D ? ' dummy' : ''}">${k === D ? '·' : s.dp[2 * k]}</div><span class="ptr">${names(k)}</span></div>`;
+  $('viz').innerHTML = roots.map((r) => {
+    const out = [];
+    for (let k = r; k !== null; k = next(k)) out.push(box(k));
+    return `<div class="chain">${out.join('<span class="arrow">→</span>')}<span class="arrow">→</span><span class="nil">∅</span></div>`;
+  }).join('') || '<div class="nil">(lista vazia)</div>';
+}
+const memLabel = (s) => (k) => { const node = k >> 1, D = s.dp.length / 2 - 1; return `${node === D ? 'dummy' : '#' + node}.${k % 2 ? 'next' : 'val'}`; };
+
+mountTabs({
+recursivo: () => mountPlayer(slRecursive(), (s) => {
+  renderCode(SL_CODE.recursivo.text, s.line);
+  renderVars(s.vars);
+  renderStack(s);
+  renderLists(s);
+  renderMemory(s, memLabel(s), (k) => `base + ${k >> 1}·8${k % 2 ? ' + 4' : ''}`);
+}),
+iterativo: () => mountPlayer(slIterative(), (s) => {
+  renderCode(SL_CODE.iterativo.text, s.line);
+  renderVars(s.vars);
+  renderLists(s);
+  renderMemory(s, memLabel(s), (k) => `base + ${k >> 1}·8${k % 2 ? ' + 4' : ''}`);
+}),
+});
+</script>
+</body>
+</html>

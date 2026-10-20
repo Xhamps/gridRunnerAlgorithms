@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ordenar Cores · GRID//RUNNER</title>
+<link rel="stylesheet" href="../assets/style.css">
+<style>
+.arr .cell.c0 { --c: #ff3b5c; background: #ff3b5c2e; color: #ff6b84; }
+.arr .cell.c1 { --c: #e8e6ff; background: #e8e6ff1f; color: #f4f3ff; }
+.arr .cell.c2 { --c: #3d7bff; background: #3d7bff33; color: #7aa4ff; }
+.arr .zone { width: 100%; height: 4px; background: var(--line); }
+.arr .zone.z0 { background: #ff3b5c; box-shadow: 0 0 6px #ff3b5c; }
+.arr .zone.z1 { background: #e8e6ff; box-shadow: 0 0 6px #e8e6ff; }
+.arr .zone.z2 { background: #3d7bff; box-shadow: 0 0 6px #3d7bff; }
+.arr .zone.z12 { background: repeating-linear-gradient(90deg, #e8e6ff 0 6px, #3d7bff 6px 12px); }
+.arr .gen.ptr { color: var(--yellow); min-height: 1.2em; }
+.legend i.z { height: 4px; border: 0; }
+</style>
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="../index.html">GRID<em>//</em>RUNNER</a>
+  <nav><a href="../index.html#dp">Dynamic Programming</a><a href="../index.html#grafos">Grafos</a><a class="on" href="../index.html#ordenacao">Ordenação</a><a href="../index.html#busca">Busca Binária</a></nav>
+</header>
+<script src="../assets/github.js"></script>
+<main>
+<h1>ORDENAR CORES <span class="diff medium">MEDIUM</span></h1>
+<section class="panel problem"><h2>problema</h2>
+  <p>Um array <code>a</code> guarda só os valores <b>0</b>, <b>1</b> e <b>2</b>, que representam as cores
+    <b>vermelho</b>, <b>branco</b> e <b>azul</b>. Reorganize o array para que todos os vermelhos venham primeiro,
+    depois os brancos e por fim os azuis. A mudança é feita no próprio array, com memória extra constante e
+    <b>sem usar a função de ordenação da linguagem</b>. O desafio extra é fazer tudo numa única varredura.</p>
+  <div class="ex"><b>Exemplo 1</b> · <code>a = [1, 2, 0, 2, 1, 0, 1]</code> → <code>[0, 0, 1, 1, 1, 2, 2]</code>
+    <p>É o exemplo animado abaixo: dois vermelhos, três brancos e dois azuis.</p></div>
+  <div class="ex"><b>Exemplo 2</b> · <code>a = [2, 1, 0]</code> → <code>[0, 1, 2]</code>
+    <p>Cada cor aparece uma vez, na ordem inversa.</p></div>
+  <div class="ex"><b>Exemplo 3</b> · <code>a = [1, 1, 1]</code> → <code>[1, 1, 1]</code>
+    <p>Uma cor só: nada muda de lugar.</p></div>
+  <p class="legend">Restrições: 1 ≤ n ≤ 300 · a[i] ∈ {0, 1, 2} · memória extra O(1)</p>
+</section>
+<nav class="tabs" id="tabs" role="tablist" aria-label="variações"></nav>
+<div id="variant"></div>
+</main>
+
+<template id="tpl-duas" data-label="Duas partições">
+<p class="lead">Com só três valores, basta <b>particionar duas vezes</b>. A primeira passada é a partição de Lomuto
+  com o teste "é 0?": o ponteiro <code>p</code> marca a próxima casa para um zero, e cada zero encontrado troca com
+  <code>a[p]</code>. No fim, <code>a[0..p-1]</code> são os vermelhos. A segunda passada começa <span class="hl">de onde a
+  primeira parou</span> e faz o mesmo com o teste "é 1?", empurrando os brancos para logo depois dos vermelhos.
+  O que sobra no fim são os azuis.</p>
+
+<div class="cx"><span>tempo <b>O(n)</b></span><span>espaço <b>O(1)</b></span><p>Duas varreduras: a primeira lê as n casas e a segunda só as que não são 0. Cada casa troca no máximo uma vez por passada. Só i e p de memória extra.</p></div>
+<div class="layout">
+  <section class="panel"><h2>array a[k]</h2>
+    <div class="arr" id="viz"></div>
+    <div class="legend"><span><i style="border-color:var(--cyan);background:#00f0ff44"></i>a[i] lido</span>
+      <span><i style="border-color:var(--yellow);background:var(--yellow)"></i>troca</span>
+      <span><i class="z" style="background:#ff3b5c"></i>zona 0</span>
+      <span><i class="z" style="background:#e8e6ff"></i>zona 1</span>
+      <span><i class="z" style="background:repeating-linear-gradient(90deg,#e8e6ff 0 4px,#3d7bff 4px 8px)"></i>1 ou 2 (passada 1)</span>
+      <span><i class="z" style="background:#3d7bff"></i>zona 2</span></div></section>
+  <section class="panel"><h2>registradores</h2><dl id="vars"></dl><p class="legend" id="stats"></p></section>
+  <section class="panel full"><h2>código</h2><pre id="code"></pre></section>
+  <section class="panel full"><h2>memória · O(1) extra</h2>
+    <p id="memstat"></p><div id="mem"></div>
+    <p class="legend">Tudo acontece nas n células do próprio array; i e p são registradores.</p>
+  </section>
+</div>
+</template>
+<template id="tpl-bandeira" data-label="Três ponteiros">
+<p class="lead">Uma passada só, com três ponteiros que dividem o array em quatro zonas:
+  <code>[0, lo)</code> vermelhos, <code>[lo, mid)</code> brancos, <code>[mid, hi]</code> <b>ainda não visto</b> e
+  <code>(hi, n)</code> azuis. Olhamos sempre <code>a[mid]</code>: um 0 troca com <code>a[lo]</code> e os dois
+  ponteiros andam; um 1 só faz <code>mid</code> andar; um 2 troca com <code>a[hi]</code> e só <code>hi</code> recua.
+  <span class="hl">Nesse último caso mid fica parado</span>, porque o valor que chegou de <code>hi</code> vem da zona
+  desconhecida e ainda precisa ser testado. Já no caso do 0, o que vem de <code>lo</code> é um 1 que já foi visto.
+  É a mesma partição em três que o <b>quick sort de 3 vias</b> usa para lidar com muitos valores repetidos: tudo que
+  é igual ao pivô fica no meio e não entra mais na recursão.</p>
+
+<div class="cx"><span>tempo <b>O(n)</b></span><span>espaço <b>O(1)</b></span><p>A cada passo, mid avança ou hi recua, então a zona desconhecida encolhe uma casa por iteração: no máximo n iterações. Só lo, mid e hi de memória extra.</p></div>
+<div class="layout">
+  <section class="panel"><h2>array a[k]</h2>
+    <div class="arr" id="viz"></div>
+    <div class="legend"><span><i style="border-color:var(--cyan);background:#00f0ff44"></i>a[mid] lido</span>
+      <span><i style="border-color:var(--yellow);background:var(--yellow)"></i>troca</span>
+      <span><i class="z" style="background:#ff3b5c"></i>[0, lo)</span>
+      <span><i class="z" style="background:#e8e6ff"></i>[lo, mid)</span>
+      <span><i class="z" style="background:var(--line)"></i>[mid, hi] não visto</span>
+      <span><i class="z" style="background:#3d7bff"></i>(hi, n)</span></div></section>
+  <section class="panel"><h2>registradores</h2><dl id="vars"></dl><p class="legend" id="stats"></p></section>
+  <section class="panel full"><h2>código</h2><pre id="code"></pre></section>
+  <section class="panel full"><h2>memória · O(1) extra</h2>
+    <p id="memstat"></p><div id="mem"></div>
+    <p class="legend">As mesmas n células; lo, mid e hi são só três registradores.</p>
+  </section>
+</div>
+</template>
+
+<footer class="ctrl">
+  <p id="msg"></p>
+  <div class="row">
+    <button id="first" title="Home">⏮</button><button id="prev" title="←">◀</button>
+    <button id="play">▶ RUN</button>
+    <button id="next" title="→">▶</button><button id="lastbtn" title="End">⏭</button>
+    <input id="scrub" type="range" min="0" value="0" aria-label="step">
+    <span id="stepno"></span>
+    <label>speed <input id="speed" type="range" min="100" max="1000" value="600"></label>
+    <span class="keys">← → espaço</span>
+  </div>
+</footer>
+
+<script src="../assets/trace.js"></script>
+<script src="../assets/sort-colors.js"></script>
+<script src="../assets/player.js"></script>
+<script>
+// Array strip: cell tinted by color, zone bar under it, pointer labels below.
+const renderArr = (s) => $('viz').innerHTML = s.dp.map((v, k) => {
+  const ptr = Object.entries(s.ptr).filter(([, x]) => x === k).map(([n]) => n).join(' · ');
+  return `<div class="slot">a[${k}]<div class="cell ${cellClass(s, k) || 'c' + v}">${v}</div>` +
+    `<span class="zone z${s.zone[k]}"></span><span class="gen ptr">${ptr}</span></div>`;
+}).join('');
+const view = (tab) => (s) => {
+  renderCode(SC_CODE[tab].text, s.line);
+  renderVars(s.vars);
+  renderArr(s);
+  renderMemory(s, (k) => `a[${k}]`, (k) => `base + ${k}·4`);
+  $('stats').innerHTML = `trocas: <b>${s.swaps}</b>`;
+};
+
+mountTabs({
+  duas: () => mountPlayer(scTwoPass(), view('duas')),
+  bandeira: () => mountPlayer(scDutch(), view('bandeira')),
+});
+</script>
+</body>
+</html>

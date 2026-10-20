@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Primeira e Última Posição · GRID//RUNNER</title>
+<link rel="stylesheet" href="../assets/style.css">
+<style>
+.arr .cell.out { opacity: .3; }
+.arr .cell.tgt { color: var(--yellow); }
+.arr .gen.ptr { color: var(--yellow); min-height: 1.2em; }
+.arr .slot.end .cell { border-style: dashed; color: var(--dim); }
+</style>
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="../index.html">GRID<em>//</em>RUNNER</a>
+  <nav><a href="../index.html#dp">Dynamic Programming</a><a href="../index.html#grafos">Grafos</a><a href="../index.html#ordenacao">Ordenação</a><a class="on" href="../index.html#busca">Busca Binária</a></nav>
+</header>
+<script src="../assets/github.js"></script>
+<main>
+<h1>PRIMEIRA E ÚLTIMA POSIÇÃO <span class="diff medium">MEDIUM</span></h1>
+<section class="panel problem"><h2>problema</h2>
+  <p>Recebemos um array de inteiros <code>a</code> em <b>ordem crescente</b>, que pode ter valores repetidos, e um
+    alvo <code>t</code>. Devolva <code>[first, last]</code>: o índice da <b>primeira</b> e da <b>última</b> casa que
+    guardam <code>t</code>. Se <code>t</code> não aparece, devolva <code>[-1, -1]</code>. O algoritmo precisa rodar em
+    <b>O(log n)</b>.</p>
+  <div class="ex"><b>Exemplo 1</b> · <code>a = [1, 2, 4, 5, 7, 7, 7, 9], t = 7</code> → <code>[4, 6]</code>
+    <p>É o exemplo animado abaixo. O 7 ocupa as casas 4, 5 e 6.</p></div>
+  <div class="ex"><b>Exemplo 2</b> · <code>a = [1, 2, 4, 5, 7, 7, 7, 9], t = 6</code> → <code>[-1, -1]</code>
+    <p>O 6 caberia entre o 5 e o 7, mas não está lá.</p></div>
+  <div class="ex"><b>Exemplo 3</b> · <code>a = [], t = 0</code> → <code>[-1, -1]</code>
+    <p>Array vazio: nada a achar.</p></div>
+  <p class="legend">Restrições: 0 ≤ n ≤ 10⁵ · -10⁹ ≤ a[i], t ≤ 10⁹ · a em ordem não decrescente</p>
+</section>
+<nav class="tabs" id="tabs" role="tablist" aria-label="variações"></nav>
+<div id="variant"></div>
+</main>
+
+<template id="tpl-expande" data-label="Acha e expande">
+<p class="lead">Primeiro, uma busca binária comum. A regra que ela mantém: <span class="hl">se t está no array, está
+  dentro de <code>a[lo..hi]</code></span>. Olhando o meio, se <code>a[mid]</code> é menor que t, tudo até mid também é
+  (o array é crescente) e o intervalo perde a metade esquerda; se é maior, perde a direita. Ao bater em <b>qualquer</b>
+  cópia de t, paramos e andamos casa a casa para os dois lados até o valor mudar. Simples, mas a expansão custa uma
+  comparação por cópia: se o array inteiro for t, ela percorre <span class="hl">todas as n casas</span>.</p>
+
+<div class="cx"><span>tempo <b>O(log n + k)</b> · pior <b>O(n)</b></span><span>espaço <b>O(1)</b></span><p>A busca binária corta o intervalo pela metade a cada volta: log n voltas. Depois, a expansão olha as k cópias de t e mais uma de cada lado; com k = n (tudo igual a t) isso vira O(n). Só lo, hi, mid, first e last de memória extra.</p></div>
+<div class="layout">
+  <section class="panel full"><h2>array a[k]</h2>
+    <div id="viz"></div>
+    <div class="legend"><span><i style="border-color:var(--cyan);background:#00f0ff44"></i>a[mid] / casa lida</span>
+      <span><i style="border-color:var(--green)"></i>a[first..last]</span>
+      <span><i style="opacity:.3;border-color:var(--line)"></i>descartado</span></div></section>
+  <section class="panel"><h2>registradores</h2><dl id="vars"></dl><p class="legend" id="stats"></p></section>
+  <section class="panel"><h2>código</h2><pre id="code"></pre></section>
+  <section class="panel full"><h2>memória · O(1) extra</h2>
+    <p id="memstat"></p><div id="mem"></div>
+    <p class="legend">Só as n células do array, apenas lidas; os ponteiros são registradores.</p>
+  </section>
+</div>
+</template>
+<template id="tpl-fronteiras" data-label="Duas fronteiras">
+<p class="lead">Em vez de procurar t, procuramos uma <b>fronteira</b>. <code>bound</code> devolve a primeira casa que
+  não satisfaz o teste "fica à esquerda". A regra mantida: <span class="hl">tudo antes de <code>lo</code> fica à
+  esquerda, tudo de <code>hi</code> em diante não, e a fronteira está em <code>[lo, hi]</code></span>. Por isso
+  <code>hi</code> começa em <code>n</code> (pode ser que ninguém passe) e o ramo do else faz <code>hi = mid</code>, sem
+  descartar mid. A única diferença entre as duas chamadas é o sinal: com <code>&lt;</code>, as cópias de t ficam à
+  direita e a fronteira cai na <b>primeira</b> delas; com <code>&lt;=</code>, ficam à esquerda e a fronteira cai logo
+  <b>depois da última</b>. Se t não existe, as duas fronteiras coincidem e <code>first &gt; last</code>.</p>
+
+<div class="cx"><span>tempo <b>O(log n)</b></span><span>espaço <b>O(1)</b></span><p>Duas buscas binárias de log n voltas cada, não importa quantas cópias de t existam. A memória extra é lo, hi, mid e um frame da chamada de bound por vez.</p></div>
+<div class="layout">
+  <section class="panel full"><h2>array a[k]</h2>
+    <div id="viz"></div>
+    <div class="legend"><span><i style="border-color:var(--cyan);background:#00f0ff44"></i>a[mid]</span>
+      <span><i style="border-color:var(--green)"></i>a[first..last]</span>
+      <span><i style="opacity:.3;border-color:var(--line)"></i>já decidido</span>
+      <span><i style="border-style:dashed;border-color:var(--line)"></i>n: fim do array</span></div></section>
+  <section class="panel"><h2>registradores</h2><dl id="vars"></dl><p class="legend" id="stats"></p></section>
+  <section class="panel"><h2>call stack</h2><p id="stackstat"></p><div id="stack"></div></section>
+  <section class="panel full"><h2>código</h2><pre id="code"></pre></section>
+  <section class="panel full"><h2>memória · O(1) extra</h2>
+    <p id="memstat"></p><div id="mem"></div>
+    <p class="legend">As n células do array, só lidas. Cada chamada de bound ocupa um frame, e uma termina antes da outra começar.</p>
+  </section>
+</div>
+</template>
+
+<footer class="ctrl">
+  <p id="msg"></p>
+  <div class="row">
+    <button id="first" title="Home">⏮</button><button id="prev" title="←">◀</button>
+    <button id="play">▶ RUN</button>
+    <button id="next" title="→">▶</button><button id="lastbtn" title="End">⏭</button>
+    <input id="scrub" type="range" min="0" value="0" aria-label="step">
+    <span id="stepno"></span>
+    <label>speed <input id="speed" type="range" min="100" max="1000" value="600"></label>
+    <span class="keys">← → espaço</span>
+  </div>
+</footer>
+
+<script src="../assets/trace.js"></script>
+<script src="../assets/first-last.js"></script>
+<script src="../assets/player.js"></script>
+<script>
+// Array row: outside the live range dimmed, a[first..last] green, pointer labels under each cell.
+// half = range is [lo, hi) with hi possibly n, so an extra dashed slot stands for position n.
+function renderRow(s, half) {
+  const n = s.dp.length, hiIn = half ? s.hi - 1 : s.hi;
+  const inAns = (k) => s.first !== undefined && s.last !== undefined && s.first >= 0 && k >= s.first && k <= s.last;
+  const zone = (k) => inAns(k) ? 'rng' : s.lo !== undefined && (k < s.lo || k > hiIn) ? 'out' : s.dp[k] === s.t ? 'tgt' : '';
+  const ptr = (k) => [k === s.lo && 'lo', k === s.mid && 'mid', k === s.hi && 'hi', k === s.b && 'ret',
+    k === s.first && 'first', k === s.last && 'last'].filter(Boolean).join('·');
+  const slots = s.dp.map((v, k) =>
+    `<div class="slot">a[${k}]<div class="cell ${cellClass(s, k) || zone(k)}">${cellVal(v)}</div><span class="gen ptr">${ptr(k)}</span></div>`);
+  if (half) slots.push(`<div class="slot end">n<div class="cell">·</div><span class="gen ptr">${ptr(n)}</span></div>`);
+  $('viz').innerHTML = '<div class="arr">' + slots.join('') + '</div>';
+}
+
+const flMount = (steps, code, half) => mountPlayer(steps, (s) => {
+  renderCode(code.text, s.line);
+  renderVars(s.vars);
+  renderRow(s, half);
+  if (half) renderStack(s);
+  renderMemory(s, (k) => `a[${k}]`, (k) => `base + ${k}·4`);
+  $('stats').innerHTML = `t = <b>${s.t}</b> · comparações: <b>${s.cmps}</b>`;
+});
+
+mountTabs({
+  expande: () => flMount(flExpand(), FL_CODE.expande, false),
+  fronteiras: () => flMount(flBounds(), FL_CODE.fronteiras, true),
+});
+</script>
+</body>
+</html>

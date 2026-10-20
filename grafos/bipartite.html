@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Is Graph Bipartite · GRID//RUNNER</title>
+<link rel="stylesheet" href="../assets/style.css">
+<style>.graph line.bad { stroke: var(--pink); stroke-width: 2.2; color: var(--pink); filter: drop-shadow(0 0 3px var(--pink)); }</style>
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="../index.html">GRID<em>//</em>RUNNER</a>
+  <nav><a href="../index.html#dp">Dynamic Programming</a><a class="on" href="../index.html#grafos">Grafos</a><a href="../index.html#ordenacao">Ordenação</a><a href="../index.html#busca">Busca Binária</a></nav>
+</header>
+<script src="../assets/github.js"></script>
+<main>
+<h1>IS GRAPH BIPARTITE <span class="diff medium">MEDIUM</span></h1>
+<section class="panel problem"><h2>problema</h2>
+  <p>Você recebe um grafo <b>não dirigido</b> de <code>n</code> nós como lista de adjacência: <code>graph[u]</code> lista os
+    vizinhos de <code>u</code>. O grafo pode estar dividido em várias partes desconectadas.</p>
+  <p>O grafo é <b>bipartido</b> se dá para separar os nós em dois grupos de modo que <b>toda</b> aresta ligue um nó de um
+    grupo a um nó do outro. Retorne <code>true</code> se for.</p>
+  <div class="ex"><b>Exemplo 1</b> · <code>graph = [[1,3],[0,2],[1,3],[0,2]]</code> → <code>true</code>
+    <p>Um quadrado 0–1–2–3: grupos {0, 2} e {1, 3}.</p></div>
+  <div class="ex"><b>Exemplo 2</b> · o grafo do desenho, com o quadrado (+4) e o triângulo 5–6–7 → <code>false</code>
+    <p>A parte do quadrado se pinta sem problema, mas no triângulo, depois de pintar 5 e 6 com cores diferentes, o 7 é
+      vizinho dos dois e não sobra cor para ele.</p></div>
+  <div class="ex"><b>Por que ciclo ímpar?</b>
+    <p>Andando por um ciclo, as cores precisam alternar: 0, 1, 0, 1... Para voltar ao início com a cor certa, o ciclo
+      precisa ter um número <b>par</b> de arestas. Um grafo é bipartido <b>se e somente se</b> não tem ciclo ímpar. As duas
+      buscas pintam cada vizinho com a cor oposta e acusam o primeiro ciclo ímpar que encontram.</p></div>
+  <p class="legend">Restrições: 1 ≤ n ≤ 100 · graph[u] sem repetições e sem u · se v está em graph[u], u está em graph[v]</p>
+</section>
+<nav class="tabs" id="tabs" role="tablist" aria-label="variações"></nav>
+<div id="variant"></div>
+</main>
+<template id="tpl-dfs" data-label="DFS">
+<p class="lead"><b>Busca em profundidade</b>: <code>dfs(u, c)</code> pinta <code>u</code> com a cor <code>c</code> e desce em cada vizinho
+  sem cor com a cor <span class="hl">oposta</span> (<code>1 − c</code>). Se algum vizinho já tem a <i>mesma</i> cor, há conflito
+  e o <code>false</code> sobe pela call stack. O laço de fora começa uma busca nova em cada parte do grafo ainda sem cor.</p>
+<div class="cx"><span>tempo <b>O(V + E)</b></span><span>espaço <b>O(V)</b></span><p>Cada nó é pintado uma vez e cada aresta conferida nas duas pontas. cor[] + call stack.</p></div>
+<div class="layout">
+  <section class="panel"><h2>grafo</h2><div id="viz"></div>
+    <div class="legend"><span><i style="border-color:var(--yellow);background:var(--yellow)"></i>nó atual</span>
+      <span><i style="border-color:var(--cyan)"></i>vizinho olhado</span>
+      <span><i style="border-color:var(--cyan);background:#00f0ff33"></i>cor 0</span>
+      <span><i style="border-color:var(--pink);background:#ff2a6d33"></i>cor 1</span>
+      <span><i style="border-color:var(--pink);background:var(--pink)"></i>aresta em conflito</span></div></section>
+  <section class="panel"><h2>registradores</h2><dl id="vars"></dl></section>
+  <section class="panel"><h2>código</h2><pre id="code"></pre></section>
+  <section class="panel"><h2>call stack</h2><p id="stackstat"></p><div id="stack"></div></section>
+  <section class="panel full"><h2>memória · cor[] no heap</h2>
+    <p id="memstat"></p><div id="mem"></div>
+    <p class="legend">cor[] ocupa n células e serve ao mesmo tempo de "visitado" (≠ −1) e de grupo (0 ou 1). A call stack pode chegar a n frames.</p></section>
+</div>
+</template>
+<template id="tpl-bfs" data-label="BFS">
+<p class="lead"><b>Busca em largura</b>: pinta a origem com 0 e espalha em <span class="hl">ondas</span>: cada nó tirado da fila pinta os
+  vizinhos sem cor com a cor oposta e os enfileira. Nós a distância par da origem ficam com 0 e a distância ímpar com 1. Um
+  vizinho com a mesma cor do nó atual é o conflito: <code>ok = false</code> encerra os laços.</p>
+<div class="cx"><span>tempo <b>O(V + E)</b></span><span>espaço <b>O(V)</b></span><p>Igual, com a fila no lugar da call stack.</p></div>
+<div class="layout">
+  <section class="panel"><h2>grafo</h2><div id="viz"></div>
+    <div class="legend"><span><i style="border-color:var(--yellow);background:var(--yellow)"></i>nó atual</span>
+      <span><i style="border-color:var(--cyan)"></i>vizinho olhado</span>
+      <span><i style="border-color:var(--cyan);background:#00f0ff33"></i>cor 0</span>
+      <span><i style="border-color:var(--pink);background:#ff2a6d33"></i>cor 1</span>
+      <span><i style="border-color:var(--pink);background:var(--pink)"></i>aresta em conflito</span></div></section>
+  <section class="panel"><h2>registradores</h2><dl id="vars"></dl></section>
+  <section class="panel"><h2>código</h2><pre id="code"></pre></section>
+  <section class="panel"><h2>fila · heap</h2><p id="queuestat"></p><div class="arr" id="queue"></div>
+    <p class="legend">head = próximo a sair · tail = último a entrar · apagados já saíram da fila.</p></section>
+  <section class="panel full"><h2>memória · cor[] no heap</h2>
+    <p id="memstat"></p><div id="mem"></div>
+    <p class="legend">cor[] ocupa n células e serve de "visitado" e de grupo. Sem recursão: a call stack não cresce, a fila guarda no máximo n nós.</p></section>
+</div>
+</template>
+<footer class="ctrl">
+  <p id="msg"></p>
+  <div class="row">
+    <button id="first" title="Home">⏮</button><button id="prev" title="←">◀</button>
+    <button id="play">▶ RUN</button>
+    <button id="next" title="→">▶</button><button id="lastbtn" title="End">⏭</button>
+    <input id="scrub" type="range" min="0" value="0" aria-label="step">
+    <span id="stepno"></span>
+    <label>speed <input id="speed" type="range" min="100" max="1000" value="600"></label>
+    <span class="keys">← → espaço</span>
+  </div>
+</footer>
+
+<script src="../assets/trace.js"></script>
+<script src="../assets/bipartite.js"></script>
+<script src="../assets/player.js"></script>
+<script>
+const G = { pos: BIP_GRAPH.pos, edges: BIP_GRAPH.graph.flatMap((l, u) => l.filter((v) => u < v).map((v) => [u, v])) };
+const hit = (p, a, b) => p && ((p[0] === a && p[1] === b) || (p[0] === b && p[1] === a));
+const draw = (s) => renderGraph('viz', G,
+  (k) => [k === s.cur ? 'cur' : k === s.nb ? 'nb' : '', s.dp[k] === 0 ? 'c0' : s.dp[k] === 1 ? 'c1' : ''].join(' '),
+  (a, b) => hit(s.bad, a, b) ? 'bad' : hit([s.cur, s.nb], a, b) ? 'on' : '');
+const mem = (s) => renderMemory(s, (k) => `cor[${k}]`, (k) => `base + ${k}·4`);
+
+mountTabs({
+dfs: () => mountPlayer(bipDFS(), (s) => {
+  renderCode(BIP_CODE.dfs.text, s.line);
+  renderVars(s.vars);
+  renderStack(s);
+  mem(s);
+  draw(s);
+}),
+bfs: () => mountPlayer(bipBFS(), (s) => {
+  renderCode(BIP_CODE.bfs.text, s.line);
+  renderVars(s.vars);
+  renderQueue(s);
+  mem(s);
+  draw(s);
+}),
+});
+</script>
+</body>
+</html>

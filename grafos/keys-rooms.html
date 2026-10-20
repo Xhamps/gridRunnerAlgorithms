@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Keys and Rooms · GRID//RUNNER</title>
+<link rel="stylesheet" href="../assets/style.css">
+<style>.graph .locked circle { stroke: var(--pink); stroke-dasharray: 2 1; }</style>
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="../index.html">GRID<em>//</em>RUNNER</a>
+  <nav><a href="../index.html#dp">Dynamic Programming</a><a class="on" href="../index.html#grafos">Grafos</a><a href="../index.html#ordenacao">Ordenação</a><a href="../index.html#busca">Busca Binária</a></nav>
+</header>
+<script src="../assets/github.js"></script>
+<main>
+<h1>KEYS AND ROOMS <span class="diff medium">MEDIUM</span></h1>
+<section class="panel problem"><h2>problema</h2>
+  <p>Há <code>n</code> salas numeradas de <code>0</code> a <code>n − 1</code>. Só a sala <code>0</code> começa aberta; todas
+    as outras estão trancadas. Dentro de cada sala <code>i</code> há um molho de chaves <code>rooms[i]</code>, e cada chave
+    <code>k</code> abre a sala <code>k</code>. Você pode entrar em qualquer sala que já tenha aberto, quantas vezes quiser.</p>
+  <p>Retorne <code>true</code> se for possível visitar <b>todas</b> as salas.</p>
+  <p>Visto como grafo, achar a chave <code>k</code> na sala <code>u</code> é uma aresta <b>dirigida</b> <code>u → k</code>:
+    a chave leva de u para k, mas não de volta. O problema é saber se todos os nós são alcançáveis a partir do 0.</p>
+  <div class="ex"><b>Exemplo 1</b> · <code>rooms = [[1], [2], [3], []]</code> → <code>true</code>
+    <p>A sala 0 dá a chave da 1, a 1 dá a da 2, a 2 dá a da 3.</p></div>
+  <div class="ex"><b>Exemplo 2</b> · <code>rooms = [[1, 2], [3], [1, 4], [], [2], [0]]</code> → <code>false</code>
+    <p>A sala 5 guarda a chave da 0, mas ninguém guarda a chave da 5. A aresta 5 → 0 existe, só que não ajuda a
+      <i>chegar</i> na 5. É o exemplo animado abaixo.</p></div>
+  <p class="legend">Restrições: 2 ≤ n ≤ 1000 · 0 ≤ rooms[i].length ≤ 1000 · soma de todas as chaves ≤ 3000 · 0 ≤ rooms[i][j] &lt; n</p>
+</section>
+<nav class="tabs" id="tabs" role="tablist" aria-label="variações"></nav>
+<div id="variant"></div>
+</main>
+
+<template id="tpl-dfs" data-label="DFS">
+<p class="lead"><b>Busca em profundidade</b>: entra na sala 0 e, a cada chave nova, já corre para a sala que ela abre,
+  indo o mais <span class="hl">fundo</span> possível antes de voltar e usar a próxima chave do molho. A <b>call stack</b>
+  guarda o caminho de salas. <code>visto</code> impede rodar em círculos (2 → 4 → 2).</p>
+<div class="cx"><span>tempo <b>O(n + k)</b></span><span>espaço <b>O(n)</b></span><p>n salas e k chaves no total: cada sala é aberta e cada chave lida uma vez. visto[] + call stack.</p></div>
+<div class="layout">
+  <section class="panel"><h2>salas · grafo dirigido</h2><div id="viz"></div>
+    <div class="legend"><span><i style="border-color:var(--yellow);background:var(--yellow)"></i>sala atual</span>
+      <span><i style="border-color:var(--cyan)"></i>chave / aresta olhada</span>
+      <span><i style="border-color:var(--pink);background:#ff2a6d33"></i>sala aberta</span>
+      <span><i style="border-color:var(--pink);border-style:dashed"></i>trancada no fim</span></div></section>
+  <section class="panel"><h2>registradores</h2><dl id="vars"></dl></section>
+  <section class="panel"><h2>código</h2><pre id="code"></pre></section>
+  <section class="panel"><h2>call stack</h2><p id="stackstat"></p><div id="stack"></div></section>
+  <section class="panel full"><h2>memória · visto[] no heap</h2>
+    <p id="memstat"></p><div id="mem"></div>
+    <p class="legend">n células. A call stack pode chegar a n frames se as salas formarem uma corrente (0 → 1 → 2 → ...).</p></section>
+</div>
+</template>
+<template id="tpl-bfs" data-label="BFS">
+<p class="lead"><b>Busca em largura</b>: a fila guarda as salas já destrancadas que ainda não foram exploradas. Abre
+  primeiro todas as salas cujas chaves estão na sala 0, depois as que essas liberam, em <span class="hl">ondas</span>.
+  Para responder "dá para abrir tudo?", a ordem não importa: DFS e BFS visitam exatamente as mesmas salas.</p>
+<div class="cx"><span>tempo <b>O(n + k)</b></span><span>espaço <b>O(n)</b></span><p>Igual, com a fila (até n salas) no lugar da call stack.</p></div>
+<div class="layout">
+  <section class="panel"><h2>salas · grafo dirigido</h2><div id="viz"></div>
+    <div class="legend"><span><i style="border-color:var(--yellow);background:var(--yellow)"></i>sala atual</span>
+      <span><i style="border-color:var(--cyan)"></i>chave / aresta olhada</span>
+      <span><i style="border-color:var(--pink);background:#ff2a6d33"></i>sala aberta</span>
+      <span><i style="border-color:var(--pink);border-style:dashed"></i>trancada no fim</span></div></section>
+  <section class="panel"><h2>registradores</h2><dl id="vars"></dl></section>
+  <section class="panel"><h2>código</h2><pre id="code"></pre></section>
+  <section class="panel"><h2>fila · heap</h2><p id="queuestat"></p><div class="arr" id="queue"></div>
+    <p class="legend">head = próxima a explorar · tail = última destrancada · apagadas já foram exploradas.</p></section>
+  <section class="panel full"><h2>memória · visto[] no heap</h2>
+    <p id="memstat"></p><div id="mem"></div>
+    <p class="legend">Sem recursão: a call stack não cresce. Cada sala entra na fila no máximo uma vez.</p></section>
+</div>
+</template>
+
+<footer class="ctrl">
+  <p id="msg"></p>
+  <div class="row">
+    <button id="first" title="Home">⏮</button><button id="prev" title="←">◀</button>
+    <button id="play">▶ RUN</button>
+    <button id="next" title="→">▶</button><button id="lastbtn" title="End">⏭</button>
+    <input id="scrub" type="range" min="0" value="0" aria-label="step">
+    <span id="stepno"></span>
+    <label>speed <input id="speed" type="range" min="100" max="1000" value="600"></label>
+    <span class="keys">← → espaço</span>
+  </div>
+</footer>
+
+<script src="../assets/trace.js"></script>
+<script src="../assets/keys-rooms.js"></script>
+<script src="../assets/player.js"></script>
+<script>
+const G = { pos: ROOMS.pos, edges: ROOMS.rooms.flatMap((ks, u) => ks.map((k) => [u, k])), directed: true };
+const draw = (s) => renderGraph('viz', G,
+  (k) => k === s.cur ? 'cur' : k === s.nb ? 'nb' : s.dp[k] ? 'seen' : s.result !== undefined ? 'locked' : '',
+  (a, b) => a === s.cur && b === s.nb ? 'on' : s.dp[a] && s.dp[b] ? 'used' : '');
+
+mountTabs({
+dfs: () => mountPlayer(roomsDFS(), (s) => {
+  renderCode(ROOMS_CODE.dfs.text, s.line);
+  renderVars(s.vars);
+  renderStack(s);
+  renderMemory(s, (k) => `visto[${k}]`, (k) => `base + ${k}·4`);
+  draw(s);
+}),
+bfs: () => mountPlayer(roomsBFS(), (s) => {
+  renderCode(ROOMS_CODE.bfs.text, s.line);
+  renderVars(s.vars);
+  renderQueue(s);
+  renderMemory(s, (k) => `visto[${k}]`, (k) => `base + ${k}·4`);
+  draw(s);
+}),
+});
+</script>
+</body>
+</html>

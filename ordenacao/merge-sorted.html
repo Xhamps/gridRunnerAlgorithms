@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Juntar Arrays Ordenados · GRID//RUNNER</title>
+<link rel="stylesheet" href="../assets/style.css">
+<style>
+.arr .gen.ptr { color: var(--yellow); min-height: 1.2em; }
+.rows { display: grid; gap: 10px; }
+.rows .name { font-size: 12px; color: var(--dim); margin-bottom: 2px; }
+</style>
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="../index.html">GRID<em>//</em>RUNNER</a>
+  <nav><a href="../index.html#dp">Dynamic Programming</a><a href="../index.html#grafos">Grafos</a><a class="on" href="../index.html#ordenacao">Ordenação</a><a href="../index.html#busca">Busca Binária</a></nav>
+</header>
+<script src="../assets/github.js"></script>
+<main>
+<h1>JUNTAR ARRAYS ORDENADOS <span class="diff easy">EASY</span></h1>
+<section class="panel problem"><h2>problema</h2>
+  <p>Você recebe dois arrays em ordem crescente. O array <code>a</code> tem tamanho <code>m + n</code>: as
+    <code>m</code> primeiras casas guardam valores de verdade e as <code>n</code> últimas são só espaço reservado
+    (valem 0 e devem ser ignoradas). O array <code>b</code> tem os outros <code>n</code> valores. Junte
+    <code>b</code> dentro de <code>a</code>, <b>no próprio <code>a</code></b>, de modo que ele termine com os
+    <code>m + n</code> valores em ordem crescente. É exatamente o passo de "juntar" do merge sort.</p>
+  <div class="ex"><b>Exemplo 1</b> · <code>a = [2, 5, 7, 0, 0, 0]</code>, <code>m = 3</code>, <code>b = [1, 4, 6]</code> → <code>[1, 2, 4, 5, 6, 7]</code>
+    <p>É o exemplo animado abaixo. Os três zeros finais são só lugar vago.</p></div>
+  <div class="ex"><b>Exemplo 2</b> · <code>a = [3]</code>, <code>m = 1</code>, <code>b = []</code> → <code>[3]</code>
+    <p>Nada para juntar: <code>a</code> já está pronto.</p></div>
+  <div class="ex"><b>Exemplo 3</b> · <code>a = [0]</code>, <code>m = 0</code>, <code>b = [8]</code> → <code>[8]</code>
+    <p>Sem valores válidos em <code>a</code>: a única casa é ocupada pelo 8.</p></div>
+  <p class="legend">Restrições: 0 ≤ m, n ≤ 200 · 1 ≤ m + n ≤ 200 · -10⁹ ≤ valores ≤ 10⁹ · a e b em ordem crescente</p>
+</section>
+<nav class="tabs" id="tabs" role="tablist" aria-label="variações"></nav>
+<div id="variant"></div>
+</main>
+
+<template id="tpl-frente" data-label="Pela frente">
+<p class="lead">O jeito natural: o menor de todos vai para <code>a[0]</code>, o segundo menor para <code>a[1]</code>, e
+  assim por diante. Só que escrever em <code>a[0]</code> apagaria um valor de <code>a</code> que ainda não foi lido. Por
+  isso, primeiro os <code>m</code> válidos são <b>copiados para <code>aux</code></b>. Depois, <code>i</code> lê
+  <code>aux</code>, <code>j</code> lê <code>b</code> e <code>k</code> escreve em <code>a</code>: a cada passo, o menor
+  dos dois valores da frente é escrito e o ponteiro dele avança. Quando um lado acaba, o outro segue sozinho.
+  <span class="hl">Funciona, mas custa O(m) de memória extra</span>.</p>
+
+<div class="cx"><span>tempo <b>O(m + n)</b></span><span>espaço <b>O(m)</b></span><p>Cada casa de a é escrita uma vez e cada valor é lido uma vez. A cópia aux ocupa m inteiros; i, j e k são registradores.</p></div>
+<div class="layout">
+  <section class="panel"><h2>arrays</h2>
+    <div class="rows" id="viz"></div>
+    <div class="legend"><span><i style="border-color:var(--cyan);background:#00f0ff44"></i>aux[i] / lido</span>
+      <span><i style="border-color:var(--pink);background:#ff2a6d44"></i>b[j]</span>
+      <span><i style="border-color:var(--yellow);background:var(--yellow)"></i>escrita</span>
+      <span><i style="border-color:var(--green)"></i>a[0..k-1] pronto</span></div></section>
+  <section class="panel"><h2>registradores</h2><dl id="vars"></dl></section>
+  <section class="panel full"><h2>código</h2><pre id="code"></pre></section>
+  <section class="panel full"><h2>memória · a + aux + b</h2>
+    <p id="memstat"></p><div id="mem"></div>
+    <p class="legend">As m células de aux são a memória extra desta versão. ░░ marca as casas vagas do fim de a.</p>
+  </section>
+</div>
+</template>
+<template id="tpl-tras" data-label="De trás">
+<p class="lead">Os valores vagos estão no <b>fim</b> de <code>a</code>, então o truque é preencher de trás para frente:
+  o maior de todos vai para <code>a[m+n-1]</code>. <code>i</code> começa no último válido de <code>a</code>,
+  <code>j</code> no último de <code>b</code> e <code>k</code> na última casa. Por que nunca se apaga um valor ainda não
+  lido? Entre <code>i</code> e <code>k</code> sempre há <code>k - i = j + 1</code> casas, exatamente quantas faltam
+  vir de <code>b</code>. Enquanto <code>b</code> não acaba, <span class="hl"><code>k</code> fica estritamente à direita de
+  <code>i</code></span>. E quando <code>b</code> acaba, o que sobrou de <code>a</code> já está no lugar: o laço para ali.</p>
+
+<div class="cx"><span>tempo <b>O(m + n)</b></span><span>espaço <b>O(1)</b></span><p>No máximo m + n escritas, uma por casa. Nenhuma cópia: só i, j e k de memória extra.</p></div>
+<div class="layout">
+  <section class="panel"><h2>arrays</h2>
+    <div class="rows" id="viz"></div>
+    <div class="legend"><span><i style="border-color:var(--cyan);background:#00f0ff44"></i>a[i] / lido</span>
+      <span><i style="border-color:var(--pink);background:#ff2a6d44"></i>b[j]</span>
+      <span><i style="border-color:var(--yellow);background:var(--yellow)"></i>escrita</span>
+      <span><i style="border-color:var(--green)"></i>a[k+1..] pronto</span></div></section>
+  <section class="panel"><h2>registradores</h2><dl id="vars"></dl></section>
+  <section class="panel full"><h2>código</h2><pre id="code"></pre></section>
+  <section class="panel full"><h2>memória · a + b · O(1) extra</h2>
+    <p id="memstat"></p><div id="mem"></div>
+    <p class="legend">Só as células de a e b. ░░ marca as casas vagas do fim de a, que vão sendo ocupadas da direita para a esquerda.</p>
+  </section>
+</div>
+</template>
+
+<footer class="ctrl">
+  <p id="msg"></p>
+  <div class="row">
+    <button id="first" title="Home">⏮</button><button id="prev" title="←">◀</button>
+    <button id="play">▶ RUN</button>
+    <button id="next" title="→">▶</button><button id="lastbtn" title="End">⏭</button>
+    <input id="scrub" type="range" min="0" value="0" aria-label="step">
+    <span id="stepno"></span>
+    <label>speed <input id="speed" type="range" min="100" max="1000" value="600"></label>
+    <span class="keys">← → espaço</span>
+  </div>
+</footer>
+
+<script src="../assets/trace.js"></script>
+<script src="../assets/merge-sorted.js"></script>
+<script src="../assets/player.js"></script>
+<script>
+// segs = [[name, offset, len, ptr(k), done(k)]]: one strip per array, all cut from the same heap s.dp.
+const renderRows = (s, segs) => $('viz').innerHTML = segs.map(([name, off, len, ptr, done]) =>
+  `<div><div class="name">${name}</div><div class="arr">` + Array.from({ length: len }, (_, k) => {
+    const c = cellClass(s, off + k) || (done(k) ? 'rng' : '');
+    return `<div class="slot">${k}<div class="cell ${c}">${cellVal(s.dp[off + k])}</div><span class="gen ptr">${ptr(k)}</span></div>`;
+  }).join('') + '</div></div>').join('');
+const ptrs = (k, p) => Object.entries(p).filter(([, v]) => v === k).map(([n]) => n).join(' · ');
+const seg = (m, n, ...parts) => (k) => { for (const [nm, off, len] of parts) if (k >= off && k < off + len) return `${nm}[${k - off}]`; };
+const none = () => false;
+
+mountTabs({
+frente: () => mountPlayer(msFront(), (s) => {
+  const { m, n } = s, X = m + n, B = X + m, lab = seg(m, n, ['a', 0, X], ['aux', X, m], ['b', B, n]);
+  renderCode(MSA_CODE.frente.text, s.line);
+  renderVars(s.vars);
+  renderRows(s, [['a (escrita k)', 0, X, (k) => ptrs(k, { k: s.k }), (k) => s.done || k < s.k],
+    ['aux (leitura i)', X, m, (k) => ptrs(k, { i: s.i }), none], ['b (leitura j)', B, n, (k) => ptrs(k, { j: s.j }), none]]);
+  renderMemory(s, lab, (k) => k < X ? `a + ${k}·4` : k < B ? `aux + ${k - X}·4` : `b + ${k - B}·4`);
+}),
+tras: () => mountPlayer(msBack(), (s) => {
+  const { m, n } = s, B = m + n, lab = seg(m, n, ['a', 0, B], ['b', B, n]);
+  renderCode(MSA_CODE.tras.text, s.line);
+  renderVars(s.vars);
+  renderRows(s, [['a (leitura i · escrita k)', 0, B, (k) => ptrs(k, { i: s.i, k: s.k }), (k) => s.done || k > s.k],
+    ['b (leitura j)', B, n, (k) => ptrs(k, { j: s.j }), none]]);
+  renderMemory(s, lab, (k) => k < B ? `a + ${k}·4` : `b + ${k - B}·4`);
+}),
+});
+</script>
+</body>
+</html>

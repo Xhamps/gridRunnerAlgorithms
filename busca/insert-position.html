@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Posição de Inserção · GRID//RUNNER</title>
+<link rel="stylesheet" href="../assets/style.css">
+<style>
+.arr .cell.out { opacity: .35; }
+.arr .cell.ghost { border-style: dashed; color: var(--dim); }
+.arr .cell.fix { --c: var(--green); color: var(--green); box-shadow: 0 0 10px var(--green); }
+.arr .gen.ptr { color: var(--yellow); min-height: 1.2em; }
+</style>
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="../index.html">GRID<em>//</em>RUNNER</a>
+  <nav><a href="../index.html#dp">Dynamic Programming</a><a href="../index.html#grafos">Grafos</a><a href="../index.html#ordenacao">Ordenação</a><a class="on" href="../index.html#busca">Busca Binária</a></nav>
+</header>
+<script src="../assets/github.js"></script>
+<main>
+<h1>POSIÇÃO DE INSERÇÃO <span class="diff easy">EASY</span></h1>
+<section class="panel problem"><h2>problema</h2>
+  <p>Você recebe um array <code>a</code> em <b>ordem crescente</b>, sem números repetidos, e um valor
+    <code>target</code>. Se o <code>target</code> estiver no array, devolva o índice dele. Se não estiver, devolva o
+    índice em que ele <b>teria que entrar</b> para o array continuar ordenado.</p>
+  <div class="ex"><b>Exemplo 1</b> · <code>a = [1, 3, 5, 6, 8, 10, 12], target = 7</code> → <code>4</code>
+    <p>É o exemplo animado abaixo. O 7 não está no array; ele ficaria entre o 6 (casa 3) e o 8, ocupando a casa 4.</p></div>
+  <div class="ex"><b>Exemplo 2</b> · <code>a = [1, 3, 5, 6], target = 5</code> → <code>2</code>
+    <p>O 5 está no array, na casa 2.</p></div>
+  <div class="ex"><b>Exemplo 3</b> · <code>a = [1, 3, 5, 6], target = 7</code> → <code>4</code>
+    <p>Maior que todos: entra depois do último, na casa n.</p></div>
+  <div class="ex"><b>Exemplo 4</b> · <code>a = [1, 3, 5, 6], target = 0</code> → <code>0</code>
+    <p>Menor que todos: entra na frente.</p></div>
+  <p class="legend">Restrições: 1 ≤ n ≤ 10⁴ · -10⁴ ≤ a[i], target ≤ 10⁴ · a crescente e sem repetidos · tempo esperado O(log n)</p>
+</section>
+<nav class="tabs" id="tabs" role="tablist" aria-label="variações"></nav>
+<div id="variant"></div>
+</main>
+
+<template id="tpl-linear" data-label="Linear">
+<p class="lead">A resposta é sempre a <b>primeira casa com <code>a[i] ≥ target</code></b>: se for igual, achamos o
+  target; se for maior, é ali que ele entra, empurrando o resto para a direita. Então basta varrer da esquerda até o
+  primeiro número que <span class="hl">não é menor</span>. Se ninguém servir, a resposta é <code>n</code>, o fim do
+  array. Funciona, mas ignora que o array está ordenado.</p>
+
+<div class="cx"><span>tempo <b>O(n)</b></span><span>espaço <b>O(1)</b></span><p>No pior caso (target maior que todos) olha as n casas uma vez. Só i e ans de memória extra.</p></div>
+<div class="layout">
+  <section class="panel full"><h2>array a[k] · target = <span id="tgt"></span></h2>
+    <div id="viz"></div>
+    <div class="legend"><span><i style="border-color:var(--cyan);background:#00f0ff44"></i>a[i] lido</span>
+      <span><i style="border-color:var(--line);opacity:.35"></i>já visto, menor que o target</span>
+      <span><i style="border-color:var(--green)"></i>resposta</span></div></section>
+  <section class="panel"><h2>registradores</h2><dl id="vars"></dl><p class="legend" id="stats"></p></section>
+  <section class="panel"><h2>memória · a (só leitura)</h2>
+    <p id="memstat"></p><div id="mem"></div>
+    <p class="legend">Ninguém escreve no array; i e ans são registradores.</p></section>
+  <section class="panel full"><h2>código</h2><pre id="code"></pre></section>
+</div>
+</template>
+<template id="tpl-binaria" data-label="Binária">
+<p class="lead"><b>Lower bound</b>: a mesma "primeira casa com <code>a[k] ≥ target</code>", mas cortando o intervalo
+  pela metade. O intervalo é <b>semiaberto</b>, <code>[lo, hi)</code>, começando com <code>hi = n</code>, porque a
+  resposta pode ser o fim do array. A invariante é: <span class="hl">tudo antes de <code>lo</code> é menor que o
+  target, e tudo de <code>hi</code> em diante é maior ou igual</span>. Se <code>a[mid] &lt; target</code>, mid fica do
+  lado dos menores e <code>lo = mid + 1</code>; senão mid pode ser a resposta e <code>hi = mid</code> (sem o −1). O
+  laço para com <code>lo = hi</code>, e essa casa é a resposta <b>achando ou não</b> o target: não há um "não
+  encontrado" separado.</p>
+
+<div class="cx"><span>tempo <b>O(log n)</b></span><span>espaço <b>O(1)</b></span><p>Cada volta descarta metade de [lo, hi), então são ⌈log₂(n+1)⌉ voltas no máximo. Só lo, hi e mid de memória extra.</p></div>
+<div class="layout">
+  <section class="panel full"><h2>array a[k] · target = <span id="tgt"></span></h2>
+    <div id="viz"></div>
+    <div class="legend"><span><i style="border-color:var(--cyan);background:#00f0ff44"></i>a[mid] lido</span>
+      <span><i style="border-color:var(--line);opacity:.35"></i>descartado (fora de [lo, hi))</span>
+      <span><i style="border-color:var(--line);border-style:dashed"></i>casa n: depois do último</span>
+      <span><i style="border-color:var(--green)"></i>resposta</span></div></section>
+  <section class="panel"><h2>registradores</h2><dl id="vars"></dl><p class="legend" id="stats"></p></section>
+  <section class="panel"><h2>memória · a (só leitura)</h2>
+    <p id="memstat"></p><div id="mem"></div>
+    <p class="legend">Ninguém escreve no array; lo, hi e mid são registradores.</p></section>
+  <section class="panel full"><h2>código</h2><pre id="code"></pre></section>
+</div>
+</template>
+
+<footer class="ctrl">
+  <p id="msg"></p>
+  <div class="row">
+    <button id="first" title="Home">⏮</button><button id="prev" title="←">◀</button>
+    <button id="play">▶ RUN</button>
+    <button id="next" title="→">▶</button><button id="lastbtn" title="End">⏭</button>
+    <input id="scrub" type="range" min="0" value="0" aria-label="step">
+    <span id="stepno"></span>
+    <label>speed <input id="speed" type="range" min="100" max="1000" value="600"></label>
+    <span class="keys">← → espaço</span>
+  </div>
+</footer>
+
+<script src="../assets/trace.js"></script>
+<script src="../assets/insert-position.js"></script>
+<script src="../assets/player.js"></script>
+<script>
+// a[0..n-1] plus a dashed ghost slot n ("after the last"), so hi = n and an answer of n are visible.
+// zone(k) dims discarded cells; ptr(k) is the label under cell k.
+function renderRow(s, zone, ptr) {
+  const n = s.dp.length;
+  const cell = (k, v, c) => `<div class="slot">${k < n ? `a[${k}]` : 'n'}<div class="cell ${c}">${v}</div><span class="gen ptr">${ptr(k)}</span></div>`;
+  $('viz').innerHTML = '<div class="arr">' + s.dp.map((v, k) => cell(k, v, k === s.result ? 'fix' : cellClass(s, k) || zone(k))).join('') +
+    cell(n, '·', 'ghost ' + (n === s.result ? 'fix' : zone(n))) + '</div>';
+  $('tgt').textContent = s.target;
+  $('stats').innerHTML = `comparações: <b>${s.cmps}</b>`;
+}
+
+mountTabs({
+linear: () => mountPlayer(ipLinear(), (s) => {
+  renderCode(IP_CODE.linear.text, s.line);
+  renderVars(s.vars);
+  renderRow(s, (k) => s.i !== undefined && k < s.i ? 'out' : '', (k) => k === s.i ? (s.result === undefined ? 'i' : 'ans') : '');
+  renderMemory(s, (k) => `a[${k}]`, (k) => `base + ${k}·4`);
+}),
+binaria: () => mountPlayer(ipBinary(), (s) => {
+  renderCode(IP_CODE.binaria.text, s.line);
+  renderVars(s.vars);
+  renderRow(s, (k) => k < s.lo || k >= s.hi ? 'out' : '', (k) => [k === s.lo && 'lo', k === s.mid && 'mid', k === s.hi && 'hi'].filter(Boolean).join('·'));
+  renderMemory(s, (k) => `a[${k}]`, (k) => `base + ${k}·4`);
+}),
+});
+</script>
+</body>
+</html>

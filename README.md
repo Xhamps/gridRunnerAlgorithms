@@ -18,6 +18,8 @@ largura, a fila no heap.
 
 O site é feito para quem está estudando algoritmos e quer *ver* o que acontece, em vez de só ler o código.
 
+**Acesse: [gridrunner.xhamps.com.br](https://gridrunner.xhamps.com.br)**
+
 ## Como rodar
 
 O site é HTML, CSS e JavaScript puros, sem build e sem dependências.
@@ -59,7 +61,7 @@ Os testes verificam duas coisas:
 | Pular para um passo | barra de navegação | — |
 | Velocidade da execução | `speed` | — |
 
-As abas de cada desafio (Matriz, Array, Memo, DFS, BFS...) ficam na URL (`knapsack.html#memo`), e o filtro
+As abas de cada desafio (Matriz, Array, Memo, DFS, BFS...) ficam na URL (`dp/knapsack.html#memo`), e o filtro
 de dificuldade do index também (`index.html?nivel=easy`).
 
 ## Desafios
@@ -101,11 +103,72 @@ box com a complexidade de **tempo** e **espaço** em Big O.
 | Keys and Rooms | MEDIUM | grafo dirigido |
 | Is Graph Bipartite | MEDIUM | grafo, 2 cores |
 | Course Schedule | MEDIUM | grafo dirigido: DFS com 3 estados × BFS de Kahn |
+| Pathfinder · Dijkstra | MEDIUM | grade com pesos: Dijkstra com varredura de array × min-heap |
 | Making a Large Island | HARD | grade, rótulos + soma de ilhas vizinhas |
 
 - **DFS:** busca em profundidade recursiva, com a call stack visível.
 - **BFS:** busca em largura com a fila no heap, mostrando os endereços, os ponteiros `head` e `tail` e os itens
   que já saíram.
+- **Array / Min-heap** (Dijkstra): escolhe a célula aberta mais barata varrendo `dist[]` em O(V²), ou tirando a raiz
+  de um min-heap, com as entradas velhas descartadas quando saem.
+
+### Ordenação · bubble sort
+
+| Desafio | Nível | Abas |
+|---|---|---|
+| Move Zeroes | EASY | bolha × dois ponteiros |
+| Semi-Ordered Permutation | EASY | bolha × fórmula |
+| Find if Array Can Be Sorted | MEDIUM | bolha restrita × grupos de popcount |
+| Minimum Adjacent Swaps to Reach the Kth Smallest Number | MEDIUM | próxima permutação × trocas |
+| Minimum Possible Integer After at Most K Adjacent Swaps | HARD | bolha gulosa × Fenwick tree |
+
+- **Bolha:** a simulação direta com trocas entre vizinhos, O(n²), para ver cada troca acontecer na memória.
+- A outra aba mostra o atalho: contar as trocas sem fazê-las, ou fazê-las em O(n) / O(n log n).
+
+### Ordenação · merge sort
+
+| Desafio | Nível | Abas |
+|---|---|---|
+| Merge Sorted Array | EASY | pela frente × de trás |
+| Merge Two Sorted Lists | EASY | iterativo × recursivo |
+| Sort an Array | MEDIUM | recursivo (top-down) × iterativo (bottom-up) |
+| Sort List | MEDIUM | recursivo × iterativo, em lista ligada |
+| Reverse Pairs | HARD | força bruta × contagem durante o merge |
+
+- **Recursivo:** divide ao meio até sobrar um elemento, com a call stack visível, e junta na volta.
+- **Iterativo:** sem recursão, junta blocos de tamanho 1, 2, 4... lado a lado.
+
+### Ordenação · quick sort
+
+| Desafio | Nível | Abas |
+|---|---|---|
+| Sort Array By Parity | EASY | duas pontas (Hoare) × Lomuto |
+| Sort an Array (quick sort) | MEDIUM | partição de Lomuto × partição de Hoare |
+| Sort Colors | MEDIUM | duas partições × três ponteiros (bandeira holandesa) |
+| Kth Largest Element in an Array | MEDIUM | quickselect × min-heap |
+| Wiggle Sort II | HARD | ordena e intercala × quickselect + 3 vias com índice virtual |
+
+- **Partição:** escolhe um pivô e separa menores de maiores in place. Lomuto usa um ponteiro de escrita, Hoare
+  usa dois ponteiros vindo das pontas.
+- **Quickselect:** particiona e desce só para o lado que contém a posição procurada, O(n) em média.
+
+### Busca Binária
+
+| Desafio | Nível | Abas |
+|---|---|---|
+| Binary Search | EASY | intervalo fechado × semiaberto |
+| Search Insert Position | EASY | linear × lower bound |
+| Sqrt(x) | EASY | linear × binária na resposta |
+| Find First and Last Position | MEDIUM | acha e expande × duas fronteiras |
+| Search in Rotated Sorted Array | MEDIUM | acha o pivô × uma busca só |
+| Find Peak Element | MEDIUM | linear × segue a subida |
+| Koko Eating Bananas | MEDIUM | velocidade crescente × binária na resposta |
+| Split Array Largest Sum | HARD | binária na resposta × DP |
+| Median of Two Sorted Arrays | HARD | merge até o meio × busca do corte |
+| Find Minimum in Rotated Sorted Array II | HARD | caso comum × pior caso (`hi--`) |
+
+- **lo / mid / hi:** os três ponteiros aparecem sob o array, e a metade descartada fica apagada.
+- **Binária na resposta:** quando não há array ordenado, busca o menor valor que passa num teste monotônico.
 
 ## Modelo de memória
 
@@ -124,7 +187,8 @@ verdadeiros, intervalos e componentes.
 
 ```
 index.html                 lista de desafios, com filtro por dificuldade
-<desafio>.html             uma página por desafio: enunciado, abas (<template>) e o render de cada aba
+dp/, grafos/, ordenacao/,
+busca/                     uma página por desafio, na pasta da categoria: enunciado, abas (<template>) e o render de cada aba
 assets/
   style.css                tema cyberpunk e componentes visuais
   player.js                player de passos + painéis (código, registradores, memória, stack, fila, grade, grafo)
@@ -182,7 +246,7 @@ A página só desenha: `mountTabs({ aba: () => mountPlayer(gerador(), render) })
 1. Crie `assets/<desafio>.js` com as listagens (`listing`) e um gerador por aba.
    - Gere um passo por linha executada: laços, `if` (mesmo quando falso) e, na recursão, um passo ao chamar e
      outro quando a chamada volta.
-2. Crie `<desafio>.html` a partir de uma página parecida. Cada página tem enunciado, um `<template>` por aba e
+2. Crie `<categoria>/<desafio>.html` (`dp/`, `grafos/`, `ordenacao/`, `busca/`) a partir de uma página parecida. Cada página tem enunciado, um `<template>` por aba e
    um box `.cx` de complexidade.
 3. Crie `test/<desafio>.test.js` comparando com uma solução independente.
 4. Adicione o desafio em `test/lines.test.js`.

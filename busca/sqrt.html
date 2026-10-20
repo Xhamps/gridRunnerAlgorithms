@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Raiz Quadrada Inteira · GRID//RUNNER</title>
+<link rel="stylesheet" href="../assets/style.css">
+<style>
+.arr.nl { gap: 3px; }
+.arr.nl .cell { min-width: 30px; height: 30px; font-size: 13px; }
+.arr.nl .slot { font-size: 10px; }
+.arr .cell.ok { --c: var(--green); color: var(--green); }
+.arr .cell.bad { --c: #ff2a6d99; color: var(--pink); }
+.arr .cell.out { opacity: .3; }
+.arr .cell.ans { --c: var(--yellow); box-shadow: 0 0 10px var(--yellow); }
+.arr .gen.sq { color: var(--dim); min-height: 1.2em; }
+.arr .gen.ptr { color: var(--yellow); min-height: 1.2em; }
+</style>
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="../index.html">GRID<em>//</em>RUNNER</a>
+  <nav><a href="../index.html#dp">Dynamic Programming</a><a href="../index.html#grafos">Grafos</a><a href="../index.html#ordenacao">Ordenação</a><a class="on" href="../index.html#busca">Busca Binária</a></nav>
+</header>
+<script src="../assets/github.js"></script>
+<main>
+<h1>RAIZ QUADRADA INTEIRA <span class="diff easy">EASY</span></h1>
+<section class="panel problem"><h2>problema</h2>
+  <p>Dado um inteiro <code>x ≥ 0</code>, devolva a <b>parte inteira</b> da raiz quadrada dele, ou seja, o maior
+    inteiro <code>m</code> tal que <code>m · m ≤ x</code>. A parte decimal é jogada fora (arredonda para baixo).
+    Não vale usar funções prontas de raiz nem potência fracionária, como <code>Math.sqrt(x)</code> ou
+    <code>x ** 0.5</code>.</p>
+  <div class="ex"><b>Exemplo 1</b> · <code>x = 40</code> → <code>6</code>
+    <p>É o exemplo animado abaixo. 6² = 36 ≤ 40, mas 7² = 49 já passa. A raiz real é 6,32…</p></div>
+  <div class="ex"><b>Exemplo 2</b> · <code>x = 16</code> → <code>4</code>
+    <p>Quadrado perfeito: a resposta é exata.</p></div>
+  <div class="ex"><b>Exemplo 3</b> · <code>x = 0</code> → <code>0</code>
+    <p>0² = 0, então 0 já é a resposta.</p></div>
+  <p class="legend">Restrições: 0 ≤ x ≤ 2³¹ - 1 · sem Math.sqrt, sem ** 0.5</p>
+</section>
+<nav class="tabs" id="tabs" role="tablist" aria-label="variações"></nav>
+<div id="variant"></div>
+</main>
+
+<template id="tpl-linear" data-label="Linear">
+<p class="lead">A ideia mais direta: começa em <code>m = 0</code> e sobe de um em um enquanto o <b>próximo</b> número
+  ainda couber, isto é, enquanto <code>(m + 1)² ≤ x</code>. Quando o próximo estoura, o atual é o maior que serve.
+  Funciona, mas o número de passos cresce com a própria resposta: para <code>x</code> perto de 2³¹ são umas
+  <span class="hl">46 mil voltas</span>. Abaixo, a reta de candidatos 0..x: em verde quem já se sabe que serve.</p>
+
+<div class="cx"><span>tempo <b>O(√x)</b></span><span>espaço <b>O(1)</b></span><p>O laço roda ⌊√x⌋ + 1 vezes, uma por candidato até a resposta e mais uma que falha. Só m ocupa memória; a reta é só desenho.</p></div>
+<div class="layout">
+  <section class="panel full"><h2>candidatos 0..x</h2>
+    <div id="viz"></div>
+    <div class="legend"><span><i style="border-color:var(--cyan);background:#00f0ff44"></i>m+1 testado</span>
+      <span><i style="border-color:var(--yellow);background:var(--yellow)"></i>m avança</span>
+      <span><i style="border-color:var(--green)"></i>k² ≤ x</span>
+      <span><i style="border-color:#ff2a6d99"></i>k² &gt; x</span>
+      <span>embaixo de cada testado: k²</span></div></section>
+  <section class="panel"><h2>registradores</h2><dl id="vars"></dl><p class="legend" id="stats"></p></section>
+  <section class="panel"><h2>código</h2><pre id="code"></pre></section>
+</div>
+</template>
+<template id="tpl-binaria" data-label="Binária">
+<p class="lead">Não há array, mas há uma reta ordenada de candidatos <code>0..x</code>, e a pergunta
+  "<code>k² ≤ x</code>?" responde <b>sim</b> para um prefixo dela e <b>não</b> para o resto. Então dá para fazer
+  <b>busca binária na resposta</b>: testa o meio e joga fora metade. Invariante: <span class="hl">todo k &lt; lo
+  serve, todo k &gt; hi não serve</span>, e <code>ans</code> guarda o maior que serviu até agora. Quando
+  <code>lo</code> passa de <code>hi</code>, não sobra ninguém indeciso e <code>ans</code> é a resposta.
+  Cuidado do mundo real: com <code>x</code> perto de 2³¹, <code>mid * mid</code> estoura um int de 32 bits (em
+  JS perde precisão só bem depois de 2⁵³); em C, Java ou Go a comparação segura é <code>mid &lt;= x / mid</code>
+  (com <code>mid &gt; 0</code>), que nunca multiplica.</p>
+
+<div class="cx"><span>tempo <b>O(log x)</b></span><span>espaço <b>O(1)</b></span><p>Cada volta corta [lo, hi] pela metade, então são ⌊log₂ x⌋ + 1 voltas no máximo (uns 31 testes para x = 2³¹). Só lo, hi, mid e ans ocupam memória.</p></div>
+<div class="layout">
+  <section class="panel full"><h2>candidatos 0..x</h2>
+    <div id="viz"></div>
+    <div class="legend"><span><i style="border-color:var(--cyan);background:#00f0ff44"></i>mid testado</span>
+      <span><i style="border-color:var(--yellow)"></i>ans</span>
+      <span><i style="border-color:var(--green)"></i>k² ≤ x</span>
+      <span><i style="border-color:#ff2a6d99"></i>k² &gt; x</span>
+      <span>apagado: fora de [lo, hi]</span></div></section>
+  <section class="panel"><h2>registradores</h2><dl id="vars"></dl><p class="legend" id="stats"></p></section>
+  <section class="panel"><h2>código</h2><pre id="code"></pre></section>
+</div>
+</template>
+
+<footer class="ctrl">
+  <p id="msg"></p>
+  <div class="row">
+    <button id="first" title="Home">⏮</button><button id="prev" title="←">◀</button>
+    <button id="play">▶ RUN</button>
+    <button id="next" title="→">▶</button><button id="lastbtn" title="End">⏭</button>
+    <input id="scrub" type="range" min="0" value="0" aria-label="step">
+    <span id="stepno"></span>
+    <label>speed <input id="speed" type="range" min="100" max="1000" value="600"></label>
+    <span class="keys">← → espaço</span>
+  </div>
+</footer>
+
+<script src="../assets/trace.js"></script>
+<script src="../assets/sqrt.js"></script>
+<script src="../assets/player.js"></script>
+<script>
+// Number line of candidates k = 0..x: k² under every probed cell, green/pink by the verdict, dim(k) greys out.
+function renderLine(s, dim, ptr) {
+  const x = s.dp.length - 1;
+  const zone = (k) => s.sq[k] === undefined ? '' : s.sq[k] <= x ? 'ok' : 'bad';
+  const cls = (k) => [cellClass(s, k) || zone(k), k === s.ans && 'ans', dim(k) && 'out'].filter(Boolean).join(' ');
+  $('viz').innerHTML = '<div class="arr nl">' + s.dp.map((v, k) =>
+    `<div class="slot">${k}<div class="cell ${cls(k)}">${v}</div><span class="gen sq">${s.sq[k] ?? ''}</span>` +
+    `<span class="gen ptr">${ptr(k)}</span></div>`).join('') + '</div>';
+}
+
+mountTabs({
+linear: () => mountPlayer(sqLinear(), (s) => {
+  renderCode(SQ_CODE.linear.text, s.line);
+  renderVars(s.vars);
+  renderLine(s, () => false, (k) => [k === s.m && 'm', !s.done && k === s.m + 1 && 'm+1'].filter(Boolean).join('·'));
+  $('stats').innerHTML = `testes: <b>${s.probes}</b>`;
+}),
+binaria: () => mountPlayer(sqBinary(), (s) => {
+  renderCode(SQ_CODE.binaria.text, s.line);
+  renderVars(s.vars);
+  renderLine(s, (k) => k !== s.ans && (k < s.lo || k > s.hi),
+    (k) => s.done ? (k === s.ans ? 'ans' : '') : [k === s.lo && 'lo', k === s.mid && 'mid', k === s.hi && 'hi'].filter(Boolean).join('·'));
+  $('stats').innerHTML = `testes: <b>${s.probes}</b> · candidatos em [lo, hi]: <b>${Math.max(0, s.hi - s.lo + 1)}</b>`;
+}),
+});
+</script>
+</body>
+</html>

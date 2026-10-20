@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mover Zeros · GRID//RUNNER</title>
+<link rel="stylesheet" href="../assets/style.css">
+<style>
+.arr .cell.zero { color: var(--dim); }
+.arr .gen.ptr { color: var(--yellow); min-height: 1.2em; }
+</style>
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="../index.html">GRID<em>//</em>RUNNER</a>
+  <nav><a href="../index.html#dp">Dynamic Programming</a><a href="../index.html#grafos">Grafos</a><a class="on" href="../index.html#ordenacao">Ordenação</a><a href="../index.html#busca">Busca Binária</a></nav>
+</header>
+<script src="../assets/github.js"></script>
+<main>
+<h1>MOVER ZEROS <span class="diff easy">EASY</span></h1>
+<section class="panel problem"><h2>problema</h2>
+  <p>Dado um array de inteiros <code>a</code>, leve todos os <b>zeros</b> para o final. Os outros números precisam
+    continuar na <b>mesma ordem relativa</b> em que apareciam. A mudança é feita no próprio array, sem criar uma cópia.</p>
+  <div class="ex"><b>Exemplo 1</b> · <code>a = [0, 1, 0, 3, 12]</code> → <code>[1, 3, 12, 0, 0]</code>
+    <p>É o exemplo animado abaixo. O 1 continua antes do 3, que continua antes do 12.</p></div>
+  <div class="ex"><b>Exemplo 2</b> · <code>a = [0]</code> → <code>[0]</code>
+    <p>Só um zero: já está no fim.</p></div>
+  <div class="ex"><b>Exemplo 3</b> · <code>a = [4, 0, -2]</code> → <code>[4, -2, 0]</code>
+    <p>Negativos contam como números comuns; só o 0 se move.</p></div>
+  <p class="legend">Restrições: 1 ≤ n ≤ 10⁴ · -2³¹ ≤ a[i] ≤ 2³¹ - 1 · memória extra O(1)</p>
+</section>
+<nav class="tabs" id="tabs" role="tablist" aria-label="variações"></nav>
+<div id="variant"></div>
+</main>
+
+<template id="tpl-bolha" data-label="Bolha">
+<p class="lead"><b>Bubble sort</b> com uma chave só: "é zero?". Cada passada percorre o array trocando um zero com o
+  vizinho da direita sempre que ele for um número. Como só vizinhos trocam, e só nesse caso, os números
+  <span class="hl">nunca passam uns pelos outros</span>: a ordem deles é preservada (a ordenação é estável). Depois da
+  passada <code>p</code>, as <code>p + 1</code> últimas casas já têm o valor final, e uma passada sem trocas encerra tudo.</p>
+
+<div class="cx"><span>tempo <b>O(n²)</b></span><span>espaço <b>O(1)</b></span><p>Até n - 1 passadas de até n - 1 comparações cada. Só o array, p, j e trocou ocupam memória.</p></div>
+<div class="layout">
+  <section class="panel"><h2>array a[k]</h2>
+    <div class="arr" id="viz"></div>
+    <div class="legend"><span><i style="border-color:var(--cyan);background:#00f0ff44"></i>a[j]</span>
+      <span><i style="border-color:var(--pink);background:#ff2a6d44"></i>a[j+1]</span>
+      <span><i style="border-color:var(--yellow);background:var(--yellow)"></i>troca</span>
+      <span><i style="border-color:var(--green)"></i>casas já no lugar final</span></div></section>
+  <section class="panel"><h2>registradores</h2><dl id="vars"></dl><p class="legend" id="stats"></p></section>
+  <section class="panel full"><h2>código</h2><pre id="code"></pre></section>
+  <section class="panel full"><h2>memória · O(1) extra</h2>
+    <p id="memstat"></p><div id="mem"></div>
+    <p class="legend">Tudo acontece dentro das n células do próprio array: cada troca reescreve duas vizinhas.</p>
+  </section>
+</div>
+</template>
+<template id="tpl-ponteiros" data-label="Dois ponteiros">
+<p class="lead">Na <a href="#bolha">bolha</a> um zero anda uma casa por troca. Aqui cada número anda <b>direto</b> para o
+  lugar certo. O ponteiro de leitura <code>r</code> varre o array uma vez; o de escrita <code>w</code> marca a próxima
+  casa livre para um não-zero. Tudo em <code>a[0..w-1]</code> já está pronto, e entre <code>w</code> e
+  <code>r</code> só há zeros. Por isso, trocar <code>a[w]</code> com <code>a[r]</code> leva o número para a frente e o
+  zero para trás, <span class="hl">sem nunca inverter dois números</span>.</p>
+
+<div class="cx"><span>tempo <b>O(n)</b></span><span>espaço <b>O(1)</b></span><p>Uma única varredura com r; cada casa é lida uma vez e trocada no máximo uma vez. Só r e w de memória extra.</p></div>
+<div class="layout">
+  <section class="panel"><h2>array a[k]</h2>
+    <div class="arr" id="viz"></div>
+    <div class="legend"><span><i style="border-color:var(--cyan);background:#00f0ff44"></i>a[r] lido</span>
+      <span><i style="border-color:var(--yellow);background:var(--yellow)"></i>troca</span>
+      <span><i style="border-color:var(--green)"></i>a[0..w-1] pronto</span></div></section>
+  <section class="panel"><h2>registradores</h2><dl id="vars"></dl><p class="legend" id="stats"></p></section>
+  <section class="panel full"><h2>código</h2><pre id="code"></pre></section>
+  <section class="panel full"><h2>memória · O(1) extra</h2>
+    <p id="memstat"></p><div id="mem"></div>
+    <p class="legend">As mesmas n células; w e r são só dois registradores.</p>
+  </section>
+</div>
+</template>
+
+<footer class="ctrl">
+  <p id="msg"></p>
+  <div class="row">
+    <button id="first" title="Home">⏮</button><button id="prev" title="←">◀</button>
+    <button id="play">▶ RUN</button>
+    <button id="next" title="→">▶</button><button id="lastbtn" title="End">⏭</button>
+    <input id="scrub" type="range" min="0" value="0" aria-label="step">
+    <span id="stepno"></span>
+    <label>speed <input id="speed" type="range" min="100" max="1000" value="600"></label>
+    <span class="keys">← → espaço</span>
+  </div>
+</footer>
+
+<script src="../assets/trace.js"></script>
+<script src="../assets/move-zeroes.js"></script>
+<script src="../assets/player.js"></script>
+<script>
+// Array strip: done(k) marks finished cells in green, ptr(k) is the pointer label under cell k.
+const renderArr = (s, done, ptr) => $('viz').innerHTML = s.dp.map((v, k) => {
+  const c = cellClass(s, k) || (done(k) ? 'rng' : v === 0 ? 'zero' : '');
+  return `<div class="slot">a[${k}]<div class="cell ${c}">${v}</div><span class="gen ptr">${ptr(k)}</span></div>`;
+}).join('');
+
+mountTabs({
+bolha: () => mountPlayer(mzBubble(), (s) => {
+  const n = s.dp.length;
+  renderCode(MZ_CODE.bolha.text, s.line);
+  renderVars(s.vars);
+  renderArr(s, (k) => s.result || k >= n - s.p && s.p > 0, (k) => s.j === undefined ? '' : k === s.j ? 'j' : k === s.j + 1 ? 'j+1' : '');
+  renderMemory(s, (k) => `a[${k}]`, (k) => `base + ${k}·4`);
+  $('stats').innerHTML = `comparações: <b>${s.cmps}</b> · trocas: <b>${s.swaps}</b>`;
+}),
+ponteiros: () => mountPlayer(mzPointers(), (s) => {
+  renderCode(MZ_CODE.ponteiros.text, s.line);
+  renderVars(s.vars);
+  renderArr(s, (k) => k < s.w, (k) => [k === s.w && 'w', k === s.r && 'r'].filter(Boolean).join(' · '));
+  renderMemory(s, (k) => `a[${k}]`, (k) => `base + ${k}·4`);
+  $('stats').innerHTML = `trocas: <b>${s.swaps}</b>`;
+}),
+});
+</script>
+</body>
+</html>

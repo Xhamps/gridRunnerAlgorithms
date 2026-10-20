@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pacific Atlantic Water Flow · GRID//RUNNER</title>
+<link rel="stylesheet" href="../assets/style.css">
+<style>
+/* oceans around the grid: Pacific top/left (cyan), Atlantic bottom/right (pink) */
+#viz { width: max-content; padding: 6px; border: 4px solid; border-color: var(--cyan) var(--pink) var(--pink) var(--cyan); }
+.gc.pac { background: #00f0ff26; border-color: #00f0ff99; color: var(--cyan); }
+.gc.atl { background: #ff2a6d2e; border-color: #ff2a6d99; color: var(--pink); }
+.gc.both { background: #05ffa133; border-color: var(--green); color: var(--green); font-weight: bold; }
+</style>
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="../index.html">GRID<em>//</em>RUNNER</a>
+  <nav><a href="../index.html#dp">Dynamic Programming</a><a class="on" href="../index.html#grafos">Grafos</a><a href="../index.html#ordenacao">Ordenação</a><a href="../index.html#busca">Busca Binária</a></nav>
+</header>
+<script src="../assets/github.js"></script>
+<main>
+<h1>PACIFIC ATLANTIC WATER FLOW <span class="diff medium">MEDIUM</span></h1>
+<section class="panel problem"><h2>problema</h2>
+  <p>Uma ilha retangular é descrita por uma grade <code>R × C</code> de alturas. O oceano <b>Pacífico</b> encosta nas bordas
+    de cima e da esquerda; o <b>Atlântico</b>, nas bordas de baixo e da direita. Quando chove, a água de uma célula escorre
+    para um vizinho (cima, baixo, esquerda, direita) cuja altura seja <b>menor ou igual</b>, e de uma célula da borda cai
+    direto no oceano daquela borda.</p>
+  <p>Retorne todas as células <code>[r, c]</code> de onde a água consegue chegar aos <b>dois</b> oceanos.</p>
+  <div class="ex"><b>Exemplo 1</b> · <code>[[1,2,2],[3,5,1],[2,4,3]]</code> → <code>[[0,1],[0,2],[1,0],[1,1],[2,0],[2,1]]</code>
+    <p>O pico 5 no centro escorre para os dois lados. Já o canto (0,0), com altura 1, só cai no Pacífico: todos os vizinhos
+      dele são mais altos.</p></div>
+  <div class="ex"><b>Exemplo 2</b> · <code>[[7]]</code> → <code>[[0,0]]</code>
+    <p>Uma célula só encosta nas quatro bordas ao mesmo tempo.</p></div>
+  <p class="legend">Restrições: 1 ≤ R, C ≤ 200 · 0 ≤ altura ≤ 10⁵</p>
+</section>
+<nav class="tabs" id="tabs" role="tablist" aria-label="variações"></nav>
+<div id="variant"></div>
+</main>
+
+<template id="tpl-dfs" data-label="DFS">
+<p class="lead">O jeito ingênuo é soltar uma gota em <i>cada</i> célula e ver aonde ela chega: uma busca por célula,
+  O((R·C)²). O truque é fazer o caminho <span class="hl">ao contrário</span>: partir do <b>oceano</b> e subir. Começando de
+  cada célula da borda do Pacífico, a <b>DFS</b> anda para vizinhos <b>mais altos ou iguais</b> (a água deles desceria até
+  aqui) e marca <code>pac</code>. Depois faz o mesmo a partir do Atlântico, marcando <code>atl</code>. A resposta são as
+  células com as duas marcas. Só duas buscas no total, e cada célula é marcada no máximo uma vez por oceano.</p>
+<div class="cx"><span>tempo <b>O(R·C)</b></span><span>espaço <b>O(R·C)</b></span><p>Duas buscas (uma por oceano), cada célula visitada no máximo uma vez em cada. Duas grades de marcação + call stack.</p></div>
+<div class="layout">
+  <section class="panel"><h2>ilha · alturas</h2><div class="ggrid" id="viz"></div>
+    <div class="legend"><span><i style="border-color:var(--cyan);background:#00f0ff26"></i>chega ao Pacífico (borda de cima/esquerda)</span>
+      <span><i style="border-color:var(--pink);background:#ff2a6d2e"></i>chega ao Atlântico (borda de baixo/direita)</span>
+      <span><i style="border-color:var(--green);background:#05ffa133"></i>chega aos dois</span>
+      <span><i style="border-color:var(--yellow);background:var(--yellow)"></i>célula atual</span>
+      <span><i style="border-color:var(--cyan)"></i>vizinho</span></div></section>
+  <section class="panel"><h2>registradores</h2><dl id="vars"></dl></section>
+  <section class="panel"><h2>código</h2><pre id="code"></pre></section>
+  <section class="panel"><h2>call stack</h2><p id="stackstat"></p><div id="stack"></div></section>
+  <section class="panel full"><h2>memória · pac[] + atl[] no heap</h2>
+    <p id="memstat"></p><div id="mem"></div>
+    <p class="legend">Dois blocos de R·C booleanos, um por oceano (a borda rosa separa as linhas). Cada célula é marcada no
+      máximo uma vez por oceano: O(R·C) no total, contra O((R·C)²) se cada célula fizesse a própria busca.</p></section>
+</div>
+</template>
+<template id="tpl-bfs" data-label="BFS">
+<p class="lead">Mesma ideia da <a href="#dfs">DFS</a>: buscar <span class="hl">a partir dos oceanos</span>, subindo. Na
+  <b>BFS</b>, a fila de cada oceano já começa com <b>todas</b> as células da borda (multi-source), e a marcação se espalha
+  em ondas a partir da costa. A regra para entrar na fila é a mesma: o vizinho precisa ser mais alto ou igual, porque a água
+  dele desceria até a célula atual. Sem recursão: a call stack não cresce.</p>
+<div class="cx"><span>tempo <b>O(R·C)</b></span><span>espaço <b>O(R·C)</b></span><p>Duas buscas com fila, cada célula entra no máximo uma vez em cada fila.</p></div>
+<div class="layout">
+  <section class="panel"><h2>ilha · alturas</h2><div class="ggrid" id="viz"></div>
+    <div class="legend"><span><i style="border-color:var(--cyan);background:#00f0ff26"></i>chega ao Pacífico (borda de cima/esquerda)</span>
+      <span><i style="border-color:var(--pink);background:#ff2a6d2e"></i>chega ao Atlântico (borda de baixo/direita)</span>
+      <span><i style="border-color:var(--green);background:#05ffa133"></i>chega aos dois</span>
+      <span><i style="border-color:var(--yellow);background:var(--yellow)"></i>célula atual</span>
+      <span><i style="border-color:var(--cyan)"></i>vizinho</span></div></section>
+  <section class="panel"><h2>registradores</h2><dl id="vars"></dl></section>
+  <section class="panel"><h2>código</h2><pre id="code"></pre></section>
+  <section class="panel"><h2>fila · heap</h2><p id="queuestat"></p><div class="arr" id="queue"></div>
+    <p class="legend">head = próximo a sair · tail = último a entrar · apagados já saíram da fila. Uma fila nova para cada oceano.</p></section>
+  <section class="panel full"><h2>memória · pac[] + atl[] no heap</h2>
+    <p id="memstat"></p><div id="mem"></div>
+    <p class="legend">Dois blocos de R·C booleanos, um por oceano (a borda rosa separa as linhas). Cada célula é marcada no
+      máximo uma vez por oceano: O(R·C) no total, contra O((R·C)²) se cada célula fizesse a própria busca.</p></section>
+</div>
+</template>
+
+<footer class="ctrl">
+  <p id="msg"></p>
+  <div class="row">
+    <button id="first" title="Home">⏮</button><button id="prev" title="←">◀</button>
+    <button id="play">▶ RUN</button>
+    <button id="next" title="→">▶</button><button id="lastbtn" title="End">⏭</button>
+    <input id="scrub" type="range" min="0" value="0" aria-label="step">
+    <span id="stepno"></span>
+    <label>speed <input id="speed" type="range" min="100" max="1000" value="600"></label>
+    <span class="keys">← → espaço</span>
+  </div>
+</footer>
+
+<script src="../assets/trace.js"></script>
+<script src="../assets/pacific-atlantic.js"></script>
+<script src="../assets/player.js"></script>
+<script>
+const R = HEIGHTS.length, C = HEIGHTS[0].length, N = R * C;
+const same = (p, r, c) => p && p[0] === r && p[1] === c;
+const label = (k) => `${k < N ? 'pac' : 'atl'}[${Math.floor(k % N / C)}][${k % C}]`;
+const formula = (k) => `base + (${k < N ? 0 : N} + ${Math.floor(k % N / C)}·${C} + ${k % C})·4`;
+const draw = (s) => renderGrid('viz', C, HEIGHTS.flat().map((h, k) => {
+  const r = Math.floor(k / C), c = k % C, p = s.dp[k], a = s.dp[N + k];
+  return [h, same(s.cur, r, c) ? 'cur' : same(s.nb, r, c) ? 'nb' : p && a ? 'both' : p ? 'pac' : a ? 'atl' : ''];
+}));
+
+mountTabs({
+dfs: () => mountPlayer(pacificDFS(), (s) => {
+  renderCode(PA_CODE.dfs.text, s.line);
+  renderVars(s.vars);
+  renderStack(s);
+  renderMemory(s, label, formula, C);
+  draw(s);
+}),
+bfs: () => mountPlayer(pacificBFS(), (s) => {
+  renderCode(PA_CODE.bfs.text, s.line);
+  renderVars(s.vars);
+  renderQueue(s);
+  renderMemory(s, label, formula, C);
+  draw(s);
+}),
+});
+</script>
+</body>
+</html>
