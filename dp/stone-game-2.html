@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Stone Game II · GRID//RUNNER</title>
+<link rel="stylesheet" href="../assets/style.css">
+<style>
+  .sufrow { margin-top: 8px; }
+  .sufrow .cell { font-size: 13px; }
+</style>
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="../index.html">GRID<em>//</em>RUNNER</a>
+  <nav><a class="on" href="../index.html#dp">Dynamic Programming</a><a href="../index.html#grafos">Grafos</a><a href="../index.html#ordenacao">Ordenação</a><a href="../index.html#busca">Busca Binária</a></nav>
+</header>
+<script src="../assets/github.js"></script>
+<script src="../assets/analytics.js"></script>
+<main>
+<h1>STONE GAME II <span class="diff medium">MEDIUM</span></h1>
+<section class="panel problem"><h2>problema</h2>
+  <p>Continuação do <a href="stone-game.html">Stone Game</a>, com outra regra de jogada. Há pilhas de pedras em fila, e a
+    pilha <code>i</code> tem <code>piles[i]</code> pedras. Alice começa, os dois se alternam e existe um número
+    <code>M</code>, que começa em <code>1</code>.</p>
+  <p>Na sua vez, o jogador escolhe um <code>X</code> com <code>1 ≤ X ≤ 2M</code> e leva <b>todas</b> as pedras das
+    <code>X</code> primeiras pilhas que restam. Depois disso, <code>M = max(M, X)</code>: quem pega muito de uma vez libera
+    jogadas maiores para os dois. O jogo acaba quando não sobra pilha.</p>
+  <p>Os dois jogam de forma <b>ótima</b>. Retorne o <b>máximo de pedras</b> que Alice consegue garantir.</p>
+  <div class="ex"><b>Exemplo 1</b> · <code>piles = [2, 7, 9, 4, 4]</code> → <code>10</code>
+    <p>Se Alice pega só a pilha 2, Bob pega duas (7 e 9) e deixa M = 2, mas Alice ainda leva as duas últimas: 2 + 4 + 4 = 10.
+      Se Bob pegasse só o 7, Alice levaria 9 e 4, terminando com 15. Já se Alice abrisse com duas pilhas (2 e 7), M viraria 2
+      e Bob levaria as três restantes de uma vez, deixando Alice com 9.</p></div>
+  <div class="ex"><b>Exemplo 2</b> · <code>piles = [1, 2, 3, 4, 5, 100]</code> → <code>104</code>
+    <p>A pilha de 100 decide o jogo: Alice joga para que seja ela quem alcança o fim da fila, e garante 104 das 115 pedras.</p></div>
+  <div class="ex"><b>Exemplo 3 (animado)</b> · <code>piles = [3, 1, 4, 1, 5, 9, 2]</code> → <code>18</code>
+    <p>São 25 pedras; jogando bem, Alice fica com 18 e Bob com 7.</p></div>
+  <p class="legend">Restrições: 1 ≤ piles.length ≤ 100 · 1 ≤ piles[i] ≤ 10⁴</p>
+</section>
+<nav class="tabs" id="tabs" role="tablist" aria-label="variações"></nav>
+<div id="variant"></div>
+</main>
+
+<template id="tpl-matriz" data-label="Matriz">
+<p class="lead"><b>Tabulation</b>: <code>dp[i][M]</code> = o <span class="hl">máximo de pedras</span> que o jogador da vez
+  consegue quando sobram as pilhas <code>i..n-1</code> e ele pode pegar de 1 a <code>2M</code>. Toda pedra do sufixo vai
+  para alguém, então o que eu levo é <code>suf[i]</code> menos o que o rival leva depois: escolho o <code>X</code> que
+  deixa o rival com o mínimo, <code>dp[i][M] = suf[i] − min dp[i+X][max(M, X)]</code>. Se <code>i + 2M ≥ n</code>, o
+  jogador pega tudo de uma vez.</p>
+
+<div class="cx"><span>tempo <b>O(n³)</b></span><span>espaço <b>O(n²)</b></span><p>n linhas × n valores de M = n² estados, cada um testa até 2M ≤ n jogadas. A tabela tem n × (n+1) células, mais o array suf.</p></div>
+<div class="layout">
+  <section class="panel"><h2>piles · suf</h2><div class="arr" id="nums"></div><div class="arr sufrow" id="suf"></div>
+    <div class="legend"><span><i style="border-color:var(--cyan)"></i>pilhas levadas (X)</span>
+      <span><i style="border-color:var(--green)"></i>sufixo i..n-1</span></div></section>
+  <section class="panel"><h2>registradores</h2><dl id="vars"></dl></section>
+  <section class="panel full"><h2>tabela dp[i][M]</h2>
+    <div class="scroll"><table class="grid" id="viz"></table></div>
+    <div class="legend"><span><i style="border-color:var(--cyan);background:#00f0ff44"></i>leitura · dp[i+X][max(M, X)]</span>
+      <span><i style="border-color:var(--yellow);background:var(--yellow)"></i>escrita</span>
+      <span><i style="border-color:var(--line)"></i>░░ ainda não calculado</span></div>
+  </section>
+  <section class="panel full"><h2>código</h2><pre id="code"></pre></section>
+  <section class="panel full"><h2>memória · bloco contíguo row-major</h2>
+    <p id="memstat"></p><div id="mem"></div>
+    <p class="legend">Cada linha tem n + 1 colunas para indexar M direto; a coluna M = 0 fica como lixo (░░). As linhas são
+      preenchidas de baixo para cima, porque dp[i] só lê linhas maiores.</p>
+  </section>
+</div>
+</template>
+<template id="tpl-memo" data-label="Memo">
+<p class="lead"><b>Memoization</b> (top-down): <code>f(i, M)</code> = o <span class="hl">máximo de pedras</span> que o
+  jogador da vez consegue a partir da pilha <code>i</code>, podendo pegar de 1 a <code>2M</code>. Parte de
+  <code>f(0, 1)</code> e só visita os estados alcançáveis num jogo de verdade. Caminhos diferentes chegam ao mesmo estado
+  (ex.: <code>f(3, 2)</code> é pedido por <code>f(1, 1)</code> e por <code>f(2, 2)</code>), por isso o memo é consultado
+  <i>antes</i> do caso base, e o caso base também é gravado.</p>
+
+<div class="cx"><span>tempo <b>O(n³)</b></span><span>espaço <b>O(n²)</b></span><p>No pior caso os n² estados são calculados uma vez, cada um com até n chamadas. Memo n × (n+1) no heap e call stack de até n frames.</p></div>
+<div class="layout">
+  <section class="panel"><h2>piles · suf</h2><div class="arr" id="nums"></div><div class="arr sufrow" id="suf"></div>
+    <div class="legend"><span><i style="border-color:var(--cyan)"></i>pilhas levadas (X)</span>
+      <span><i style="border-color:var(--green)"></i>sufixo i..n-1</span></div></section>
+  <section class="panel"><h2>registradores</h2><dl id="vars"></dl></section>
+  <section class="panel full"><h2>memo[i][M]</h2>
+    <div class="scroll"><table class="grid" id="viz"></table></div>
+    <div class="legend"><span><i style="border-color:var(--cyan);background:#00f0ff44"></i>leitura · cache hit</span>
+      <span><i style="border-color:var(--yellow);background:var(--yellow)"></i>escrita</span>
+      <span><i style="border-color:var(--line)"></i>░░ nunca pedido</span></div>
+  </section>
+  <section class="panel"><h2>código</h2><pre id="code"></pre></section>
+  <section class="panel"><h2>call stack</h2><p id="stackstat"></p><div id="stack"></div></section>
+  <section class="panel full"><h2>memória · heap (memo)</h2>
+    <p id="memstat"></p><div id="mem"></div>
+    <p class="legend">Ao contrário da matriz, a maioria das células nunca é pedida: só os estados que aparecem em algum jogo.
+      A stack chega a n frames (O(n)), e o memo usa O(n²) no heap.</p>
+  </section>
+</div>
+</template>
+
+<footer class="ctrl">
+  <p id="msg"></p>
+  <div class="row">
+    <button id="first" title="Home">⏮</button><button id="prev" title="←">◀</button>
+    <button id="play">▶ RUN</button>
+    <button id="next" title="→">▶</button><button id="lastbtn" title="End">⏭</button>
+    <input id="scrub" type="range" min="0" value="0" aria-label="step">
+    <span id="stepno"></span>
+    <label>speed <input id="speed" type="range" min="100" max="1000" value="600"></label>
+    <span class="keys">← → espaço</span>
+  </div>
+</footer>
+
+<script src="../assets/trace.js"></script>
+<script src="../assets/stone-game-2.js"></script>
+<script src="../assets/player.js"></script>
+<script>
+const N = SG2_PILES.length, W = N + 1;
+
+// Shared view: piles + suffix sums, and the dp/memo table with columns M = 1..n (M = 0 only shows up in memory).
+function render(s, CODE, name) {
+  renderCode(CODE, s.line);
+  renderVars(s.vars);
+  renderMemory(s, (k) => `${name}[${Math.floor(k / W)}][${k % W}]`, (k) => `base + (${Math.floor(k / W)}·${W} + ${k % W})·4`, W);
+  const on = s.i !== undefined;
+  $('nums').innerHTML = SG2_PILES.map((v, k) =>
+    `<div class="slot">[${k}]<div class="cell ${on && s.X && k >= s.i && k < s.i + s.X ? 'r0' : on && k >= s.i ? 'rng' : ''}">${v}</div></div>`).join('');
+  $('suf').innerHTML = SG2_PILES.map((_, k) =>
+    `<div class="slot">suf[${k}]<div class="cell ${s.suf ? (k === s.i ? 'rng' : '') : 'junk'}">${s.suf ? s.suf[k] : '░░'}</div></div>`).join('');
+  let h = '<tr><th></th>' + SG2_PILES.map((_, m) => `<th>M=${m + 1}</th>`).join('') + '</tr>';
+  for (let i = 0; i < N; i++) {
+    h += `<tr class="${i === s.i ? 'on' : ''}"><th class="rh">i=${i}</th>`;
+    for (let M = 1; M <= N; M++) h += `<td><div class="cell ${cellClass(s, i * W + M)}">${cellVal(s.dp[i * W + M])}</div></td>`;
+    h += '</tr>';
+  }
+  $('viz').innerHTML = h;
+}
+
+mountTabs({
+  matriz: () => mountPlayer(sg2Matrix(SG2_PILES), (s) => render(s, SG2_CODE.matriz.text, 'dp')),
+  memo: () => mountPlayer(sg2Memo(SG2_PILES), (s) => { render(s, SG2_CODE.memo.text, 'memo'); renderStack(s); }),
+});
+</script>
+</body>
+</html>

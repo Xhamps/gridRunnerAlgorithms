@@ -12,6 +12,7 @@
   <nav><a href="#dp">Dynamic Programming</a><a href="#grafos">Grafos</a><a href="#ordenacao">Ordenação</a><a href="#busca">Busca Binária</a></nav>
 </header>
 <script src="assets/github.js"></script>
+<script src="assets/analytics.js"></script>
 <main>
 <pre class="logo" aria-label="GRID RUNNER">
  ██████╗ ██████╗ ██╗██████╗ 
@@ -63,11 +64,6 @@
     <h3>Predict the Winner</h3>
     <p>Jogo de duas pontas: dp[i][j] = melhor diferença de pontos no intervalo.</p>
   </a>
-  <a class="card" data-diff="medium" href="dp/stone-game.html">
-    <span class="tag">● ONLINE · MATRIZ · ARRAY · MEMO</span><span class="diff medium">MEDIUM</span>
-    <h3>Stone Game</h3>
-    <p>Pilhas de pedras nas pontas: mesma DP de intervalo, e um atalho que sempre dá true.</p>
-  </a>
   <a class="card" data-diff="medium" href="dp/stock-cooldown.html">
     <span class="tag">● ONLINE · MATRIZ · ARRAY · MEMO</span><span class="diff medium">MEDIUM</span>
     <h3>Stock com Cooldown</h3>
@@ -92,6 +88,56 @@
     <span class="tag">● ONLINE · MATRIZ · ARRAY · MEMO</span><span class="diff hard">HARD</span>
     <h3>Regex Matching</h3>
     <p>Casamento de padrões com '.' e '*' usando uma tabela booleana.</p>
+  </a>
+  <p class="empty" hidden>Nenhum desafio desse nível nesta seção.</p>
+</div>
+
+<h2 class="sec">// DYNAMIC PROGRAMMING · STONE GAME</h2>
+<div class="cards">
+  <a class="card" data-diff="medium" href="dp/stone-game.html">
+    <span class="tag">● ONLINE · MATRIZ · ARRAY · MEMO</span><span class="diff medium">MEDIUM</span>
+    <h3>Stone Game</h3>
+    <p>Pilhas de pedras nas pontas: mesma DP de intervalo, e um atalho que sempre dá true.</p>
+  </a>
+  <a class="card" data-diff="medium" href="dp/stone-game-2.html">
+    <span class="tag">● ONLINE · MATRIZ · MEMO</span><span class="diff medium">MEDIUM</span>
+    <h3>Stone Game II</h3>
+    <p>Estado com dois eixos (posição e limite M) e somas de sufixo: o que eu levo é o total que sobra menos o melhor do rival.</p>
+  </a>
+  <a class="card" data-diff="medium" href="dp/stone-game-6.html">
+    <span class="tag">● ONLINE · FORÇA BRUTA · GULOSO</span><span class="diff medium">MEDIUM</span>
+    <h3>Stone Game VI</h3>
+    <p>Cada pedra vale uma coisa para cada jogador: minimax sobre máscaras mostra a explosão 2ⁿ, e o guloso por a+b resolve em O(n log n).</p>
+  </a>
+  <a class="card" data-diff="medium" href="dp/stone-game-7.html">
+    <span class="tag">● ONLINE · MATRIZ · ARRAY · MEMO</span><span class="diff medium">MEDIUM</span>
+    <h3>Stone Game VII</h3>
+    <p>Quem tira uma pedra pontua o resto da fila: DP de intervalo com somas de prefixo.</p>
+  </a>
+  <a class="card" data-diff="medium" href="dp/stone-game-9.html">
+    <span class="tag">● ONLINE · MEMO · CONTAGEM</span><span class="diff medium">MEDIUM</span>
+    <h3>Stone Game IX</h3>
+    <p>Só o resto por 3 importa: minimax sobre (c0, c1, c2, soma) e uma regra de contagem em O(n).</p>
+  </a>
+  <a class="card" data-diff="hard" href="dp/stone-game-3.html">
+    <span class="tag">● ONLINE · ARRAY · VARIÁVEIS · MEMO</span><span class="diff hard">HARD</span>
+    <h3>Stone Game III</h3>
+    <p>Pegar 1, 2 ou 3 pedras da frente: DP de sufixo com diferença de placar e resposta em três vias (Alice, Bob ou empate).</p>
+  </a>
+  <a class="card" data-diff="hard" href="dp/stone-game-4.html">
+    <span class="tag">● ONLINE · ARRAY · MEMO</span><span class="diff hard">HARD</span>
+    <h3>Stone Game IV</h3>
+    <p>Jogo de vitória/derrota com tabela de booleanos: basta uma jogada que deixe o rival perdendo, e o break para na primeira.</p>
+  </a>
+  <a class="card" data-diff="hard" href="dp/stone-game-5.html">
+    <span class="tag">● ONLINE · MATRIZ · MEMO</span><span class="diff hard">HARD</span>
+    <h3>Stone Game V</h3>
+    <p>DP de intervalo em O(n³) com somas de prefixo: cada corte mantém só a parte menor, e no empate Alice escolhe o lado.</p>
+  </a>
+  <a class="card" data-diff="hard" href="dp/stone-game-8.html">
+    <span class="tag">● ONLINE · ARRAY · VARIÁVEIS</span><span class="diff hard">HARD</span>
+    <h3>Stone Game VIII</h3>
+    <p>A pedra devolvida é sempre uma soma de prefixo: o jogo vira escolher índices, e um dp da direita para a esquerda resolve em O(n).</p>
   </a>
   <p class="empty" hidden>Nenhum desafio desse nível nesta seção.</p>
 </div>

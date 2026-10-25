@@ -30,6 +30,14 @@ const bs = require('../assets/binary-search.js'), ip = require('../assets/insert
 const fl = require('../assets/first-last.js'), rs = require('../assets/rotated-search.js'), pk = require('../assets/peak.js');
 const kk = require('../assets/koko.js'), sa = require('../assets/split-array.js'), md = require('../assets/median-two.js');
 const rm = require('../assets/rotated-min.js');
+const sg2 = require('../assets/stone-game-2.js');
+const sg3 = require('../assets/stone-game-3.js');
+const sg4 = require('../assets/stone-game-4.js');
+const sg5 = require('../assets/stone-game-5.js');
+const sg6 = require('../assets/stone-game-6.js');
+const sg7 = require('../assets/stone-game-7.js');
+const sg8 = require('../assets/stone-game-8.js');
+const sg9 = require('../assets/stone-game-9.js');
 
 const runs = {
   knapsack: [k.KNAPSACK_CODE, { matriz: k.steps2D(k.ITEMS, k.CAP), array: k.steps1D(k.ITEMS, k.CAP), memo: k.stepsMemo(k.ITEMS, k.CAP) }],
@@ -79,6 +87,14 @@ const runs = {
   splitArray: [sa.SA_CODE, { binaria: sa.saBinary(), matriz: sa.saDP() }],
   medianTwo: [md.MD_CODE, { merge: md.mdMerge(), corte: md.mdCut() }],
   rotatedMin: [rm.RM_CODE, { binaria: rm.rmSteps(rm.RM_NUMS), pior: rm.rmSteps(rm.RM_WORST) }],
+  stoneGame2: [sg2.SG2_CODE, { matriz: sg2.sg2Matrix(), memo: sg2.sg2Memo() }],
+  stoneGame3: [sg3.SG3_CODE, { array: sg3.sg3Array(), vars: sg3.sg3Vars(), memo: sg3.sg3Memo() }],
+  stoneGame4: [sg4.SG4_CODE, { array: sg4.sg4Array(), memo: sg4.sg4Memo() }],
+  stoneGame5: [sg5.SG5_CODE, { matriz: sg5.sg5Matrix(), memo: sg5.sg5Memo() }],
+  stoneGame6: [sg6.SG6_CODE, { forca: sg6.sg6Brute(), guloso: sg6.sg6Greedy() }],
+  stoneGame7: [sg7.SG7_CODE, { matriz: sg7.sg7Matrix(), array: sg7.sg7Array(), memo: sg7.sg7Memo() }],
+  stoneGame8: [sg8.SG8_CODE, { array: sg8.SG8_array(), vars: sg8.SG8_vars() }],
+  stoneGame9: [sg9.SG9_CODE, { memo: sg9.sg9Memo(), contagem: sg9.sg9Counting() }],
 };
 
 for (const [name, [code, variants]] of Object.entries(runs)) {

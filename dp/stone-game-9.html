@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Stone Game IX · GRID//RUNNER</title>
+<link rel="stylesheet" href="../assets/style.css">
+<style>
+  #viz td .cell { width: 44px; }
+  #viz tr.on th { color: var(--yellow); }
+</style>
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="../index.html">GRID<em>//</em>RUNNER</a>
+  <nav><a class="on" href="../index.html#dp">Dynamic Programming</a><a href="../index.html#grafos">Grafos</a><a href="../index.html#ordenacao">Ordenação</a><a href="../index.html#busca">Busca Binária</a></nav>
+</header>
+<script src="../assets/github.js"></script>
+<script src="../assets/analytics.js"></script>
+<main>
+<h1>STONE GAME IX <span class="diff medium">MEDIUM</span></h1>
+<section class="panel problem"><h2>problema</h2>
+  <p>Há uma fila de pedras, e a pedra <code>i</code> vale <code>stones[i]</code>. Alice começa e os dois se alternam.
+    Na sua vez, o jogador retira <b>qualquer</b> pedra que ainda esteja na fila. Quem fizer a soma de <b>todas</b> as pedras
+    já retiradas ficar <b>divisível por 3</b> perde na hora. Se as pedras acabarem sem ninguém perder, <b>Bob vence</b>
+    (mesmo que a última pedra tenha sido dele).</p>
+  <p>Os dois jogam de forma <b>ótima</b>. Retorne <code>true</code> se Alice vencer.</p>
+  <p>Outro jogo de Alice e Bob da série: <a href="stone-game.html">Stone Game</a>.</p>
+  <div class="ex"><b>Exemplo 1</b> · <code>stones = [2, 1]</code> → <code>true</code>
+    <p>Qualquer pedra que Alice tire deixa a soma em 1 ou 2. Bob é obrigado a tirar a outra, a soma vira 3 e ele perde.</p></div>
+  <div class="ex"><b>Exemplo 2</b> · <code>stones = [2]</code> → <code>false</code>
+    <p>Alice tira o 2, a soma é 2 e as pedras acabam sem ninguém perder: Bob vence.</p></div>
+  <div class="ex"><b>Exemplo 3</b> · <code>stones = [5, 1, 2, 4, 3]</code> → <code>false</code>
+    <p>Os restos por 3 são 2, 1, 2, 1, 0. Não importa como Alice comece, Bob sempre tem uma resposta que a obriga a
+      fechar um múltiplo de 3 ou a esgotar as pedras.</p></div>
+  <div class="ex"><b>Exemplo animado</b> · <code>stones = [3, 1, 4, 2, 6, 5]</code> → <code>true</code>
+    <p>Restos 0, 1, 1, 2, 0, 2: dois de cada. Alice abre com um resto 1 e vence.</p></div>
+  <p class="legend">Restrições: 1 ≤ stones.length ≤ 10⁵ · 1 ≤ stones[i] ≤ 10⁴</p>
+</section>
+<nav class="tabs" id="tabs" role="tablist" aria-label="variações"></nav>
+<div id="variant"></div>
+</main>
+
+<template id="tpl-memo" data-label="Memo">
+<p class="lead"><b>Memoization</b> (minimax top-down): só o <span class="hl">resto por 3</span> de cada pedra importa, então
+  o jogo inteiro cabe em quatro números. <code>f(c0, c1, c2, s)</code> diz se o <b>jogador da vez</b> vence quando ainda
+  sobram <code>c0</code>, <code>c1</code> e <code>c2</code> pedras de resto 0, 1 e 2, e a soma já retirada vale
+  <code>s</code> (mod 3). Ele vence se existe uma jogada que não fecha múltiplo de 3 e deixa o rival num estado perdedor.
+  Ordens diferentes de jogadas caem no mesmo estado, e é aí que o memo devolve a resposta pronta.</p>
+
+<div class="cx"><span>tempo <b>O(n³)</b></span><span>espaço <b>O(n³)</b></span><p>Até (c0+1)(c1+1)(c2+1)·3 estados, cada um testa 3 jogadas em O(1). O memo 4D ocupa esse tanto, e a call stack chega a n frames (uma pedra por nível).</p></div>
+<div class="layout">
+  <section class="panel"><h2>stones · resto por 3</h2><div class="arr" id="nums"></div>
+    <div class="legend"><span><i style="border-color:var(--cyan)"></i>pedra sendo contada</span>
+      <span><i style="border-color:var(--green)"></i>resto r tentado</span></div></section>
+  <section class="panel"><h2>registradores</h2><dl id="vars"></dl></section>
+  <section class="panel full"><h2>memo[c0][c1][c2][s] · T = jogador da vez vence</h2>
+    <div class="scroll"><table class="grid" id="viz"></table></div>
+    <div class="legend"><span><i style="border-color:var(--cyan);background:#00f0ff44"></i>leitura · cache hit</span>
+      <span><i style="border-color:var(--yellow);background:var(--yellow)"></i>escrita</span>
+      <span><i style="border-color:var(--line)"></i>░░ estado nunca visitado</span></div>
+  </section>
+  <section class="panel"><h2>código</h2><pre id="code"></pre></section>
+  <section class="panel"><h2>call stack</h2><p id="stackstat"></p><div id="stack"></div></section>
+  <section class="panel full"><h2>memória · c[3] + memo 4D</h2>
+    <p id="memstat"></p><div id="mem"></div>
+    <p class="legend">As 3 primeiras células são o contador c. O resto é o memo achatado: cada linha de 3 células é um
+      trio (c0, c1, c2) com s = 0, 1, 2. Com a resposta curta-circuitada (achou jogada vencedora, para), muitos estados nem
+      são visitados.</p>
+  </section>
+</div>
+</template>
+<template id="tpl-contagem" data-label="Contagem">
+<p class="lead"><b>A regra de contagem</b>, em O(n). Pense só nos restos. Um <span class="hl">zero</span> não muda a soma:
+  só passa a vez. Sem zeros, a primeira pedra de Alice decide tudo: se ela abre com 1, a soma é 1 e a única jogada segura é
+  outro 1 (soma 2); daí só um 2 é seguro (soma 1), depois 1, depois 2... A sequência é forçada:
+  <code>1, 1, 2, 1, 2, …</code> (ou <code>2, 2, 1, 2, 1, …</code> se ela abre com 2). Perde quem precisa de um resto que
+  acabou. Com uma quantidade <b>par</b> de zeros, cada zero usado por um é respondido pelo outro, e eles se anulam: Alice
+  abre com o resto mais raro e vence sempre que existir pelo menos um 1 e um 2. Com quantidade <b>ímpar</b>, sobra um
+  zero que troca a vez uma vez, e Alice só vence se um dos restos tiver <b>mais de 2</b> pedras a mais que o outro: aí Bob
+  fica sem jogada segura antes de as pedras acabarem.</p>
+
+<div class="cx"><span>tempo <b>O(n)</b></span><span>espaço <b>O(1)</b></span><p>Uma passada para contar os restos e três comparações. Só 3 contadores e 3 booleanos.</p></div>
+<div class="layout">
+  <section class="panel"><h2>stones · resto por 3</h2><div class="arr" id="nums"></div>
+    <div class="legend"><span><i style="border-color:var(--cyan)"></i>pedra sendo contada</span></div></section>
+  <section class="panel"><h2>registradores</h2><dl id="vars"></dl></section>
+  <section class="panel full"><h2>código</h2><pre id="code"></pre></section>
+  <section class="panel full"><h2>memória · O(1)</h2>
+    <p id="memstat"></p><div id="mem"></div>
+    <p class="legend">Seis células, não importa o tamanho da entrada: compare com o memo 4D da outra aba.</p>
+  </section>
+</div>
+</template>
+
+<footer class="ctrl">
+  <p id="msg"></p>
+  <div class="row">
+    <button id="first" title="Home">⏮</button><button id="prev" title="←">◀</button>
+    <button id="play">▶ RUN</button>
+    <button id="next" title="→">▶</button><button id="lastbtn" title="End">⏭</button>
+    <input id="scrub" type="range" min="0" value="0" aria-label="step">
+    <span id="stepno"></span>
+    <label>speed <input id="speed" type="range" min="100" max="1000" value="600"></label>
+    <span class="keys">← → espaço</span>
+  </div>
+</footer>
+
+<script src="../assets/trace.js"></script>
+<script src="../assets/stone-game-9.js"></script>
+<script src="../assets/player.js"></script>
+<script>
+const SG9_C = [0, 1, 2].map((r) => SG9_STONES.filter((x) => x % 3 === r).length);
+const stonesRow = (s) => SG9_STONES.map((v, k) =>
+  `<div class="slot">[${k}]<div class="cell ${k === s.k ? 'r0' : s.r !== undefined && v % 3 === s.r ? 'rng' : ''}">${v}</div>` +
+  `<span class="gen">≡ ${v % 3}</span></div>`).join('');
+
+mountTabs({
+memo: () => {
+  const [C0, C1, C2] = SG9_C;
+  const CODE = SG9_CODE.memo.text;
+  const at = (k) => { const q = k - 3, s = q % 3, t = (q - s) / 3, c2 = t % (C2 + 1), c1 = ((t - c2) / (C2 + 1)) % (C1 + 1); return [(t - c2 - c1 * (C2 + 1)) / ((C1 + 1) * (C2 + 1)), c1, c2, s]; };
+  const label = (k) => k < 3 ? `c[${k}]` : `memo[${at(k)}]`.replaceAll(',', '][');
+  const formula = (k) => k < 3 ? `base + ${k}·4` : `base + (3 + ${k - 3})·4`;
+
+  mountPlayer(sg9Memo(), (s) => {
+    renderCode(CODE, s.line);
+    renderVars(s.vars);
+    renderStack(s);
+    renderMemory(s, label, formula);
+    $('nums').innerHTML = stonesRow(s);
+    if (s.dp.length === 3) { $('viz').innerHTML = '<tr><td>memo ainda não alocado</td></tr>'; return; }
+    let h = '<tr><th>c0, c1, c2</th><th>s=0</th><th>s=1</th><th>s=2</th></tr>';
+    for (let c0 = 0; c0 <= C0; c0++) for (let c1 = 0; c1 <= C1; c1++) for (let c2 = 0; c2 <= C2; c2++) {
+      const base = 3 + ((c0 * (C1 + 1) + c1) * (C2 + 1) + c2) * 3, on = s.st && s.st.c0 === c0 && s.st.c1 === c1 && s.st.c2 === c2;
+      h += `<tr class="${on ? 'on' : ''}"><th class="rh">${c0}, ${c1}, ${c2}</th>` +
+        [0, 1, 2].map((q) => `<td><div class="cell ${cellClass(s, base + q)}">${cellVal(s.dp[base + q])}</div></td>`).join('') + '</tr>';
+    }
+    $('viz').innerHTML = h;
+  });
+},
+contagem: () => {
+  const CODE = SG9_CODE.contagem.text, names = ['c[0]', 'c[1]', 'c[2]', 'par', 'casoPar', 'casoImpar'];
+
+  mountPlayer(sg9Counting(), (s) => {
+    renderCode(CODE, s.line);
+    renderVars(s.vars);
+    renderMemory(s, (k) => names[k], (k) => `base + ${k}·4`);
+    $('nums').innerHTML = stonesRow(s);
+  });
+},
+});
+</script>
+</body>
+</html>

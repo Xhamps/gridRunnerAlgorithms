@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Stone Game V · GRID//RUNNER</title>
+<link rel="stylesheet" href="../assets/style.css">
+<style>
+  .cell.pre { border-color: var(--yellow); color: var(--yellow); box-shadow: 0 0 8px var(--yellow); }
+</style>
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="../index.html">GRID<em>//</em>RUNNER</a>
+  <nav><a class="on" href="../index.html#dp">Dynamic Programming</a><a href="../index.html#grafos">Grafos</a><a href="../index.html#ordenacao">Ordenação</a><a href="../index.html#busca">Busca Binária</a></nav>
+</header>
+<script src="../assets/github.js"></script>
+<script src="../assets/analytics.js"></script>
+<main>
+<h1>STONE GAME V <span class="diff hard">HARD</span></h1>
+<section class="panel problem"><h2>problema</h2>
+  <p>Há uma fileira de pedras, e a pedra <code>i</code> vale <code>stones[i]</code>. A cada rodada, Alice corta a fileira
+    em <b>duas partes não vazias</b> (cada uma contínua). Bob soma as duas, joga fora a parte de <b>maior</b> soma, e Alice
+    ganha a soma da parte que <b>ficou</b>. Se as somas forem iguais, quem escolhe o lado que fica é Alice. O jogo continua
+    sobre a parte que sobrou e termina quando resta uma só pedra.</p>
+  <p>Bob não tem escolha: ele só aplica a regra. Retorne a <b>maior</b> pontuação que Alice consegue juntar cortando bem.</p>
+  <div class="ex"><b>Exemplo 1</b> · <code>stones = [6, 2, 3, 4, 5, 5]</code> → <code>18</code>
+    <p>Corte em [6, 2, 3] | [4, 5, 5]: 11 contra 14, fica a esquerda e Alice marca 11. Depois [6] | [2, 3]: 6 contra 5, fica
+      [2, 3] e ela marca 5. Por fim [2] | [3]: marca 2. Total 11 + 5 + 2 = 18.</p></div>
+  <div class="ex"><b>Exemplo 2</b> · <code>stones = [7, 7, 7, 7, 7, 7, 7]</code> → <code>28</code>
+    <p>Corte em 3 | 4 pedras: fica a parte de 21. Depois 1 | 2 pedras: fica a de 7, e sobra uma pedra. 21 + 7 = 28.</p></div>
+  <div class="ex"><b>Exemplo 3</b> · <code>stones = [4]</code> → <code>0</code>
+    <p>Com uma pedra só, não há corte possível: o jogo já começa terminado.</p></div>
+  <div class="ex"><b>Exemplo animado</b> · <code>stones = [1, 1, 2, 4, 8]</code> → <code>15</code>
+    <p>Todo corte bom aqui é um empate: [1, 1, 2, 4] | [8] (marca 8), [1, 1, 2] | [4] (marca 4), [1, 1] | [2] (marca 2),
+      [1] | [1] (marca 1). 8 + 4 + 2 + 1 = 15.</p></div>
+  <p class="legend">Restrições: 1 ≤ stones.length ≤ 500 · 1 ≤ stones[i] ≤ 10⁶</p>
+  <p>Da série: <a href="stone-game.html">Stone Game</a>. Aqui não há disputa de pontas: é um jogo de um jogador só, em que
+    a regra do Bob decide qual lado sobra.</p>
+</section>
+<nav class="tabs" id="tabs" role="tablist" aria-label="variações"></nav>
+<div id="variant"></div>
+</main>
+
+<template id="tpl-matriz" data-label="Matriz">
+<p class="lead"><b>Tabulation</b>: <code>dp[i][j]</code> = a <span class="hl">maior pontuação</span> que Alice ainda
+  consegue juntar quando a fileira que sobrou é <code>stones[i..j]</code>. Para cada corte <code>k</code> (esquerda
+  <code>i..k</code>, direita <code>k+1..j</code>), as somas saem das <b>somas de prefixo</b> em O(1). Se a esquerda é menor,
+  Alice marca <code>esq</code> e continua em <code>dp[i][k]</code>; se a direita é menor, marca <code>dir</code> e continua
+  em <code>dp[k+1][j]</code>; no empate, fica com o melhor dos dois. Os intervalos são preenchidos do menor para o maior
+  (<code>len</code>), porque cada um só lê intervalos mais curtos.</p>
+<p class="lead">Sem aba Array: <code>dp[i][j]</code> lê <code>dp[k+1][j]</code> de <b>várias</b> linhas, não só da
+  anterior, então a tabela inteira precisa ficar viva.</p>
+
+<div class="cx"><span>tempo <b>O(n³)</b></span><span>espaço <b>O(n²)</b></span><p>n² intervalos (i, j), e cada um testa até n cortes k, cada corte em O(1) graças às somas de prefixo. Tabela n×n mais o pre de n+1 posições.</p></div>
+<div class="layout">
+  <section class="panel"><h2>stones · pre</h2><div class="arr" id="stones"></div><div class="arr" id="pre" style="margin-top:8px"></div>
+    <div class="legend"><span><i style="border-color:var(--cyan)"></i>parte esquerda</span>
+      <span><i style="border-color:var(--pink)"></i>parte direita</span>
+      <span><i style="border-color:var(--green)"></i>fileira i..j</span>
+      <span><i style="border-color:var(--yellow)"></i>pre lido</span></div></section>
+  <section class="panel"><h2>registradores</h2><dl id="vars"></dl></section>
+  <section class="panel full"><h2>tabela dp[i][j]</h2>
+    <div class="scroll"><table class="grid" id="viz"></table></div>
+    <div class="legend"><span><i style="border-color:var(--cyan);background:#00f0ff44"></i>leitura · dp[i][k] (fica a esquerda)</span>
+      <span><i style="border-color:var(--pink);background:#ff2a6d44"></i>leitura · dp[k+1][j] (fica a direita)</span>
+      <span><i style="border-color:var(--yellow);background:var(--yellow)"></i>escrita</span>
+      <span><i style="border-color:var(--line)"></i>░░ nunca usado (i &gt; j)</span></div>
+  </section>
+  <section class="panel full"><h2>código</h2><pre id="code"></pre></section>
+  <section class="panel full"><h2>memória · bloco contíguo row-major</h2>
+    <p id="memstat"></p><div id="mem"></div>
+    <p class="legend">n·n células alocadas, mas só n(n+1)/2 são usadas: as abaixo da diagonal (░░) são desperdício.
+      A diagonal vale 0 (uma pedra, fim de jogo). Espaço O(n²).</p>
+  </section>
+</div>
+</template>
+<template id="tpl-memo" data-label="Memo">
+<p class="lead"><b>Memoization</b> (top-down): <code>f(i, j)</code> devolve a <span class="hl">maior pontuação</span>
+  que Alice ainda junta com a fileira <code>stones[i..j]</code>. Ela testa cada corte e só desce no lado que
+  <b>sobra</b> (os dois, no empate). Diferente da matriz, intervalos que nenhum corte deixa sobrar nunca são calculados.
+  Os que sobram por caminhos diferentes (ex.: <code>f(0, 1)</code>, pedido por <code>f(0, 2)</code> e por
+  <code>f(0, 3)</code>) vão para <code>memo[i][j]</code>, daí os cache hits.</p>
+<p class="lead">Sem aba Array: pelo mesmo motivo da matriz, um intervalo depende de intervalos de várias linhas.</p>
+
+<div class="cx"><span>tempo <b>O(n³)</b></span><span>espaço <b>O(n²)</b></span><p>No máximo n² estados, cada um com um laço de até n cortes em O(1). Memo n×n, pre de n+1 posições e call stack de até n frames.</p></div>
+<div class="layout">
+  <section class="panel"><h2>stones · pre</h2><div class="arr" id="stones"></div><div class="arr" id="pre" style="margin-top:8px"></div>
+    <div class="legend"><span><i style="border-color:var(--cyan)"></i>parte esquerda</span>
+      <span><i style="border-color:var(--pink)"></i>parte direita</span>
+      <span><i style="border-color:var(--green)"></i>fileira i..j</span>
+      <span><i style="border-color:var(--yellow)"></i>pre lido</span></div></section>
+  <section class="panel"><h2>registradores</h2><dl id="vars"></dl></section>
+  <section class="panel full"><h2>memo[i][j]</h2>
+    <div class="scroll"><table class="grid" id="viz"></table></div>
+    <div class="legend"><span><i style="border-color:var(--cyan);background:#00f0ff44"></i>leitura · cache hit</span>
+      <span><i style="border-color:var(--yellow);background:var(--yellow)"></i>escrita</span>
+      <span><i style="border-color:var(--line)"></i>░░ nunca gravado</span></div>
+  </section>
+  <section class="panel"><h2>código</h2><pre id="code"></pre></section>
+  <section class="panel"><h2>call stack</h2><p id="stackstat"></p><div id="stack"></div></section>
+  <section class="panel full"><h2>memória · heap (memo)</h2>
+    <p id="memstat"></p><div id="mem"></div>
+    <p class="legend">A diagonal (i = j) não é gravada: o caso base devolve 0 direto. A stack chega a n frames (O(n)),
+      e o memo usa O(n²) no heap.</p>
+  </section>
+</div>
+</template>
+
+<footer class="ctrl">
+  <p id="msg"></p>
+  <div class="row">
+    <button id="first" title="Home">⏮</button><button id="prev" title="←">◀</button>
+    <button id="play">▶ RUN</button>
+    <button id="next" title="→">▶</button><button id="lastbtn" title="End">⏭</button>
+    <input id="scrub" type="range" min="0" value="0" aria-label="step">
+    <span id="stepno"></span>
+    <label>speed <input id="speed" type="range" min="100" max="1000" value="600"></label>
+    <span class="keys">← → espaço</span>
+  </div>
+</footer>
+
+<script src="../assets/trace.js"></script>
+<script src="../assets/stone-game-5.js"></script>
+<script src="../assets/player.js"></script>
+<script>
+const N = SG5_STONES.length;
+const PRE = SG5_STONES.reduce((p, v) => (p.push(p.at(-1) + v), p), [0]);
+
+// Stones: with a cut k, left part cyan and right part pink; otherwise the current row i..j in green.
+const renderRow = (s) => {
+  $('stones').innerHTML = SG5_STONES.map((v, x) => {
+    const inRow = s.i !== undefined && x >= s.i && x <= s.j;
+    const c = !inRow ? '' : s.k === undefined ? 'rng' : x <= s.k ? 'r0' : 'r1';
+    return `<div class="slot">[${x}]<div class="cell ${c}">${v}</div></div>`;
+  }).join('');
+  $('pre').innerHTML = PRE.map((v, x) =>
+    `<div class="slot">pre[${x}]<div class="cell ${s.preRead.includes(x) ? 'pre' : ''}">${v}</div></div>`).join('');
+};
+const renderTable = (s) => {
+  let h = '<tr><th></th>' + SG5_STONES.map((v, j) => `<th>j=${j}<br>(${v})</th>`).join('') + '</tr>';
+  for (let i = 0; i < N; i++) {
+    h += `<tr class="${i === s.i ? 'on' : ''}"><th class="rh">i=${i} (${SG5_STONES[i]})</th>`;
+    for (let j = 0; j < N; j++) h += `<td><div class="cell ${cellClass(s, i * N + j)}">${cellVal(s.dp[i * N + j])}</div></td>`;
+    h += '</tr>';
+  }
+  $('viz').innerHTML = h;
+};
+const label = (name) => (x) => `${name}[${Math.floor(x / N)}][${x % N}]`;
+const formula = (x) => `base + (${Math.floor(x / N)}·${N} + ${x % N})·4`;
+
+mountTabs({
+matriz: () => {
+  const CODE = SG5_CODE.matriz.text;
+  mountPlayer(sg5Matrix(SG5_STONES), (s) => {
+    renderCode(CODE, s.line);
+    renderVars(s.vars);
+    renderMemory(s, label('dp'), formula, N);
+    renderRow(s);
+    renderTable(s);
+  });
+},
+memo: () => {
+  const CODE = SG5_CODE.memo.text;
+  mountPlayer(sg5Memo(SG5_STONES), (s) => {
+    renderCode(CODE, s.line);
+    renderVars(s.vars);
+    renderStack(s);
+    renderMemory(s, label('memo'), formula, N);
+    renderRow(s);
+    renderTable(s);
+  });
+},
+});
+</script>
+</body>
+</html>
