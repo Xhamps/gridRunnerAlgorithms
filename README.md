@@ -24,6 +24,9 @@ O site é feito para quem está estudando algoritmos e quer *ver* o que acontece
 
 O site é HTML, CSS e JavaScript puros, sem build e sem dependências.
 
+Em produção, `assets/analytics.js` carrega o [PostHog](https://posthog.com) (pageviews e cliques). Ele não roda em
+`localhost`.
+
 ```bash
 # opção 1: abrir direto no navegador
 open index.html
@@ -78,7 +81,6 @@ box com a complexidade de **tempo** e **espaço** em Big O.
 | Knapsack 0/1 | MEDIUM | Matriz · Array · Memo |
 | Coin Change | MEDIUM | Matriz · Array · Memo |
 | Predict the Winner | MEDIUM | Matriz · Array · Memo |
-| Stone Game | MEDIUM | Matriz · Array · Memo |
 | Stock com Cooldown | MEDIUM | Matriz · Array · Memo |
 | Longest Increasing Subsequence | MEDIUM | Matriz · Array · Memo · Binária |
 | Longest Common Subsequence | MEDIUM | Matriz · Array · Memo |
@@ -89,6 +91,20 @@ box com a complexidade de **tempo** e **espaço** em Big O.
 - **Array:** a versão com espaço otimizado, que reaproveita uma linha só. A página explica a direção do laço
   (para frente ou de trás para frente) e por que ela importa.
 - **Memo:** top-down com memoization, mostrando a call stack, as chamadas e os cache hits.
+
+#### Série Stone Game
+
+| Desafio | Nível | Abas |
+|---|---|---|
+| Stone Game | MEDIUM | Matriz · Array · Memo |
+| Stone Game II | MEDIUM | Matriz · Memo |
+| Stone Game VI | MEDIUM | Força bruta · Guloso |
+| Stone Game VII | MEDIUM | Matriz · Array · Memo |
+| Stone Game IX | MEDIUM | Memo · Contagem |
+| Stone Game III | HARD | Array · Variáveis · Memo |
+| Stone Game IV | HARD | Array · Memo |
+| Stone Game V | HARD | Matriz · Memo |
+| Stone Game VIII | HARD | Array · Variáveis |
 
 ### Grafos · DFS × BFS
 

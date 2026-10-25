@@ -1,0 +1,176 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Stone Game III · GRID//RUNNER</title>
+<link rel="stylesheet" href="../assets/style.css">
+<style>
+.cell.gone { opacity: .3; }
+</style>
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="../index.html">GRID<em>//</em>RUNNER</a>
+  <nav><a class="on" href="../index.html#dp">Dynamic Programming</a><a href="../index.html#grafos">Grafos</a><a href="../index.html#ordenacao">Ordenação</a><a href="../index.html#busca">Busca Binária</a></nav>
+</header>
+<script src="../assets/github.js"></script>
+<script src="../assets/analytics.js"></script>
+<main>
+<h1>STONE GAME III <span class="diff hard">HARD</span></h1>
+<section class="panel problem"><h2>problema</h2>
+  <p>Uma fila de pedras tem valores <code>vals[i]</code>, que podem ser <b>negativos</b>. Alice começa e os dois se
+    alternam. Na sua vez, o jogador pega <b>1, 2 ou 3</b> pedras do <b>começo</b> da fila e soma os valores delas aos
+    seus pontos. O jogo acaba quando a fila esvazia.</p>
+  <p>Os dois jogam de forma <b>ótima</b>. Retorne <code>"Alice"</code> se ela fizer mais pontos, <code>"Bob"</code> se
+    ele fizer mais, ou <code>"Tie"</code> em caso de empate.</p>
+  <p>Continua a série do <a href="stone-game.html">Stone Game</a> e do <a href="stone-game-2.html">Stone Game II</a>:
+    aqui só se pega da frente, de 1 a 3 pedras, e pegar pedra negativa pode ser obrigatório.</p>
+  <div class="ex"><b>Exemplo 1</b> · <code>vals = [1, 2, 3, 7]</code> → <code>"Bob"</code>
+    <p>Qualquer jogada de Alice deixa o 7 para Bob. O melhor que ela faz é pegar 1, 2 e 3 (6 pontos) contra 7 de Bob.
+      É o exemplo animado abaixo.</p></div>
+  <div class="ex"><b>Exemplo 2</b> · <code>vals = [1, 2, 3, -9]</code> → <code>"Alice"</code>
+    <p>Alice pega as três primeiras (6) e Bob é obrigado a pegar o −9: 6 contra −9.</p></div>
+  <div class="ex"><b>Exemplo 3</b> · <code>vals = [1, 2, 3, 6]</code> → <code>"Tie"</code>
+    <p>Pegando 1, 2 e 3, Alice faz 6 e Bob também: empate. Qualquer outra jogada é pior para ela.</p></div>
+  <p class="legend">Restrições: 1 ≤ vals.length ≤ 5·10⁴ · −1000 ≤ vals[i] ≤ 1000</p>
+</section>
+<nav class="tabs" id="tabs" role="tablist" aria-label="variações"></nav>
+<div id="variant"></div>
+</main>
+
+<template id="tpl-array" data-label="Array">
+<p class="lead"><b>Tabulation</b>: <code>dp[i]</code> = a maior <span class="hl">diferença</span> (eu − rival) que o
+  jogador da vez consegue quando a fila começa na pedra <code>i</code>. Pegando <code>k</code> pedras, ele soma esses
+  valores e o rival vira "o jogador da vez" a partir de <code>i+k</code>, então
+  <code>dp[i] = max(soma das k primeiras − dp[i+k])</code> para k = 1, 2, 3. O array tem <code>n+1</code> células
+  (<code>dp[n] = 0</code>, sem pedras) e é preenchido de trás para frente. No fim, o sinal de <code>dp[0]</code> diz quem vence.</p>
+
+<div class="cx"><span>tempo <b>O(n)</b></span><span>espaço <b>O(n)</b></span><p>n posições × no máximo 3 escolhas cada. O array guarda n + 1 diferenças.</p></div>
+<div class="layout">
+  <section class="panel"><h2>vals</h2><div class="arr" id="nums"></div>
+    <div class="legend"><span><i style="border-color:var(--cyan)"></i>pedras pegas (k)</span>
+      <span><i style="border-color:var(--green)"></i>resto para o rival</span></div></section>
+  <section class="panel"><h2>registradores</h2><dl id="vars"></dl></section>
+  <section class="panel full"><h2>array dp[i]</h2>
+    <div class="arr" id="viz"></div>
+    <div class="legend"><span><i style="border-color:var(--cyan);background:#00f0ff44"></i>leitura · dp[i+k] (rival)</span>
+      <span><i style="border-color:var(--pink);background:#ff2a6d44"></i>leitura · dp[i] atual</span>
+      <span><i style="border-color:var(--yellow);background:var(--yellow)"></i>escrita</span></div>
+  </section>
+  <section class="panel full"><h2>código</h2><pre id="code"></pre></section>
+  <section class="panel full"><h2>memória · O(n)</h2>
+    <p id="memstat"></p><div id="mem"></div>
+    <p class="legend">n + 1 células. Cada dp[i] só é lido pelas três posições anteriores: depois disso é peso morto.</p>
+  </section>
+</div>
+</template>
+<template id="tpl-vars" data-label="Variáveis">
+<p class="lead">No <a href="#array">array</a>, <code>dp[i]</code> só lê <code>dp[i+1]</code>, <code>dp[i+2]</code> e
+  <code>dp[i+3]</code>. Então basta uma <span class="hl">janela de três valores</span>: <code>a</code>, <code>b</code> e
+  <code>c</code> são a diferença do jogador da vez começando 1, 2 e 3 pedras à frente. Calculado <code>best = dp[i]</code>,
+  a janela anda: <code>c = b; b = a; a = best</code>. Memória <b>O(1)</b>, qualquer que seja <code>n</code>.</p>
+
+<div class="cx"><span>tempo <b>O(n)</b></span><span>espaço <b>O(1)</b></span><p>Mesmo laço, mas só a, b, c e best ficam na memória: 4 células para qualquer n.</p></div>
+<div class="layout">
+  <section class="panel"><h2>vals</h2><div class="arr" id="nums"></div>
+    <div class="legend"><span><i style="border-color:var(--cyan)"></i>pedras pegas (k)</span>
+      <span><i style="border-color:var(--green)"></i>resto para o rival</span></div></section>
+  <section class="panel"><h2>registradores</h2><dl id="vars"></dl></section>
+  <section class="panel full"><h2>variáveis</h2>
+    <div class="arr" id="viz"></div>
+    <div class="legend"><span><i style="border-color:var(--cyan);background:#00f0ff44"></i>leitura · dp[i+k]</span>
+      <span><i style="border-color:var(--pink);background:#ff2a6d44"></i>leitura · best</span>
+      <span><i style="border-color:var(--yellow);background:var(--yellow)"></i>escrita</span>
+      <span>best tracejado = temporário</span></div>
+  </section>
+  <section class="panel full"><h2>código</h2><pre id="code"></pre></section>
+  <section class="panel full"><h2>memória · O(1)</h2>
+    <p id="memstat"></p><div id="mem"></div>
+    <p class="legend">Quatro células (16 B) para qualquer n, contra n + 1 do array.</p>
+  </section>
+</div>
+</template>
+<template id="tpl-memo" data-label="Memo">
+<p class="lead"><b>Memoization</b> (top-down): <code>f(i)</code> = a maior <span class="hl">diferença</span> que o
+  jogador da vez consegue a partir da pedra <code>i</code>. Ela tenta pegar 1, 2 ou 3 pedras e chama
+  <code>f(i+k)</code> para o rival. Caminhos diferentes chegam à mesma posição (pegar 1 + 1 ou 2 de uma vez leva ambos a
+  <code>i+2</code>), então cada resultado vai para <code>memo[i]</code> e as repetições viram
+  <span class="hl">cache hit</span>. Sem memo seriam O(3ⁿ) chamadas; com memo, O(n).</p>
+
+<div class="cx"><span>tempo <b>O(n)</b></span><span>espaço <b>O(n)</b></span><p>Cada f(i) é calculado uma vez, com até 3 chamadas filhas. Memo de n células e call stack de até n + 1 frames.</p></div>
+<div class="layout">
+  <section class="panel"><h2>vals</h2><div class="arr" id="nums"></div>
+    <div class="legend"><span><i style="border-color:var(--cyan)"></i>pedras pegas (k)</span>
+      <span><i style="border-color:var(--green)"></i>resto para o rival</span></div></section>
+  <section class="panel"><h2>registradores</h2><dl id="vars"></dl></section>
+  <section class="panel full"><h2>memo[i]</h2>
+    <div class="arr" id="viz"></div>
+    <div class="legend"><span><i style="border-color:var(--cyan);background:#00f0ff44"></i>leitura · cache hit</span>
+      <span><i style="border-color:var(--yellow);background:var(--yellow)"></i>escrita</span>
+      <span><i style="border-color:var(--line)"></i>░░ nunca gravado</span></div>
+  </section>
+  <section class="panel"><h2>código</h2><pre id="code"></pre></section>
+  <section class="panel"><h2>call stack</h2><p id="stackstat"></p><div id="stack"></div></section>
+  <section class="panel full"><h2>memória · heap (memo)</h2>
+    <p id="memstat"></p><div id="mem"></div>
+    <p class="legend">f(n) não é gravado: o caso base devolve 0 direto. A stack chega a n + 1 frames.</p>
+  </section>
+</div>
+</template>
+
+<footer class="ctrl">
+  <p id="msg"></p>
+  <div class="row">
+    <button id="first" title="Home">⏮</button><button id="prev" title="←">◀</button>
+    <button id="play">▶ RUN</button>
+    <button id="next" title="→">▶</button><button id="lastbtn" title="End">⏭</button>
+    <input id="scrub" type="range" min="0" value="0" aria-label="step">
+    <span id="stepno"></span>
+    <label>speed <input id="speed" type="range" min="100" max="1000" value="600"></label>
+    <span class="keys">← → espaço</span>
+  </div>
+</footer>
+
+<script src="../assets/trace.js"></script>
+<script src="../assets/stone-game-3.js"></script>
+<script src="../assets/player.js"></script>
+<script>
+// Stones: before i already taken (dim), i..i+k-1 taken in this move (r0), the rest goes to the rival (rng).
+const renderVals = (s) => $('nums').innerHTML = SG3_VALS.map((v, p) => {
+  const c = s.i === undefined ? '' : p < s.i ? 'gone' : s.k && p < s.i + s.k ? 'r0' : s.k ? 'rng' : p === s.i ? 'r0' : '';
+  return `<div class="slot">[${p}]<div class="cell ${c}">${v}</div></div>`;
+}).join('');
+const arrView = (s, name, tmp = -1) => s.dp.map((v, p) =>
+  `<div class="slot${p === tmp ? ' tmp' : ''}">${name(p)}<div class="cell ${cellClass(s, p)}">${cellVal(v)}</div></div>`).join('');
+
+mountTabs({
+array: () => mountPlayer(sg3Array(), (s) => {
+  renderCode(SG3_CODE.array.text, s.line);
+  renderVars(s.vars);
+  renderVals(s);
+  renderMemory(s, (p) => `dp[${p}]`, (p) => `base + ${p}·4`);
+  $('viz').innerHTML = arrView(s, (p) => `dp[${p}]`);
+}),
+vars: () => {
+  const NAMES = ['a', 'b', 'c', 'best'];
+  mountPlayer(sg3Vars(), (s) => {
+    renderCode(SG3_CODE.vars.text, s.line);
+    renderVars(s.vars);
+    renderVals(s);
+    renderMemory(s, (p) => NAMES[p], (p) => `base + ${p}·4`);
+    $('viz').innerHTML = arrView(s, (p) => NAMES[p], 3);
+  });
+},
+memo: () => mountPlayer(sg3Memo(), (s) => {
+  renderCode(SG3_CODE.memo.text, s.line);
+  renderVars(s.vars);
+  renderVals(s);
+  renderStack(s);
+  renderMemory(s, (p) => `memo[${p}]`, (p) => `base + ${p}·4`);
+  $('viz').innerHTML = arrView(s, (p) => `memo[${p}]`);
+}),
+});
+</script>
+</body>
+</html>

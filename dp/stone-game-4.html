@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Stone Game IV · GRID//RUNNER</title>
+<link rel="stylesheet" href="../assets/style.css">
+<style>
+.pile { display: flex; flex-wrap: wrap; gap: 6px; }
+.pile .st { width: 22px; height: 22px; border-radius: 50%; border: 1px solid var(--line); background: #0b0a16; }
+.pile .st.on { border-color: var(--green); background: #05ffa133; }
+.pile .st.take { border-color: var(--pink); background: #ff2a6d44; box-shadow: 0 0 8px var(--pink); }
+</style>
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="../index.html">GRID<em>//</em>RUNNER</a>
+  <nav><a class="on" href="../index.html#dp">Dynamic Programming</a><a href="../index.html#grafos">Grafos</a><a href="../index.html#ordenacao">Ordenação</a><a href="../index.html#busca">Busca Binária</a></nav>
+</header>
+<script src="../assets/github.js"></script>
+<script src="../assets/analytics.js"></script>
+<main>
+<h1>STONE GAME IV <span class="diff hard">HARD</span></h1>
+<section class="panel problem"><h2>problema</h2>
+  <p>Agora existe uma <b>única pilha</b> com <code>n</code> pedras. Alice começa e os dois se alternam. Na sua vez, o
+    jogador tira da pilha uma quantidade de pedras que seja um <b>quadrado perfeito</b> diferente de zero: 1, 4, 9, 16...
+    Quem não consegue jogar (a pilha está vazia) perde.</p>
+  <p>Os dois jogam de forma <b>ótima</b>. Retorne <code>true</code> se Alice vencer.</p>
+  <p>A mesma dupla do <a href="stone-game.html">Stone Game</a>, mas aqui não se conta pedra: só importa quem fica sem jogada.</p>
+  <div class="ex"><b>Exemplo 1</b> · <code>n = 1</code> → <code>true</code>
+    <p>Alice tira 1 pedra e Bob fica sem jogada.</p></div>
+  <div class="ex"><b>Exemplo 2</b> · <code>n = 2</code> → <code>false</code>
+    <p>Alice só pode tirar 1. Bob tira a última e Alice fica sem jogada.</p></div>
+  <div class="ex"><b>Exemplo 3</b> · <code>n = 4</code> → <code>true</code>
+    <p>4 é quadrado: Alice tira tudo de uma vez.</p></div>
+  <div class="ex"><b>Exemplo 4</b> · <code>n = 7</code> → <code>false</code>
+    <p>Alice pode deixar 6 ou 3 pedras, e as duas posições são vencedoras para Bob.</p></div>
+  <div class="ex"><b>Exemplo 5</b> · <code>n = 17</code> → <code>false</code>
+    <p>As jogadas deixam 16, 13, 8 ou 1 pedras, e em todas Bob tem uma resposta vencedora.</p></div>
+  <div class="ex"><b>Exemplo animado</b> · <code>n = 10</code> → <code>false</code>
+    <p>Sobrariam 9, 6 ou 1 pedras, todas posições vencedoras para Bob.</p></div>
+  <p class="legend">Restrições: 1 ≤ n ≤ 10⁵</p>
+</section>
+<nav class="tabs" id="tabs" role="tablist" aria-label="variações"></nav>
+<div id="variant"></div>
+</main>
+
+<template id="tpl-array" data-label="Array">
+<p class="lead"><b>Tabulation</b>: <code>win[i]</code> = o jogador da vez, diante de <code>i</code> pedras,
+  <span class="hl">consegue vencer</span>? Ele vence se existir algum quadrado <code>k²</code> que deixe o rival numa
+  posição perdedora: <code>win[i] = existe k com !win[i − k²]</code>. Como só importa <i>existir</i> uma jogada boa, o
+  <code>break</code> para o laço de <code>k</code> assim que a primeira aparece. Só quando nenhuma serve o laço vai até o fim
+  e <code>win[i]</code> fica F.</p>
+
+<div class="cx"><span>tempo <b>O(n·√n)</b></span><span>espaço <b>O(n)</b></span><p>Cada um dos n estados testa até √i quadrados (menos, com o break). O array guarda n + 1 booleanos.</p></div>
+<div class="layout">
+  <section class="panel"><h2>pilha</h2><div class="pile" id="pile"></div>
+    <div class="legend"><span><i style="border-color:var(--green);background:#05ffa133"></i>i pedras</span>
+      <span><i style="border-color:var(--pink);background:#ff2a6d44"></i>k² que seriam tiradas</span></div></section>
+  <section class="panel"><h2>registradores</h2><dl id="vars"></dl></section>
+  <section class="panel full"><h2>array win[i]</h2>
+    <div class="arr" id="viz"></div>
+    <div class="legend"><span><i style="border-color:var(--cyan);background:#00f0ff44"></i>leitura · win[i − k²]</span>
+      <span><i style="border-color:var(--yellow);background:var(--yellow)"></i>escrita</span>
+      <span>T = vence · F = perde</span></div>
+  </section>
+  <section class="panel full"><h2>código</h2><pre id="code"></pre></section>
+  <section class="panel full"><h2>memória · O(n)</h2>
+    <p id="memstat"></p><div id="mem"></div>
+    <p class="legend">n + 1 células. Diferente do Fibonacci, win[i] pode ler qualquer posição até √i quadrados atrás, então não dá para guardar só uma janela.</p>
+  </section>
+</div>
+</template>
+<template id="tpl-memo" data-label="Memo">
+<p class="lead"><b>Memoization</b> (top-down): <code>f(i)</code> = o jogador da vez vence com <code>i</code> pedras?
+  A recursão parte de <code>f(n)</code> e tenta cada quadrado. Se algum <code>f(i − k²)</code> volta <b>false</b>, o rival
+  perdeu e <code>f(i)</code> retorna true na hora. Caminhos diferentes chegam ao mesmo número de pedras (de 10 dá para chegar a
+  1 tirando 9, ou tirando 4 e depois 4 e 1...), e essas repetições viram <span class="hl">cache hit</span>.</p>
+
+<div class="cx"><span>tempo <b>O(n·√n)</b></span><span>espaço <b>O(n)</b></span><p>Cada f(i) é calculado uma vez e testa até √i quadrados. Memo de n + 1 células e call stack de até n frames (tirando 1 pedra por vez).</p></div>
+<div class="layout">
+  <section class="panel"><h2>pilha</h2><div class="pile" id="pile"></div>
+    <div class="legend"><span><i style="border-color:var(--green);background:#05ffa133"></i>pedras do frame atual</span>
+      <span><i style="border-color:var(--pink);background:#ff2a6d44"></i>k² tiradas</span></div></section>
+  <section class="panel"><h2>registradores</h2><dl id="vars"></dl></section>
+  <section class="panel full"><h2>memo[i]</h2>
+    <div class="arr" id="viz"></div>
+    <div class="legend"><span><i style="border-color:var(--cyan);background:#00f0ff44"></i>leitura · cache hit</span>
+      <span><i style="border-color:var(--yellow);background:var(--yellow)"></i>escrita</span>
+      <span><i style="border-color:var(--line)"></i>░░ nunca gravado</span></div>
+  </section>
+  <section class="panel"><h2>código</h2><pre id="code"></pre></section>
+  <section class="panel"><h2>call stack</h2><p id="stackstat"></p><div id="stack"></div></section>
+  <section class="panel full"><h2>memória · heap (memo)</h2>
+    <p id="memstat"></p><div id="mem"></div>
+    <p class="legend">memo[0] nunca é gravado: o caso base devolve false direto. A stack chega a n frames.</p>
+  </section>
+</div>
+</template>
+
+<footer class="ctrl">
+  <p id="msg"></p>
+  <div class="row">
+    <button id="first" title="Home">⏮</button><button id="prev" title="←">◀</button>
+    <button id="play">▶ RUN</button>
+    <button id="next" title="→">▶</button><button id="lastbtn" title="End">⏭</button>
+    <input id="scrub" type="range" min="0" value="0" aria-label="step">
+    <span id="stepno"></span>
+    <label>speed <input id="speed" type="range" min="100" max="1000" value="600"></label>
+    <span class="keys">← → espaço</span>
+  </div>
+</footer>
+
+<script src="../assets/trace.js"></script>
+<script src="../assets/stone-game-4.js"></script>
+<script src="../assets/player.js"></script>
+<script>
+// n stones; the first i are "in play" (on), and the last k² of those are the ones a move would take.
+const renderPile = (s) => $('pile').innerHTML = [...Array(SG4_N).keys()].map((p) => {
+  const on = s.i !== undefined && p < s.i, take = on && s.k && s.k * s.k <= s.i && p >= s.i - s.k * s.k;
+  return `<div class="st ${take ? 'take' : on ? 'on' : ''}"></div>`;
+}).join('');
+const arrView = (s, name) => s.dp.map((v, k) =>
+  `<div class="slot">${name(k)}<div class="cell ${cellClass(s, k)}">${cellVal(v)}</div></div>`).join('');
+
+mountTabs({
+array: () => mountPlayer(sg4Array(), (s) => {
+  renderCode(SG4_CODE.array.text, s.line);
+  renderVars(s.vars);
+  renderPile(s);
+  renderMemory(s, (k) => `win[${k}]`, (k) => `base + ${k}·4`);
+  $('viz').innerHTML = arrView(s, (k) => `win[${k}]`);
+}),
+memo: () => mountPlayer(sg4Memo(), (s) => {
+  renderCode(SG4_CODE.memo.text, s.line);
+  renderVars(s.vars);
+  renderPile(s);
+  renderStack(s);
+  renderMemory(s, (k) => `memo[${k}]`, (k) => `base + ${k}·4`);
+  $('viz').innerHTML = arrView(s, (k) => `memo[${k}]`);
+}),
+});
+</script>
+</body>
+</html>

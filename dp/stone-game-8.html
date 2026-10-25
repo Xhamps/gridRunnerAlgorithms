@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Stone Game VIII · GRID//RUNNER</title>
+<link rel="stylesheet" href="../assets/style.css">
+<style>
+.sg8rows { display: grid; gap: 10px; }
+.sg8rows h3 { margin: 0; font-size: 12px; color: var(--dim); font-weight: normal; }
+</style>
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="../index.html">GRID<em>//</em>RUNNER</a>
+  <nav><a class="on" href="../index.html#dp">Dynamic Programming</a><a href="../index.html#grafos">Grafos</a><a href="../index.html#ordenacao">Ordenação</a><a href="../index.html#busca">Busca Binária</a></nav>
+</header>
+<script src="../assets/github.js"></script>
+<script src="../assets/analytics.js"></script>
+<main>
+<h1>STONE GAME VIII <span class="diff hard">HARD</span></h1>
+<section class="panel problem"><h2>problema</h2>
+  <p>Mais uma rodada da série que começou no <a href="stone-game.html">Stone Game</a>. Agora há uma fila de
+    <code>n</code> pedras, e cada uma tem um valor <code>stones[i]</code>, que pode ser <b>negativo</b>. Alice começa e
+    os dois se alternam. Enquanto houver mais de uma pedra, o jogador da vez escolhe um <code>x &gt; 1</code>, tira as
+    <code>x</code> pedras mais à esquerda, <b>soma</b> os valores delas aos seus pontos e coloca de volta, na ponta
+    esquerda, <b>uma única pedra</b> com essa soma.</p>
+  <p>Os dois jogam de forma <b>ótima</b>: Alice quer maximizar (pontos de Alice − pontos de Bob), e Bob quer minimizar.
+    Retorne essa diferença.</p>
+  <div class="ex"><b>O truque</b>
+    <p>A pedra devolvida guarda a soma de tudo o que foi juntado, então a pedra da esquerda é sempre uma
+      <span class="hl">soma de prefixo</span> da fila original. Juntar pedras até a posição original <code>i</code>
+      marca exatamente <code>pre[i] = stones[0] + … + stones[i]</code> pontos, não importa o que aconteceu antes.
+      Cada jogada vira "escolher um índice <code>i</code>" maior que o da jogada anterior (e <code>i ≥ 1</code> na
+      primeira). O jogo acaba quando alguém escolhe <code>n−1</code>.</p></div>
+  <div class="ex"><b>Exemplo 1</b> · <code>stones = [-1, 2, -3, 4, -5]</code> → <code>5</code>
+    <p>Alice junta as 4 primeiras (−1+2−3+4 = 2) e a fila vira [2, −5]. Bob é obrigado a juntar as duas e marca −3.
+      Diferença: 2 − (−3) = 5. É o exemplo animado abaixo.</p></div>
+  <div class="ex"><b>Exemplo 2</b> · <code>stones = [7, -6, 5, 10, 5, -2, -6]</code> → <code>13</code>
+    <p>Alice junta tudo de uma vez e marca 13. Bob não joga.</p></div>
+  <div class="ex"><b>Exemplo 3</b> · <code>stones = [-10, -12]</code> → <code>-22</code>
+    <p>Só existe uma jogada: Alice é obrigada a juntar as duas.</p></div>
+  <p class="legend">Restrições: 2 ≤ n ≤ 10⁵ · −10⁴ ≤ stones[i] ≤ 10⁴</p>
+</section>
+<nav class="tabs" id="tabs" role="tablist" aria-label="variações"></nav>
+<div id="variant"></div>
+</main>
+
+<template id="tpl-array" data-label="Array">
+<p class="lead"><b>Tabulation</b>, da direita para a esquerda: <code>dp[i]</code> = maior
+  <span class="hl">diferença</span> (eu − rival) que o jogador da vez consegue quando a jogada dele precisa parar no
+  índice <code>i</code> ou mais à direita. Ele tem duas opções: <b>adiar</b> (parar depois de <code>i</code>, o que vale
+  <code>dp[i+1]</code>) ou <b>parar em <code>i</code></b>, marcando <code>pre[i]</code> e passando a vez ao rival, que
+  fica com <code>dp[i+1]</code>. Logo <code>dp[i] = max(dp[i+1], pre[i] − dp[i+1])</code>, e a resposta é
+  <code>dp[1]</code>, porque a primeira jogada junta pelo menos 2 pedras.</p>
+
+<div class="cx"><span>tempo <b>O(n)</b></span><span>espaço <b>O(n)</b></span><p>Um laço para os prefixos e outro para o dp, O(1) por índice. Dois arrays de n células: pre e dp.</p></div>
+<div class="layout">
+  <section class="panel"><h2>stones</h2><div class="arr" id="nums"></div>
+    <div class="legend"><span><i style="border-color:var(--cyan)"></i>índice i</span>
+      <span><i style="border-color:var(--green)"></i>pedras juntadas se parar em i</span></div></section>
+  <section class="panel"><h2>registradores</h2><dl id="vars"></dl></section>
+  <section class="panel full"><h2>pre[i] e dp[i]</h2>
+    <div class="sg8rows" id="viz"></div>
+    <div class="legend"><span><i style="border-color:var(--cyan);background:#00f0ff44"></i>leitura · dp[i+1] / pre[i-1]</span>
+      <span><i style="border-color:var(--pink);background:#ff2a6d44"></i>leitura · pre[i]</span>
+      <span><i style="border-color:var(--yellow);background:var(--yellow)"></i>escrita</span>
+      <span><i style="border-color:var(--line)"></i>░░ lixo (dp[0] nunca é usado)</span></div>
+  </section>
+  <section class="panel full"><h2>código</h2><pre id="code"></pre></section>
+  <section class="panel full"><h2>memória · O(n)</h2>
+    <p id="memstat"></p><div id="mem"></div>
+    <p class="legend">pre e dp lado a lado: 2n células. Repare que dp[i] só lê dp[i+1]: o resto do array é peso morto, e a aba
+      Variáveis aproveita isso.</p>
+  </section>
+</div>
+</template>
+<template id="tpl-vars" data-label="Variáveis">
+<p class="lead">Mesma recorrência do <a href="#array">array</a>, com duas economias. Os prefixos são calculados
+  <span class="hl">no próprio <code>stones</code></span> (cada valor original só é lido uma vez). E como
+  <code>dp[i]</code> só depende de <code>dp[i+1]</code>, uma única variável <code>best</code> basta: antes da linha
+  do laço ela é <code>dp[i+1]</code>, depois vira <code>dp[i]</code>. Memória extra <b>O(1)</b>.</p>
+
+<div class="cx"><span>tempo <b>O(n)</b></span><span>espaço <b>O(1)</b></span><p>Os mesmos dois laços. Fora a entrada, que é reaproveitada para os prefixos, só existe best.</p></div>
+<div class="layout">
+  <section class="panel"><h2>stones (original)</h2><div class="arr" id="nums"></div>
+    <div class="legend"><span><i style="border-color:var(--cyan)"></i>índice i</span>
+      <span><i style="border-color:var(--green)"></i>pedras juntadas se parar em i</span></div></section>
+  <section class="panel"><h2>registradores</h2><dl id="vars"></dl></section>
+  <section class="panel full"><h2>stones (vira pre) + best</h2>
+    <div class="arr" id="viz"></div>
+    <div class="legend"><span><i style="border-color:var(--cyan);background:#00f0ff44"></i>leitura · best / stones[i-1]</span>
+      <span><i style="border-color:var(--pink);background:#ff2a6d44"></i>leitura · pre[i]</span>
+      <span><i style="border-color:var(--yellow);background:var(--yellow)"></i>escrita</span>
+      <span>best tracejado = única variável extra</span></div>
+  </section>
+  <section class="panel full"><h2>código</h2><pre id="code"></pre></section>
+  <section class="panel full"><h2>memória · O(1) extra</h2>
+    <p id="memstat"></p><div id="mem"></div>
+    <p class="legend">n células da entrada, sobrescritas com os prefixos, mais 1 célula para best. Contra 2n do array.</p>
+  </section>
+</div>
+</template>
+
+<footer class="ctrl">
+  <p id="msg"></p>
+  <div class="row">
+    <button id="first" title="Home">⏮</button><button id="prev" title="←">◀</button>
+    <button id="play">▶ RUN</button>
+    <button id="next" title="→">▶</button><button id="lastbtn" title="End">⏭</button>
+    <input id="scrub" type="range" min="0" value="0" aria-label="step">
+    <span id="stepno"></span>
+    <label>speed <input id="speed" type="range" min="100" max="1000" value="600"></label>
+    <span class="keys">← → espaço</span>
+  </div>
+</footer>
+
+<script src="../assets/trace.js"></script>
+<script src="../assets/stone-game-8.js"></script>
+<script src="../assets/player.js"></script>
+<script>
+const N = SG8_STONES.length;
+// Original stones: index i in cyan, the stones 0..i-1 merged together with it in green.
+const renderStones = (i) => $('nums').innerHTML = SG8_STONES.map((v, k) =>
+  `<div class="slot">[${k}]<div class="cell ${k === i ? 'r0' : i !== undefined && k < i ? 'rng' : ''}">${v}</div></div>`).join('');
+const slots = (s, from, to, name, tmp) => [...Array(to - from).keys()].map((d) => from + d).map((k) =>
+  `<div class="slot${tmp && tmp(k) ? ' tmp' : ''}">${name(k)}<div class="cell ${cellClass(s, k)}">${cellVal(s.dp[k])}</div></div>`).join('');
+
+mountTabs({
+array: () => {
+  const name = (k) => k < N ? `pre[${k}]` : `dp[${k - N}]`;
+  mountPlayer(SG8_array(), (s) => {
+    renderCode(SG8_CODE.array.text, s.line);
+    renderVars(s.vars);
+    renderStones(s.i);
+    renderMemory(s, name, (k) => k < N ? `pre + ${k}·4` : `dp + ${k - N}·4`, N);
+    $('viz').innerHTML = `<h3>pre</h3><div class="arr">${slots(s, 0, N, name)}</div>` +
+      `<h3>dp</h3><div class="arr">${slots(s, N, 2 * N, name)}</div>`;
+  });
+},
+vars: () => {
+  const name = (k) => k < N ? `stones[${k}]` : 'best';
+  mountPlayer(SG8_vars(), (s) => {
+    renderCode(SG8_CODE.vars.text, s.line);
+    renderVars(s.vars);
+    renderStones(s.i);
+    renderMemory(s, name, (k) => k < N ? `stones + ${k}·4` : '&best');
+    $('viz').innerHTML = slots(s, 0, N + 1, name, (k) => k === N);
+  });
+},
+});
+</script>
+</body>
+</html>

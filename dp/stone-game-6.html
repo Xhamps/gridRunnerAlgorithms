@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Stone Game VI · GRID//RUNNER</title>
+<link rel="stylesheet" href="../assets/style.css">
+<style>
+.cell.ta { --c: var(--cyan); color: var(--cyan); border-style: dashed; }
+.cell.tb { --c: var(--pink); color: var(--pink); border-style: dashed; }
+</style>
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="../index.html">GRID<em>//</em>RUNNER</a>
+  <nav><a class="on" href="../index.html#dp">Dynamic Programming</a><a href="../index.html#grafos">Grafos</a><a href="../index.html#ordenacao">Ordenação</a><a href="../index.html#busca">Busca Binária</a></nav>
+</header>
+<script src="../assets/github.js"></script>
+<script src="../assets/analytics.js"></script>
+<main>
+<h1>STONE GAME VI <span class="diff medium">MEDIUM</span></h1>
+<section class="panel problem"><h2>problema</h2>
+  <p>Há <code>n</code> pedras na mesa, mas Alice e Bob não concordam sobre quanto cada uma vale: para Alice, a pedra
+    <code>i</code> vale <code>aliceValues[i]</code>; para Bob, vale <code>bobValues[i]</code>. Alice começa e os dois se
+    alternam. Na sua vez, o jogador tira <b>qualquer</b> pedra que ainda esteja na mesa e soma o valor que <b>ele</b> dá a ela.</p>
+  <p>Os dois jogam de forma <b>ótima</b>. Retorne <code>1</code> se Alice terminar com mais pontos, <code>−1</code> se Bob
+    terminar com mais, e <code>0</code> se empatarem.</p>
+  <p>Continuação de <a href="stone-game.html">Stone Game</a>: aqui não há pontas, qualquer pedra pode ser pega.</p>
+  <div class="ex"><b>Exemplo 1</b> · <code>aliceValues = [1, 3]</code>, <code>bobValues = [2, 1]</code> → <code>1</code>
+    <p>Alice pega a pedra 1 (3 pontos) e Bob fica com a pedra 0 (2 pontos). 3 contra 2.</p></div>
+  <div class="ex"><b>Exemplo 2</b> · <code>aliceValues = [1, 2]</code>, <code>bobValues = [3, 1]</code> → <code>0</code>
+    <p>Alice pega a pedra 0, que vale só 1 para ela, mas 3 para Bob. Bob fica com a pedra 1 e faz 1. Empate em 1 a 1:
+      se Alice pegasse a pedra 1, perderia por 2 a 3.</p></div>
+  <div class="ex"><b>Exemplo 3</b> · <code>aliceValues = [2, 4, 3]</code>, <code>bobValues = [1, 6, 7]</code> → <code>−1</code> (o animado)
+    <p>Qualquer que seja a jogada de Alice, Bob vence: o melhor que ela consegue é perder por 1 (6 a 7 ou 5 a 6).</p></div>
+  <p class="legend">Restrições: n == aliceValues.length == bobValues.length · 1 ≤ n ≤ 10⁵ · 1 ≤ aliceValues[i], bobValues[i] ≤ 100</p>
+</section>
+<nav class="tabs" id="tabs" role="tablist" aria-label="variações"></nav>
+<div id="variant"></div>
+</main>
+
+<template id="tpl-forca" data-label="Força bruta">
+<p class="lead"><b>Minimax com memo</b>: o estado é a <span class="hl">máscara</span> das pedras já pegas (bit i ligado =
+  pedra i fora da mesa). De quem é a vez sai da quantidade de bits ligados. <code>f(mask)</code> = a maior diferença
+  (eu − rival) que o jogador da vez consegue com as pedras que sobraram. Pegar a pedra <code>i</code> rende o valor dela
+  para mim, e o rival vira o jogador da vez: <code>v − f(mask | 1&lt;&lt;i)</code>. O memo ajuda (a mesma máscara aparece
+  por ordens diferentes), mas existem 2ⁿ máscaras: com n = 10⁵ isso é impossível. Serve para conferir a ideia gulosa.</p>
+
+<div class="cx"><span>tempo <b>O(2ⁿ·n)</b></span><span>espaço <b>O(2ⁿ)</b></span><p>2ⁿ máscaras, cada uma testa n pedras. Memo com 2ⁿ células e call stack de até n+1 frames. Sem memo seriam O(n!) jogos.</p></div>
+<div class="layout">
+  <section class="panel"><h2>pedras</h2><div class="arr" id="nums"></div>
+    <div class="legend"><span><i style="border-color:var(--cyan)"></i>pedra olhada</span>
+      <span><i style="border-color:var(--line)"></i>░░ já pega (bit ligado)</span></div></section>
+  <section class="panel"><h2>registradores</h2><dl id="vars"></dl></section>
+  <section class="panel full"><h2>memo[mask]</h2>
+    <div class="arr" id="viz"></div>
+    <div class="legend"><span><i style="border-color:var(--cyan);background:#00f0ff44"></i>leitura · cache hit</span>
+      <span><i style="border-color:var(--yellow);background:var(--yellow)"></i>escrita</span>
+      <span><i style="border-color:var(--green)"></i>máscara do frame atual</span></div>
+  </section>
+  <section class="panel"><h2>código</h2><pre id="code"></pre></section>
+  <section class="panel"><h2>call stack</h2><p id="stackstat"></p><div id="stack"></div></section>
+  <section class="panel full"><h2>memória · heap (memo)</h2>
+    <p id="memstat"></p><div id="mem"></div>
+    <p class="legend">Uma célula por subconjunto: 2³ = 8 aqui, mas dobra a cada pedra nova. A máscara cheia (111) nunca é
+      gravada: o caso base devolve 0 direto.</p>
+  </section>
+</div>
+</template>
+<template id="tpl-guloso" data-label="Guloso">
+<p class="lead"><b>Guloso</b>: escreva o placar como <code>alice − bob = Σ<sub>Alice</sub> a[i] − Σ<sub>Bob</sub> b[i]</code>.
+  Somando e subtraindo <code>b[i]</code> nas pedras da Alice, fica
+  <code>Σ<sub>Alice</sub> (a[i] + b[i]) − Σ<sub>todas</sub> b[i]</code>. O segundo termo é fixo, então Alice quer pegar as pedras
+  de maior <span class="hl">a[i] + b[i]</span>, e pelo mesmo raciocínio Bob também. Pegar uma pedra
+  <b>ganha o meu valor e nega o do rival</b>: as duas coisas contam. Os dois pegam sempre a próxima da fila ordenada por a+b.</p>
+
+<div class="cx"><span>tempo <b>O(n log n)</b></span><span>espaço <b>O(n)</b></span><p>A ordenação domina; a varredura é O(n). O array idx ocupa n células.</p></div>
+<div class="layout">
+  <section class="panel"><h2>pedras</h2><div class="arr" id="nums"></div>
+    <div class="legend"><span><i style="border-color:var(--cyan)"></i>Alice pegou</span>
+      <span><i style="border-color:var(--pink)"></i>Bob pegou</span></div></section>
+  <section class="panel"><h2>registradores</h2><dl id="vars"></dl></section>
+  <section class="panel full"><h2>idx · ordem por a+b</h2>
+    <div class="arr" id="viz"></div>
+    <div class="legend"><span><i style="border-color:var(--cyan);background:#00f0ff44"></i>pedra da vez</span>
+      <span><i style="border-color:var(--yellow);background:var(--yellow)"></i>escrita</span>
+      <span><span class="hl">A / B</span> quem pegou</span></div>
+  </section>
+  <section class="panel full"><h2>código</h2><pre id="code"></pre></section>
+  <section class="panel full"><h2>memória · O(n)</h2>
+    <p id="memstat"></p><div id="mem"></div>
+    <p class="legend">Só o array de índices: n células. Os placares alice e bob ficam em registradores.</p>
+  </section>
+</div>
+</template>
+
+<footer class="ctrl">
+  <p id="msg"></p>
+  <div class="row">
+    <button id="first" title="Home">⏮</button><button id="prev" title="←">◀</button>
+    <button id="play">▶ RUN</button>
+    <button id="next" title="→">▶</button><button id="lastbtn" title="End">⏭</button>
+    <input id="scrub" type="range" min="0" value="0" aria-label="step">
+    <span id="stepno"></span>
+    <label>speed <input id="speed" type="range" min="100" max="1000" value="600"></label>
+    <span class="keys">← → espaço</span>
+  </div>
+</footer>
+
+<script src="../assets/trace.js"></script>
+<script src="../assets/stone-game-6.js"></script>
+<script src="../assets/player.js"></script>
+<script>
+const N = SG6_A.length;
+const bin = (m) => m.toString(2).padStart(N, '0');
+// One slot per stone: "A x · B y" plus a class from cls(k).
+const stones = (cls) => SG6_A.map((v, k) =>
+  `<div class="slot">pedra ${k}<div class="cell ${cls(k)}">${v}·${SG6_B[k]}</div><span class="gen">A·B · a+b=${v + SG6_B[k]}</span></div>`).join('');
+
+mountTabs({
+forca: () => mountPlayer(sg6Brute(), (s) => {
+  renderCode(SG6_CODE.forca.text, s.line);
+  renderVars(s.vars);
+  renderStack(s);
+  renderMemory(s, (k) => `memo[${bin(k)}]`, (k) => `base + ${k}·4`);
+  $('nums').innerHTML = stones((k) => s.mask !== undefined && s.mask & (1 << k) ? 'junk' : k === s.i ? 'r0' : '');
+  $('viz').innerHTML = s.dp.map((v, k) =>
+    `<div class="slot">${bin(k)}<div class="cell ${k === s.mask && !s.read.length && !s.write.length ? 'rng' : cellClass(s, k)}">${cellVal(v)}</div></div>`).join('');
+}),
+guloso: () => mountPlayer(sg6Greedy(), (s) => {
+  renderCode(SG6_CODE.guloso.text, s.line);
+  renderVars(s.vars);
+  renderMemory(s, (k) => `idx[${k}]`, (k) => `base + ${k}·4`);
+  const who = {};
+  s.owner.forEach((o, k) => { who[s.dp[k]] = o; });
+  $('nums').innerHTML = stones((k) => who[k] === 'A' ? 'ta' : who[k] === 'B' ? 'tb' : '');
+  $('viz').innerHTML = s.dp.map((v, k) =>
+    `<div class="slot">idx[${k}]<div class="cell ${cellClass(s, k)}">${cellVal(v)}</div>` +
+    `<span class="gen${k === s.k ? ' fresh' : ''}">${v === null ? '' : `a+b=${SG6_A[v] + SG6_B[v]}`}${s.owner[k] ? ' · ' + s.owner[k] : ''}</span></div>`).join('');
+}),
+});
+</script>
+</body>
+</html>
